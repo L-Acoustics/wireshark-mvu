@@ -30,8 +30,8 @@ MVU.FEATURE_FLAGS = {
 
 --- MVU status codes
 MVU.STATUS_CODES = {
-    SUCCESS         = 0, [0] = "SUCCESS",
-    NOT_IMPLEMENTED = 1, [1] = "NOT_IMPLEMENTED"
+    [0] = "SUCCESS",
+    [1] = "NOT_IMPLEMENTED"
 }
 
 -- IEEE 1722.1 constants
@@ -53,6 +53,7 @@ local f_ieee17221_vendor_unique_protocol_id = Field.new("ieee17221.protocol_id")
 
 -- Declare new fields
 local f_mvu_command_type = ProtoField.uint32("mvu.command_type", "Command", base.DEC)
+local f_mvu_status_code = ProtoField.uint8("mvu.status", "Status", base.HEX, MVU.STATUS_CODES)
 local f_mvu_protocol_version = ProtoField.uint32("mvu.protocol_version", "Protocol Version", base.DEC)
 local f_mvu_feature_flags = ProtoField.uint32("mvu.feature_flags", "Feature Flages", base.HEX)
 local f_mvu_feature_redundancy = ProtoField.bool("mvu.features.redundancy", "REDUNDANCY", 32, nil, 0x00000001)
@@ -62,6 +63,7 @@ local f_mvu_system_unique_id = ProtoField.uint32("mvu.system_unique_id", "System
 -- Add fields to protocol
 milan_proto.fields = {
     f_mvu_command_type,
+    f_mvu_status_code,
     f_mvu_protocol_version,
     f_mvu_feature_flags,
     f_mvu_feature_redundancy,
@@ -128,6 +130,16 @@ function milan_proto.dissector(buffer, pinfo, tree)
 
                     -- Write command type and description to the MVU subtree
                     mvuSubtree:add(f_mvu_command_type, buffer(mvu_payload_start, 2), command_type):append_text(" (" .. command_type_description .. ")")
+
+                    ---
+                    --- Status code
+                    ---
+
+                    -- Read status code from IEEE1722.1 header
+                    local status_code = buffer(16, 1):uint() >> 3
+
+                    -- Write status to the MVU subtree
+                    mvuSubtree:add(f_mvu_status_code, buffer(16, 1), status_code)
 
                     ---
                     --- Responses to GET_MILAN_INFO
