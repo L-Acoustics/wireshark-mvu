@@ -58,17 +58,20 @@ local f_ieee17221_message_type = Field.new("ieee17221.message_type")
 local f_ieee17221_vendor_unique_protocol_id = Field.new("ieee17221.protocol_id")
 
 -- Declare new fields
-local f_mvu_command_type                                  = ProtoField.uint32("mvu.command_type",                         "Command",                               base.DEC)
-local f_mvu_status_code                                   = ProtoField.uint8 ("mvu.status",                               "Status",                                base.HEX, MVU.STATUS_CODES)
-local f_mvu_protocol_version                              = ProtoField.uint32("mvu.protocol_version",                     "Protocol Version",                      base.DEC)
-local f_mvu_feature_flags                                 = ProtoField.uint32("mvu.feature_flags",                        "Feature Flags",                         base.HEX)
-local f_mvu_feature_redundancy                            = ProtoField.bool  ("mvu.feature.redundancy",                   "REDUNDANCY",                            32, nil, 0x00000001)
-local f_mvu_feature_talker_dynamic_mappings_while_running = ProtoField.bool  ("mvu.feature.talker_dynamic_mappings",      "TALKER_DYNAMIC_MAPPINGS_WHILE_RUNNING", 32, nil, 0x00000002)
-local f_mvu_system_unique_id                              = ProtoField.uint32("mvu.system_unique_id",                     "System Unique ID",                      base.HEX)
-local f_mvu_clock_domain_index                            = ProtoField.uint16("mvu.clock_domain_index",                   "Clock Domain Index",                    base.DEC)
-local f_mvu_media_clock_reference_flags                   = ProtoField.uint32("mvu.media_clock_flags",                    "Media Clock Flags",                     base.HEX)
-local f_mvu_media_clock_reference_priority_valid          = ProtoField.bool  ("mvu.media_clock.reference_priority_valid", "REFERENCE PRIORITY VALID",              8, nil, 0x01)
-local f_mvu_media_clock_domain_name_valid                 = ProtoField.bool  ("mvu.media_clock.domain_name_valid",        "DOMAIN NAME VALID",                     8, nil, 0x02)
+local f_mvu_command_type                                  = ProtoField.uint32 ("mvu.command_type",                         "Command",                                base.DEC)
+local f_mvu_status_code                                   = ProtoField.uint8  ("mvu.status",                               "Status",                                 base.HEX, MVU.STATUS_CODES)
+local f_mvu_protocol_version                              = ProtoField.uint32 ("mvu.protocol_version",                     "Protocol Version",                       base.DEC)
+local f_mvu_feature_flags                                 = ProtoField.uint32 ("mvu.feature_flags",                        "Feature Flags",                          base.HEX)
+local f_mvu_feature_redundancy                            = ProtoField.bool   ("mvu.feature.redundancy",                   "REDUNDANCY",                             32, nil, 0x00000001)
+local f_mvu_feature_talker_dynamic_mappings_while_running = ProtoField.bool   ("mvu.feature.talker_dynamic_mappings",      "TALKER_DYNAMIC_MAPPINGS_WHILE_RUNNING",  32, nil, 0x00000002)
+local f_mvu_system_unique_id                              = ProtoField.uint32 ("mvu.system_unique_id",                     "System Unique ID",                       base.HEX)
+local f_mvu_clock_domain_index                            = ProtoField.uint16 ("mvu.clock_domain_index",                   "Clock Domain Index",                     base.DEC)
+local f_mvu_media_clock_reference_flags                   = ProtoField.uint32 ("mvu.media_clock_flags",                    "Media Clock Flags",                      base.HEX)
+local f_mvu_media_clock_reference_priority_valid          = ProtoField.bool   ("mvu.media_clock.reference_priority_valid", "REFERENCE PRIORITY VALID",               8, nil, 0x01)
+local f_mvu_media_clock_domain_name_valid                 = ProtoField.bool   ("mvu.media_clock.domain_name_valid",        "DOMAIN NAME VALID",                      8, nil, 0x02)
+local f_mvu_default_mcr_prio                              = ProtoField.uint8  ("mvu.default_mcr_prio",                     "Default Media Clock Reference Priority", base.DEC)
+local f_mvu_user_mcr_prio                                 = ProtoField.uint8  ("mvu.user_mcr_prio",                        "User Media Clock Reference Priority",    base.DEC)
+local f_mvu_media_clock_domain_name                       = ProtoField.stringz("mvu.media_clock.domain_name",              "Media Clock Domain Name",                base.UNICODE)
 
 -- Add fields to protocol
 milan_proto.fields = {
@@ -83,6 +86,9 @@ milan_proto.fields = {
     f_mvu_media_clock_reference_flags,
     f_mvu_media_clock_reference_priority_valid,
     f_mvu_media_clock_domain_name_valid,
+    f_mvu_default_mcr_prio,
+    f_mvu_user_mcr_prio,
+    f_mvu_media_clock_domain_name,
 }
 
 --- Implementation of protocol's dissector
@@ -226,6 +232,26 @@ function milan_proto.dissector(buffer, pinfo, tree)
                         -- Write individual media clock reference info flags to the MVU subtree
                         mvuSubtree:add(f_mvu_media_clock_reference_priority_valid, buffer(mvu_payload_start + 4, 1))
                         mvuSubtree:add(f_mvu_media_clock_domain_name_valid, buffer(mvu_payload_start + 4, 1))
+
+                        -- Get media clock domain name
+                        local media_clock_domain_name = mvu_payload:string(12, 12)
+                        
+                        -- Write media clock domain name to teh MVU subtree
+                        mvuSubtree:add(f_mvu_media_clock_domain_name, buffer(mvu_payload_start + 12, 12), media_clock_domain_name)
+                    end
+                    
+                    ---
+                    --- GET_MEDIA_CLOCK_REFERENCE_INFO commands
+                    --- 
+
+                    -- If the message is a GET_MEDIA_CLOCK_REFERENCE_INFO command
+                    if message_type == IEEE17221.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND and command_type == MVU.COMMAND_TYPES.GET_MEDIA_CLOCK_REFERENCE_INFO
+                    then
+                        -- Get clock domain index
+                        local clock_domain_index = mvu_payload:int(2, 2)
+
+                        -- Write clock domain index to the MVU subtree
+                        mvuSubtree:add(f_mvu_clock_domain_index, buffer(mvu_payload_start + 2, 2), clock_domain_index)
                     end
                 end
 
