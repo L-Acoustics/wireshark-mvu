@@ -23,6 +23,11 @@ MVU.COMMAND_TYPES = {
     GET_MEDIA_CLOCK_REFERENCE_INFO = 0x0004, [0x0004] = "GET_MEDIA_CLOCK_REFERENCE_INFO",
 }
 
+MVU.FEATURE_FLAGS = {
+    [0x00000001] = "REDUNDANCY",
+    [0x00000002] = "TALKER_DYNAMIC_MAPPINGS_WHILE_RUNNING",
+}
+
 --- MVU status codes
 MVU.STATUS_CODES = {
     SUCCESS         = 0, [0] = "SUCCESS",
@@ -47,13 +52,19 @@ local f_ieee17221_message_type = Field.new("ieee17221.message_type")
 local f_ieee17221_vendor_unique_protocol_id = Field.new("ieee17221.protocol_id")
 
 -- Declare new fields
-local f_mvu_command_type = ProtoField.int32("mvu.command_type", "Command", base.DEC)
-local f_mvu_protocol_version = ProtoField.int32("mvu.protocol_version", "Protocol Version", base.DEC)
+local f_mvu_command_type = ProtoField.uint32("mvu.command_type", "Command", base.DEC)
+local f_mvu_protocol_version = ProtoField.uint32("mvu.protocol_version", "Protocol Version", base.DEC)
+local f_mvu_feature_flags = ProtoField.uint32("mvu.feature_flags", "Feature Flages", base.HEX)
+local f_mvu_feature_redundancy = ProtoField.bool("mvu.features.redundancy", "REDUNDANCY", 32, nil, 0x00000001)
+local f_mvu_feature_talker_dynamic_mappings_while_running = ProtoField.bool("mvu.features.talker_dynamic_mappings", "TALKER_DYNAMIC_MAPPINGS_WHILE_RUNNING", 32, nil, 0x00000002)
 
 -- Add fields to protocol
 milan_proto.fields = {
     f_mvu_command_type,
     f_mvu_protocol_version,
+    f_mvu_feature_flags,
+    f_mvu_feature_redundancy,
+    f_mvu_feature_talker_dynamic_mappings_while_running,
 }
 
 --- Implementation of protocol's dissector
@@ -117,7 +128,7 @@ function milan_proto.dissector(buffer, pinfo, tree)
                     mvuSubtree:add(f_mvu_command_type, buffer(mvu_payload_start, 2), command_type):append_text(" (" .. command_type_description .. ")")
 
                     ---
-                    --- Protocol version (in responses to GET_MILAN_INFO or GET_SYSTEM_UNIQUE_ID)
+                    --- Responses to GET_MILAN_INFO or GET_SYSTEM_UNIQUE_ID
                     --- 
                     
                     -- If the message is a reponse to GET_MILAN_INFO or GET_SYSTEM_UNIQUE_ID
@@ -129,6 +140,14 @@ function milan_proto.dissector(buffer, pinfo, tree)
 
                         -- Write protocol version to the MVU subtree
                         mvuSubtree:add(f_mvu_protocol_version, buffer(mvu_payload_start + 4, 4), protocol_version)
+
+                        -- Read feature flags
+                        local feature_flags = mvu_payload:int(8, 4)
+
+                        -- Write feature flags to the MVU subtree
+                        mvuSubtree:add(f_mvu_feature_flags, buffer(mvu_payload_start + 8, 4), feature_flags)
+                        mvuSubtree:add(f_mvu_feature_talker_dynamic_mappings_while_running, buffer(mvu_payload_start + 8, 4))
+                        mvuSubtree:add(f_mvu_feature_redundancy, buffer(mvu_payload_start + 8, 4))
                     end
                 end
 
