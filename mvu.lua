@@ -48,10 +48,12 @@ local f_ieee17221_vendor_unique_protocol_id = Field.new("ieee17221.protocol_id")
 
 -- Declare new fields
 local f_mvu_command_type = ProtoField.int32("mvu.command_type", "Command", base.DEC)
+local f_mvu_protocol_version = ProtoField.int32("mvu.protocol_version", "Protocol Version", base.DEC)
 
 -- Add fields to protocol
 milan_proto.fields = {
     f_mvu_command_type,
+    f_mvu_protocol_version,
 }
 
 --- Implementation of protocol's dissector
@@ -113,6 +115,21 @@ function milan_proto.dissector(buffer, pinfo, tree)
 
                     -- Write command type and description to the MVU subtree
                     mvuSubtree:add(f_mvu_command_type, buffer(mvu_payload_start, 2), command_type):append_text(" (" .. command_type_description .. ")")
+
+                    ---
+                    --- Protocol version (in responses to GET_MILAN_INFO or GET_SYSTEM_UNIQUE_ID)
+                    --- 
+                    
+                    -- If the message is a reponse to GET_MILAN_INFO or GET_SYSTEM_UNIQUE_ID
+                    if message_type == IEEE17221.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE
+                    and (command_type == MVU.COMMAND_TYPES.GET_MILAN_INFO or command_type == MVU.COMMAND_TYPES.GET_SYSTEM_UNIQUE_ID)
+                    then
+                        -- Read protocol version (4 bytes)
+                        local protocol_version = mvu_payload:int(4, 4)
+
+                        -- Write protocol version to the MVU subtree
+                        mvuSubtree:add(f_mvu_protocol_version, buffer(mvu_payload_start + 4, 4), protocol_version)
+                    end
                 end
 
             end
