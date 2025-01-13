@@ -1,7 +1,7 @@
 ---------------
 -- CONSTANTS --
 ---------------
----
+
 -- Version of this plugin
 VERSION = "1.0.0.0"
 
@@ -11,10 +11,10 @@ MVU = {}
 -- Version of the Milan Specification
 MVU.SPEC_VERSION = "1.2" -- Revision 1.2 of November 29, 2023
 
---- Protocol ID for MVU
+-- Protocol ID for MVU
 MVU.PROTOCOL_ID = "001bc50ac100"
 
---- List of known MVU commands
+-- List of known MVU commands
 MVU.COMMAND_TYPES = {
     GET_MILAN_INFO                 = 0x0000, [0x0000] = "GET_MILAN_INFO",
     SET_SYSTEM_UNIQUE_ID           = 0x0001, [0x0001] = "SET_SYSTEM_UNIQUE_ID",
@@ -23,12 +23,13 @@ MVU.COMMAND_TYPES = {
     GET_MEDIA_CLOCK_REFERENCE_INFO = 0x0004, [0x0004] = "GET_MEDIA_CLOCK_REFERENCE_INFO",
 }
 
+-- List of known MVU features
 MVU.FEATURE_FLAGS = {
     [0x00000001] = "REDUNDANCY",
     [0x00000002] = "TALKER_DYNAMIC_MAPPINGS_WHILE_RUNNING",
 }
 
---- MVU status codes
+-- MVU status codes
 MVU.STATUS_CODES = {
     [0] = "SUCCESS",
     [1] = "NOT_IMPLEMENTED"
@@ -43,21 +44,28 @@ MVU.MEDIA_CLOCK_REFERENCE_INFO_FLAGS = {
 -- IEEE 1722.1 constants
 IEEE17221 = {}
 
---- List of known IEEE 1722.1 AECP commands
+-- List of known IEEE 1722.1 AECP commands
 IEEE17221.AECP_MESSAGE_TYPES = {
     VENDOR_UNIQUE_COMMAND  = 6, [6] = "VENDOR_UNIQUE_COMMAND",
     VENDOR_UNIQUE_RESPONSE = 7, [7] = "VENDOR_UNIQUE_RESPONSE",
 }
 
+------------------
+-- DECLARATIONS --
+------------------
+
 -- Create proto object for the dissector
+-- See documentation: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Proto.html#lua_fn_proto___call_name__description_
 local milan_proto = Proto("mvu", "Milan Vendor Unique (MVU)")
 
 -- Declare fields to be read
+-- See documentation: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Field.html#lua_fn_Field_new_fieldname_
 local f_ieee17221_control_data_length = Field.new("ieee17221.control_data_length")
 local f_ieee17221_message_type = Field.new("ieee17221.message_type")
 local f_ieee17221_vendor_unique_protocol_id = Field.new("ieee17221.protocol_id")
 
 -- Declare new fields
+-- See documentation: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Proto.html#lua_class_ProtoField
 local f_mvu_command_type                                  = ProtoField.uint32 ("mvu.command_type",                         "Command",                                base.DEC)
 local f_mvu_status_code                                   = ProtoField.uint8  ("mvu.status",                               "Status",                                 base.HEX, MVU.STATUS_CODES)
 local f_mvu_protocol_version                              = ProtoField.uint32 ("mvu.protocol_version",                     "Protocol Version",                       base.DEC)
@@ -74,6 +82,7 @@ local f_mvu_user_mcr_prio                                 = ProtoField.uint8  ("
 local f_mvu_media_clock_domain_name                       = ProtoField.stringz("mvu.media_clock.domain_name",              "Media Clock Domain Name",                base.UNICODE)
 
 -- Add fields to protocol
+-- See documentation https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Proto.html#lua_class_attrib_proto_fields
 milan_proto.fields = {
     f_mvu_command_type,
     f_mvu_status_code,
@@ -91,10 +100,15 @@ milan_proto.fields = {
     f_mvu_media_clock_domain_name,
 }
 
+--------------------
+-- IMPLEMENTATION --
+--------------------
+
 --- Implementation of protocol's dissector
---- @param buffer string The buffer to dissect
---- @param pinfo table The packet info
---- @param tree table The tree on which to add the procotol items
+--- @see documentation https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Proto.html#lua_class_attrib_proto_dissector
+--- @param buffer any The buffer to dissect (TVB object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tvb.html#lua_class_Tvb)
+--- @param pinfo table The packet info (PInfo object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Pinfo.html#lua_class_Pinfo)
+--- @param tree table The tree on which to add the procotol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
 function milan_proto.dissector(buffer, pinfo, tree)
 
     -- Read fields
@@ -261,7 +275,12 @@ function milan_proto.dissector(buffer, pinfo, tree)
 end
 
 -- Finally, register protocol as a postdissector
+-- See documentation: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Proto.html#lua_fn_register_postdissector_proto___allfields__
 register_postdissector(milan_proto)
+
+----------------------
+-- HELPER FUNCTIONS --
+----------------------
 
 --- Get the human-readable description of an MVU command type
 --- @param command_type number The command type's number
