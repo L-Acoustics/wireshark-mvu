@@ -158,7 +158,7 @@ function milan_proto.dissector(buffer, pinfo, tree)
                     ---
 
                     -- Read command type (2 bytes, ignoring first bit)
-                    local command_type = 0x7fff & mvu_payload:int(0, 2)
+                    local command_type = bit.band(0x7fff, mvu_payload:int(0, 2))
                     -- Get command type description
                     local command_type_description = GetCommandTypeDescription(command_type)
 
@@ -170,7 +170,7 @@ function milan_proto.dissector(buffer, pinfo, tree)
                     ---
 
                     -- Read status code from IEEE1722.1 header
-                    local status_code = buffer(16, 1):uint() >> 3
+                    local status_code = bit.rshift(buffer(16, 1):uint(), 3)
 
                     -- Write status to the MVU subtree
                     mvuSubtree:add(f_mvu_status_code, buffer(16, 1), status_code)
