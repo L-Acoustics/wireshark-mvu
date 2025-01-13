@@ -1,0 +1,12 @@
+{
+  "Lua.diagnostics.globals": [
+    "Proto",
+    "ProtoField",
+    "DissectorTable",
+    "Field",
+    "register_postdissector",
+    "NSTime",
+    "ByteArray",
+    "base"
+  ]
+}
