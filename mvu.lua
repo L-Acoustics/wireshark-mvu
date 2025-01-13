@@ -34,6 +34,12 @@ MVU.STATUS_CODES = {
     [1] = "NOT_IMPLEMENTED"
 }
 
+-- MVU flags for Media Clock Reference
+MVU.MEDIA_CLOCK_REFERENCE_INFO_FLAGS = {
+    [0] = "MEDIA_CLOCK_REFERENCE_PRIORITY_VALID",
+    [1] = "MEDIA_CLOCK_DOMAIN_NAME_VALID",
+}
+
 -- IEEE 1722.1 constants
 IEEE17221 = {}
 
@@ -52,13 +58,17 @@ local f_ieee17221_message_type = Field.new("ieee17221.message_type")
 local f_ieee17221_vendor_unique_protocol_id = Field.new("ieee17221.protocol_id")
 
 -- Declare new fields
-local f_mvu_command_type = ProtoField.uint32("mvu.command_type", "Command", base.DEC)
-local f_mvu_status_code = ProtoField.uint8("mvu.status", "Status", base.HEX, MVU.STATUS_CODES)
-local f_mvu_protocol_version = ProtoField.uint32("mvu.protocol_version", "Protocol Version", base.DEC)
-local f_mvu_feature_flags = ProtoField.uint32("mvu.feature_flags", "Feature Flages", base.HEX)
-local f_mvu_feature_redundancy = ProtoField.bool("mvu.features.redundancy", "REDUNDANCY", 32, nil, 0x00000001)
-local f_mvu_feature_talker_dynamic_mappings_while_running = ProtoField.bool("mvu.features.talker_dynamic_mappings", "TALKER_DYNAMIC_MAPPINGS_WHILE_RUNNING", 32, nil, 0x00000002)
-local f_mvu_system_unique_id = ProtoField.uint32("mvu.system_unique_id", "System Unique ID", base.HEX)
+local f_mvu_command_type                                  = ProtoField.uint32("mvu.command_type",                         "Command",                               base.DEC)
+local f_mvu_status_code                                   = ProtoField.uint8 ("mvu.status",                               "Status",                                base.HEX, MVU.STATUS_CODES)
+local f_mvu_protocol_version                              = ProtoField.uint32("mvu.protocol_version",                     "Protocol Version",                      base.DEC)
+local f_mvu_feature_flags                                 = ProtoField.uint32("mvu.feature_flags",                        "Feature Flags",                         base.HEX)
+local f_mvu_feature_redundancy                            = ProtoField.bool  ("mvu.feature.redundancy",                   "REDUNDANCY",                            32, nil, 0x00000001)
+local f_mvu_feature_talker_dynamic_mappings_while_running = ProtoField.bool  ("mvu.feature.talker_dynamic_mappings",      "TALKER_DYNAMIC_MAPPINGS_WHILE_RUNNING", 32, nil, 0x00000002)
+local f_mvu_system_unique_id                              = ProtoField.uint32("mvu.system_unique_id",                     "System Unique ID",                      base.HEX)
+local f_mvu_clock_domain_index                            = ProtoField.uint16("mvu.clock_domain_index",                   "Clock Domain Index",                    base.DEC)
+local f_mvu_media_clock_reference_flags                   = ProtoField.uint32("mvu.media_clock_flags",                    "Media Clock Flags",                     base.HEX)
+local f_mvu_media_clock_reference_priority_valid          = ProtoField.bool  ("mvu.media_clock.reference_priority_valid", "REFERENCE PRIORITY VALID",              8, nil, 0x01)
+local f_mvu_media_clock_domain_name_valid                 = ProtoField.bool  ("mvu.media_clock.domain_name_valid",        "DOMAIN NAME VALID",                     8, nil, 0x02)
 
 -- Add fields to protocol
 milan_proto.fields = {
@@ -69,6 +79,10 @@ milan_proto.fields = {
     f_mvu_feature_redundancy,
     f_mvu_feature_talker_dynamic_mappings_while_running,
     f_mvu_system_unique_id,
+    f_mvu_clock_domain_index,
+    f_mvu_media_clock_reference_flags,
+    f_mvu_media_clock_reference_priority_valid,
+    f_mvu_media_clock_domain_name_valid,
 }
 
 --- Implementation of protocol's dissector
@@ -144,7 +158,7 @@ function milan_proto.dissector(buffer, pinfo, tree)
                     ---
                     --- Responses to GET_MILAN_INFO
                     --- 
-                    
+
                     -- If the message is a reponse to GET_MILAN_INFO
                     if message_type == IEEE17221.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE
                     and (command_type == MVU.COMMAND_TYPES.GET_MILAN_INFO)
@@ -160,16 +174,16 @@ function milan_proto.dissector(buffer, pinfo, tree)
 
                         -- Write feature flags to the MVU subtree
                         mvuSubtree:add(f_mvu_feature_flags, buffer(mvu_payload_start + 8, 4), feature_flags)
-                        -- Write individual features to the MVU subtree
+                        -- Write individual features flags to the MVU subtree
                         mvuSubtree:add(f_mvu_feature_talker_dynamic_mappings_while_running, buffer(mvu_payload_start + 8, 4))
                         mvuSubtree:add(f_mvu_feature_redundancy, buffer(mvu_payload_start + 8, 4))
                     end
-                    
+
                     ---
                     --- SET_SYSTEM_UNIQUE_ID commands or responses to GET_SYSTEM_UNIQUE_ID
                     --- 
-                     
-                    -- if the mlessage is a SET_SYSTEM_UNIQUE_ID or a response to GET_SYSTEM_UNIQUE_ID
+
+                    -- if the message is a SET_SYSTEM_UNIQUE_ID or a response to GET_SYSTEM_UNIQUE_ID
                     if (message_type == IEEE17221.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND and command_type == MVU.COMMAND_TYPES.SET_SYSTEM_UNIQUE_ID)
                     or (message_type == IEEE17221.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE and command_type == MVU.COMMAND_TYPES.GET_SYSTEM_UNIQUE_ID)
                     then
@@ -178,6 +192,40 @@ function milan_proto.dissector(buffer, pinfo, tree)
 
                         -- Write system unique ID to the MVU subtree
                         mvuSubtree:add(f_mvu_system_unique_id, buffer(mvu_payload_start + 4, 4), system_unique_id)
+                    end
+
+                    ---
+                    --- SET_MEDIA_CLOCK_REFERENCE_INFO commands and responses or responses to GET_MEDIA_CLOCK_REFERENCE_INFO
+                    --- 
+
+                    -- If the message is a SET_MEDIA_CLOCK_REFERENCE_INFO command or response or a response to GET_MEDIA_CLOCK_REFERENCE_INFO
+                    if (
+                        message_type == IEEE17221.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND
+                        and command_type == MVU.COMMAND_TYPES.SET_MEDIA_CLOCK_REFERENCE_INFO
+                    )
+                    or
+                    (   
+                        message_type == IEEE17221.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE and
+                        (
+                            command_type == MVU.COMMAND_TYPES.SET_MEDIA_CLOCK_REFERENCE_INFO
+                            or command_type == MVU.COMMAND_TYPES.GET_MEDIA_CLOCK_REFERENCE_INFO
+                        )
+                    )
+                    then
+                        -- Get clock domain index
+                        local clock_domain_index = mvu_payload:int(2, 2)
+
+                        -- Write clock domain index to the MVU subtree
+                        mvuSubtree:add(f_mvu_clock_domain_index, buffer(mvu_payload_start + 2, 2), clock_domain_index)
+
+                        -- Get media clock reference info flags
+                        local media_clock_reference_info_flags = mvu_payload:int(4, 1)
+
+                        -- Write media clock reference info flags to the MVU subtree
+                        mvuSubtree:add(f_mvu_media_clock_reference_flags, buffer(mvu_payload_start + 4, 1), media_clock_reference_info_flags)
+                        -- Write individual media clock reference info flags to the MVU subtree
+                        mvuSubtree:add(f_mvu_media_clock_reference_priority_valid, buffer(mvu_payload_start + 4, 1))
+                        mvuSubtree:add(f_mvu_media_clock_domain_name_valid, buffer(mvu_payload_start + 4, 1))
                     end
                 end
 
