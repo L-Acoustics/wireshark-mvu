@@ -8,6 +8,7 @@
     "NSTime",
     "ByteArray",
     "base",
-    "bit"
+    "bit",
+    "ftypes"
   ]
 }
