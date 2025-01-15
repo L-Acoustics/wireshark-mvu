@@ -9,6 +9,8 @@
     "ByteArray",
     "base",
     "bit",
-    "ftypes"
+    "ftypes",
+    "ProtoExpert",
+    "expert"
   ]
 }

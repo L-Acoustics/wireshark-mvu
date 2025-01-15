@@ -10,6 +10,7 @@ local mFields = require("mvu_fields")
 local mSpecs = require("mvu_specs")
 local mIEEE17221Fields = require("ieee17221_fields")
 local mIEEE17221Specs = require("ieee17221_specs")
+local mHelpers = require("helpers")
 
 -- Init the module object to return
 local m = {}
@@ -20,6 +21,9 @@ local m = {}
 
 -- Internal list of fields
 m._fields = {}
+
+-- Internal list of expert fields
+m._experts = {}
 
 -- The MVU subtree
 m._subtree = nil
@@ -38,6 +42,9 @@ m._mvu_payload_start = 0
 
 -- The length of the MVU payload
 m._mvu_payload_length = 0
+
+-- The index in the paket buffer where the IEEE 1722.1 control data payload starts
+m._control_data_start = 0
 
 --------------------
 -- Public Methods --
@@ -58,6 +65,15 @@ function m.DeclareFields()
 	-- Status code (taken from IEEE 1722.1 header)
 	local status_valuestring = mHelpers.GetTableValuesWithNumberKey(mSpecs.STATUS_CODES)
 	m._fields["mvu.status"]       = mFields.CreateField(ProtoField.uint8("mvu.status", "Status", base.HEX, status_valuestring))
+
+	-------------------
+	-- EXPERT FIELDS --
+	-------------------
+	-- See documentation: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Proto.html#lua_class_ProtoExpert
+
+	-- Control Data Length error
+	local control_data_length_error = ProtoExpert.new("mvu.expert.control_data_length_error", "Control Data Length error", expert.group.PROTOCOL, expert.severity.ERROR)
+	m._experts["mvu.expert.control_data_length_error"] = mFields.CreateExpertField("mvu.expert.control_data_length_error", control_data_length_error)
 
 end
 
@@ -98,24 +114,25 @@ end
 --- Add header fields to the subtree
 --- @param buffer any The buffer to dissect (TVB object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tvb.html#lua_class_Tvb)
 --- @param subtree table The tree on which to add the procotol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
---- @return number command_type, number status_code
+--- @return table|nil errors
 function m.AddHeaderFieldsToSubtree(buffer, subtree)
 
-	-- Read IEEE 1722.1 field values
-	local control_data_length = mIEEE17221Fields.GetControldataLength()
-
-	-- Get MVU payload bytes from buffer
-	-- Skip:
+	-- Read payloads positions
+	-- Packet structure:
 	--   14 bytes for Ethernet header
 	--   4 bytes for IEEE1722 subtype
 	--   8 bytes for IEEE1722 stream ID
+	--     (Start of Control Data payload)
+	m._control_data_start = 14 + 4 + 8
 	--   8 bytes for IEEE1722.1 controller ID
 	--   2 bytes for IEEE1722.1 sequence ID
 	--   6 bytes for IEEE1722.1 vendor protocol ID
-	m._mvu_payload_start = 14 + 4 + 8 + 8 + 2 + 6
-	-- Note: the control_data_length includes IEEE1722.1 headers so the MVU payload size is the control data length - IEEE1722.1 headers length (16 bytes)
-	m._mvu_payload_length = control_data_length - 16
-	m._mvu_payload_bytes = buffer:bytes(m._mvu_payload_start--[[, m._mvu_payload_length]])
+	--     (Start of MVU payload)
+	m._mvu_payload_start = m._control_data_start + 8 + 2 + 6
+
+	-- Read MVU payload (read to end of packet)
+	m._mvu_payload_bytes = buffer:bytes(m._mvu_payload_start)
+	m._mvu_payload_length = m._mvu_payload_bytes:len()
 
 	---
 	--- Command Type
@@ -137,13 +154,40 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree)
 	-- Write status to the MVU subtree
 	subtree:add(m._fields["mvu.status"], buffer(16, 1), m._status_code)
 
-	-- Return the value of the inserted fields
-	return m._command_type, m._status_code
+	---
+	--- Check errors
+	---
+
+	local errors = {}
+
+	-- Read IEEE 1722.1 field values
+	local control_data_length = mIEEE17221Fields.GetControldataLength()
+
+	-- If the Control data Length is smaller than expected
+	-- (the minimum length is 20 bytes for the smallest MVU command)
+	if control_data_length < 20 then
+		-- Build eror message
+		local error_message = "Control Data Length value (" .. control_data_length .. ") is too small (expected >=20)."
+		-- Add control data length error to the subtree
+		subtree:add_tvb_expert_info(m._experts["mvu.expert.control_data_length_error"], buffer(16, 2), error_message)
+		-- Add error message to errors lise
+		table.insert(errors, error_message)
+	end
+
+	-- Return list of errors if any
+	if #errors > 0 then
+		return errors
+	end
+
 end
 
---- Write the packet information column with the packet's information
+--- Alter the packet information object to write MVU details in the packet columns
 --- @param pinfo any
-function m.WritePacketInfo(pinfo)
+--- @param errors table|nil
+function m.WritePacketInfo(pinfo, errors)
+
+	-- Change protocol name to MVU
+	pinfo.cols["protocol"] = "MVU"
 
 	-- Read IEEE 1722.1 field values
 	local message_type = mIEEE17221Fields.GetMessageType()
@@ -159,9 +203,17 @@ function m.WritePacketInfo(pinfo)
 		packet_info = packet_info .. " (Response)"
 	end
 
+	-- Append errors if any
+	if type(errors) == "table" and #errors > 0 then
+		packet_info = packet_info .. " [ERRORS: "
+		for _,error in pairs(errors) do
+			packet_info = packet_info .. error .. " ; "
+		end
+		packet_info = packet_info:sub(1, -4) .. "]"
+	end
+
 	-- Overwrite packet info column text
 	pinfo.cols["info"] = packet_info
-	pinfo.cols["protocol"] = "MVU"
 
 end
 

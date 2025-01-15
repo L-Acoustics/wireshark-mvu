@@ -17,6 +17,9 @@ local m = {}
 -- Private list of Field objects
 m._fields = {}
 
+-- Private list of expert fields
+m._experts = {}
+
 --------------------
 -- Public Methods --
 --------------------
@@ -25,6 +28,7 @@ m._fields = {}
 --- Add the field to internal list only the first time it is created (discriminate with the field's 'name' property)
 --- When attempting to create again, discard the passed field argument and return existing field object.
 --- @param field_object any
+--- @return any field
 function m.CreateField(field_object)
 
     -- If the field object is not of type "userdata"
@@ -50,17 +54,42 @@ function m.CreateField(field_object)
 
 end
 
+--- Create a ProtoExpert object for the protocol.
+--- Add the field to internal list only the first time it is created (discriminate with the field's 'name' property)
+--- When attempting to create again, discard the passed field argument and return existing field object.
+--- @param abbr string
+--- @param expert userdata
+--- @return any expert
+function m.CreateExpertField(abbr, expert)
+
+    -- If the field object is not of type "userdata"
+    if type(expert) ~= "userdata" then
+        error("CreateField() argument #1: incorrect data type, 'userdata' expected")
+        return
+    end
+
+    -- If the field does not exist yet in the list
+    if m._experts[abbr] == nil then
+        -- Create and add new Field object to the list
+        m._experts[abbr] = expert
+    end
+
+    -- Return the existing or created field
+    return m._experts[abbr]
+
+end
+
 --- Register all requested MVU fields into the protocol
 function m.RegisterAllFieldsInProtocol()
-    -- Init fields list
-    local fields = {}
-    -- Copy all requested internal fields to fields table
-    for _, field in pairs(m._fields) do
-        table.insert(fields, field)
-    end
+
     -- Register fields
     -- See documentation https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Proto.html#lua_class_attrib_proto_fields
-    mProto.Proto.fields = fields
+    mProto.Proto.fields = m._fields
+
+    -- Register expert
+    -- See documentation https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Proto.html#lua_class_attrib_proto_experts
+    mProto.Proto.experts = m._experts
+
 end
 
 -- Return the module object

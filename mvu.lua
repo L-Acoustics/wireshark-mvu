@@ -17,6 +17,7 @@ local mControl = require("control")
 local mMilanInfo = require("mvu_feature_milan_info")
 local mSystemUniqueId = require("mvu_feature_system_unique_id")
 local mClockreferenceInfo = require("mvu_feature_clock_reference_info")
+local mHelpers = require("helpers")
 
 -- Load IEEE 1722.1 fields needed for dissecting MVU packets
 mIEEE17221Fields.LoadAllFields()
@@ -44,6 +45,9 @@ function mProto.Proto.dissector(buffer, pinfo, tree)
 	-- If we are dissecting a MVU packet and the packet is visited
 	if mControl.IsMvuPacket() and pinfo.visited then
 
+		-- Init table of errors that we may encounter during dissecting
+		local errors = {}
+
 		-------------
 		-- Headers --
 		-------------
@@ -52,27 +56,38 @@ function mProto.Proto.dissector(buffer, pinfo, tree)
 		local mvuSubtree = mHeaders.CreateMvuSubtree(buffer, tree)
 
 		-- Add header fields to subtree
-		mHeaders.AddHeaderFieldsToSubtree(buffer, mvuSubtree)
-
-		-- Overwrite packet info column
-		mHeaders.WritePacketInfo(pinfo)
+		if #errors == 0 then
+			errors = mHelpers.MergeTables(errors, mHeaders.AddHeaderFieldsToSubtree(buffer, mvuSubtree))
+		end
 
 		--------------
 		-- Features --
 		--------------
 
 		-- Add Milan Info fields to subtree
-		mMilanInfo.AddFieldsToSubtree(buffer, mvuSubtree)
+		if #errors == 0 then
+			mMilanInfo.AddFieldsToSubtree(buffer, mvuSubtree)
+		end
 
 		-- Add System Unique Id fields to subtree
-		mSystemUniqueId.AddFieldsToSubtree(buffer, mvuSubtree)
+		if #errors == 0 then
+			mSystemUniqueId.AddFieldsToSubtree(buffer, mvuSubtree)
+		end
 
 		-- Add Clock Reference Info fields to subtree
-		mClockreferenceInfo.AddFieldsToSubtree(buffer, mvuSubtree)
+		if #errors == 0 then
+			mClockreferenceInfo.AddFieldsToSubtree(buffer, mvuSubtree)
+		end
 
 		-- Add plugin information to the subtree
 		mvuSubtree:add("[Dissector version: " .. mPluginInfo.VERSION .. "]")
 		mvuSubtree:add("[Based on Milan Specifications version: " .. mSpecs.SPEC_VERSION .. "]")
+
+		-----------------
+		-- Packet Info --
+		-----------------
+		mHeaders.WritePacketInfo(pinfo, errors)
+
 	end
 
 end
