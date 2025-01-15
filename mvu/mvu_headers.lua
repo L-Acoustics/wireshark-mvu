@@ -156,7 +156,7 @@ function m.WritePacketInfo(pinfo)
 	local message_type = mIEEE17221Fields.GetMessageType()
 
 	-- Init info text with command type
-	local packet_info = "Milan Vendor Unique: " .. mSpecs.GetCommandTypeDescription(m._command_type)
+	local packet_info = mSpecs.GetCommandTypeDescription(m._command_type)
 
 	-- Append message type
 	if message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND then
@@ -168,6 +168,7 @@ function m.WritePacketInfo(pinfo)
 
 	-- Overwrite packet info column text
 	pinfo.cols["info"] = packet_info
+	pinfo.cols["protocol"] = "MVU"
 
 end
 
