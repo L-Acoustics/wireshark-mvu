@@ -162,7 +162,17 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree)
 	-- (the minimum length is 20 bytes for the smallest MVU command)
 	if control_data_length < 20 then
 		-- Build eror message
-		local error_message = "Control Data Length value (" .. control_data_length .. ") is too small (expected >=20)."
+		local error_message = "Control Data Length value (" .. control_data_length .. ") is too small (expected >=20)"
+		-- Add control data length error to the subtree
+		subtree:add_tvb_expert_info(m._experts["mvu.expert.control_data_length_error"], buffer(16, 2), error_message)
+		-- Add error message to errors lise
+		table.insert(errors, error_message)
+
+	-- If the Control Data Length is greater than the control data payload
+	elseif m._control_data_start + control_data_length > buffer:len() then
+		-- Build eror message
+		local missing_bytes_count = m._control_data_start + control_data_length - buffer:len()
+		local error_message = "Missing bytes (" .. missing_bytes_count .. ") at end of packet according to to Control Data Length value (" .. control_data_length .. ")"
 		-- Add control data length error to the subtree
 		subtree:add_tvb_expert_info(m._experts["mvu.expert.control_data_length_error"], buffer(16, 2), error_message)
 		-- Add error message to errors lise
