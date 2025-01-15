@@ -48,8 +48,6 @@ function m.GetControldataLength()
             return field_info.value
         end
     end
-    -- Field not found
-    error("Field not found: '" .. m._FIELD_NAMES.CONTROL_DATA_LENGTH .. "'")
 end
 
 --- Read the value of Message Type field
@@ -67,12 +65,10 @@ function m.GetMessageType()
             return field_info.value
         end
     end
-    -- Field not found
-    error("Field not found: '" .. m._FIELD_NAMES.MESSAGE_TYPE .. "'")
 end
 
 --- Read the value or Vendor Unique Procol ID as an hexadecimal string
---- @return string vendor_unique_protocol_id
+--- @return string|nil vendor_unique_protocol_id
 function m.GetVendorUniqueProtocolIdHexString()
     -- Get field
     local field = m._GetField(m._FIELD_NAMES.VENDOR_UNIQUE_PROTOCOL_ID)
@@ -86,8 +82,6 @@ function m.GetVendorUniqueProtocolIdHexString()
             return field_info.range:bytes():tohex(true)
         end
     end
-    -- Field not found
-    error("Field not found: '" .. m._FIELD_NAMES.VENDOR_UNIQUE_PROTOCOL_ID .. "'")
 end
 
 ---------------------
