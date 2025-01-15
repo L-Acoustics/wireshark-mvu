@@ -27,15 +27,75 @@ m._fields = {}
 
 --- Declare all fields of this feature
 function m.DeclareFields()
+
+	------------
+	-- FIELDS --
+	------------
 	-- See documentation: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Proto.html#lua_class_ProtoField
-	m._fields["mvu.clock_domain_index"]                   = mFields.CreateField(ProtoField.uint16 ("mvu.clock_domain_index",                   "Clock Domain Index",                     base.DEC))
-	m._fields["mvu.media_clock_flags"]                    = mFields.CreateField(ProtoField.uint32 ("mvu.media_clock_flags",                    "Media Clock Flags",                      base.HEX))
-	m._fields["mvu.media_clock.reference_priority_valid"] = mFields.CreateField(ProtoField.bool   ("mvu.media_clock.reference_priority_valid", "REFERENCE PRIORITY VALID",               8, nil, 0x01))
-	m._fields["mvu.media_clock.domain_name_valid"]        = mFields.CreateField(ProtoField.bool   ("mvu.media_clock.domain_name_valid",        "DOMAIN NAME VALID",                      8, nil, 0x02))
-	m._fields["mvu.default_mcr_prio"]                     = mFields.CreateField(ProtoField.uint8  ("mvu.default_mcr_prio",                     "Default Media Clock Reference Priority", base.DEC))
-	m._fields["mvu.user_mcr_prio"]                        = mFields.CreateField(ProtoField.uint8  ("mvu.user_mcr_prio",                        "User Media Clock Reference Priority",    base.DEC))
-	m._fields["mvu.media_clock.domain_name"]              = mFields.CreateField(ProtoField.stringz("mvu.media_clock.domain_name",              "Media Clock Domain Name",                base.UNICODE))
-	m._fields["mvu.system_unique_id"]                     = mFields.CreateField(ProtoField.uint32 ("mvu.system_unique_id", "System Unique ID", base.HEX))
+
+	-- Clock domain index
+	m._fields["mvu.clock_domain_index"]
+	= mFields.CreateField(
+		ProtoField.uint16("mvu.clock_domain_index", "Clock Domain Index", base.DEC)
+	)
+
+	-- Flags for Media Clock fields validity
+	m._fields["mvu.media_clock_flags"]
+	= mFields.CreateField(
+		ProtoField.uint32("mvu.media_clock_flags", "Media Clock Flags", base.HEX)
+	)
+
+	-- Media clock referency priority field validity
+	m._fields["mvu.media_clock.reference_priority_valid"]
+	= mFields.CreateField(
+		ProtoField.bool(
+			"mvu.media_clock.reference_priority_valid",
+			"REFERENCE PRIORITY VALID",
+			8,    -- parent bitfield size
+			nil,  -- table of value strings
+			0x01) -- bit mask for this field
+	)
+
+	-- Media clock domain name field validity
+	m._fields["mvu.media_clock.domain_name_valid"]
+	= mFields.CreateField(
+		ProtoField.bool(
+			"mvu.media_clock.domain_name_valid",
+			"DOMAIN NAME VALID",
+			8,    -- parent bitfield size
+			nil,  -- table of value strings
+			0x02) -- bit mask for this field
+	)
+
+	-- Default media clock reference priority
+	m._fields["mvu.default_mcr_prio"]
+	= mFields.CreateField(
+		ProtoField.uint8("mvu.default_mcr_prio", "Default Media Clock Reference Priority", base.DEC)
+	)
+
+	-- User media clock reference priority
+	m._fields["mvu.user_mcr_prio"]
+	= mFields.CreateField(
+		ProtoField.uint8("mvu.user_mcr_prio", "User Media Clock Reference Priority", base.DEC)
+	)
+
+	-- Media clock domain name
+	m._fields["mvu.media_clock.domain_name"]
+	= mFields.CreateField(
+		ProtoField.stringz("mvu.media_clock.domain_name", "Media Clock Domain Name", base.UNICODE)
+	)
+
+	-- System unique ID
+	m._fields["mvu.system_unique_id"]
+	= mFields.CreateField(
+		ProtoField.uint32("mvu.system_unique_id", "System Unique ID", base.HEX)
+	)
+
+	-------------------
+	-- EXPERT FIELDS --
+	-------------------
+	-- See documentation: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Proto.html#lua_class_ProtoExpert
+
 end
 
 --- Add fields to the subtree

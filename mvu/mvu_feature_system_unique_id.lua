@@ -27,8 +27,23 @@ m._fields = {}
 
 --- Declare all fields of this feature
 function m.DeclareFields()
+
+	------------
+	-- FIELDS --
+	------------
 	-- See documentation: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Proto.html#lua_class_ProtoField
-	m._fields["mvu.system_unique_id"] = mFields.CreateField(ProtoField.uint32 ("mvu.system_unique_id", "System Unique ID", base.HEX))
+
+	-- System unique ID
+	m._fields["mvu.system_unique_id"]
+	= mFields.CreateField(
+		ProtoField.uint32 ("mvu.system_unique_id", "System Unique ID", base.HEX)
+	)
+
+	-------------------
+	-- EXPERT FIELDS --
+	-------------------
+	-- See documentation: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Proto.html#lua_class_ProtoExpert
+
 end
 
 --- Add fields to the subtree

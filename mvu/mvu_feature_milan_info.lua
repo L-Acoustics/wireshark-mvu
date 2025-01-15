@@ -27,11 +27,51 @@ m._fields = {}
 
 --- Declare all fields of this feature
 function m.DeclareFields()
+
+	------------
+	-- FIELDS --
+	------------
 	-- See documentation: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Proto.html#lua_class_ProtoField
-	m._fields["mvu.protocol_version"]                = mFields.CreateField(ProtoField.uint32 ("mvu.protocol_version",                "Protocol Version",                      base.DEC))
-	m._fields["mvu.feature_flags"]                   = mFields.CreateField(ProtoField.uint32 ("mvu.feature_flags",                   "Feature Flags",                         base.HEX))
-	m._fields["mvu.feature.redundancy"]              = mFields.CreateField(ProtoField.bool   ("mvu.feature.redundancy",              "REDUNDANCY",                            32, nil, 0x00000001))
-	m._fields["mvu.feature.talker_dynamic_mappings"] = mFields.CreateField(ProtoField.bool   ("mvu.feature.talker_dynamic_mappings", "TALKER_DYNAMIC_MAPPINGS_WHILE_RUNNING", 32, nil, 0x00000002))
+
+	-- Protocol version
+	m._fields["mvu.protocol_version"]
+	= mFields.CreateField(
+		ProtoField.uint32("mvu.protocol_version", "Protocol Version", base.DEC)
+	)
+
+	-- Flags for available Milan features
+	m._fields["mvu.feature_flags"]
+	= mFields.CreateField(
+		ProtoField.uint32("mvu.feature_flags", "Feature Flags", base.HEX)
+	)
+
+	-- Feature: Redundancy
+	m._fields["mvu.feature.redundancy"]
+	= mFields.CreateField(
+		ProtoField.bool(
+			"mvu.feature.redundancy",
+			"REDUNDANCY",
+			32,          -- parent bitfield size
+			nil,         -- table of value strings
+			0x00000001)  -- bit mask for this field
+	)
+
+	-- Feature: Talker dynamic mappings while running
+	m._fields["mvu.feature.talker_dynamic_mappings"]
+	= mFields.CreateField(
+		ProtoField.bool(
+			"mvu.feature.talker_dynamic_mappings",
+			"TALKER_DYNAMIC_MAPPINGS_WHILE_RUNNING",
+			32,         -- parent bitfield size
+			nil,        -- table of value strings
+			0x00000002) -- bit mask for this field
+	)
+
+	-------------------
+	-- EXPERT FIELDS --
+	-------------------
+	-- See documentation: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Proto.html#lua_class_ProtoExpert
+
 end
 
 --- Add fields to the subtree
