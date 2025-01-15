@@ -72,12 +72,12 @@ function mProto.Proto.dissector(buffer, pinfo, tree)
 
 		-- Add System Unique Id fields to subtree
 		if #errors == 0 then
-			mSystemUniqueId.AddFieldsToSubtree(buffer, mvuSubtree)
+			error = mSystemUniqueId.AddFieldsToSubtree(buffer, mvuSubtree)
 		end
 
 		-- Add Clock Reference Info fields to subtree
 		if #errors == 0 then
-			mClockreferenceInfo.AddFieldsToSubtree(buffer, mvuSubtree)
+			errors = mClockreferenceInfo.AddFieldsToSubtree(buffer, mvuSubtree)
 		end
 
 		-- Add plugin information to the subtree

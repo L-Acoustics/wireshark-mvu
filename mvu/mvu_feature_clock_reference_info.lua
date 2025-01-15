@@ -82,7 +82,7 @@ function m.DeclareFields()
 	-- Media clock domain name
 	m._fields["mvu.media_clock.domain_name"]
 	= mFields.CreateField(
-		ProtoField.stringz("mvu.media_clock.domain_name", "Media Clock Domain Name", base.UNICODE)
+		ProtoField.string("mvu.media_clock.domain_name", "Media Clock Domain Name", base.UNICODE)
 	)
 
 	-- System unique ID
@@ -208,10 +208,15 @@ function m.AddFieldsToSubtree(buffer, subtree)
 		subtree:add(m._fields["mvu.media_clock.domain_name_valid"], buffer(mvu_payload_start + 4, 1))
 
 		-- Get media clock domain name
-		local media_clock_domain_name = buffer(mvu_payload_start + 12, 64):string()
+		local media_clock_domain_name = buffer(mvu_payload_start + 12, 64):raw()
 
-		-- Write media clock domain name to teh MVU subtree
-		subtree:add(m._fields["mvu.media_clock.domain_name"], buffer(mvu_payload_start + 12, 64), media_clock_domain_name)
+		-- Determine media clock domain name string length
+		local null_character_position = media_clock_domain_name:find("\0")
+		local media_clock_domain_name_length = null_character_position ~= nil and (null_character_position - 1) or 64
+
+		-- Write media clock domain name to the MVU subtree
+		subtree:add(m._fields["mvu.media_clock.domain_name"], buffer(mvu_payload_start + 12, media_clock_domain_name_length), media_clock_domain_name)
+
 	end
 
 	-- Return errors
