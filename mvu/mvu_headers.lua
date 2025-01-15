@@ -46,24 +46,17 @@ m._mvu_payload_length = 0
 --- Declare all fields of this feature
 function m.DeclareFields()
 
-	-- Extract command types for field's valuestrnig argument
-	local command_type_valuestring = {}
-	for k,v in pairs(mSpecs.COMMAND_TYPES) do
-		if type(k) == "number" then
-			command_type_valuestring[k] = v
-		end
-	end
-
-	-- Extract status codes for field's valuestrnig argument
-	local status_valuestring = {}
-	for k,v in pairs(mSpecs.STATUS_CODES) do
-		if type(k) == "number" then
-			status_valuestring[k] = v
-		end
-	end
-
+	------------
+	-- FIELDS --
+	------------
 	-- See documentation: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Proto.html#lua_class_ProtoField
+
+	-- Compand type
+	local command_type_valuestring = mHelpers.GetTableValuesWithNumberKey(mSpecs.COMMAND_TYPES)
 	m._fields["mvu.command_type"] = mFields.CreateField(ProtoField.uint32("mvu.command_type", "Command Type", base.HEX, command_type_valuestring))
+
+	-- Status code (taken from IEEE 1722.1 header)
+	local status_valuestring = mHelpers.GetTableValuesWithNumberKey(mSpecs.STATUS_CODES)
 	m._fields["mvu.status"]       = mFields.CreateField(ProtoField.uint8("mvu.status", "Status", base.HEX, status_valuestring))
 
 end
