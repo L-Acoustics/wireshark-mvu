@@ -101,7 +101,11 @@ end
 --- Add fields to the subtree
 --- @param buffer any The buffer to dissect (TVB object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tvb.html#lua_class_Tvb)
 --- @param subtree table The tree on which to add the procotol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
+--- @return table<string> errors List of errors encountered
 function m.AddFieldsToSubtree(buffer, subtree)
+
+	-- Init list of errors
+	local errors = {}
 
 	-- Read IEEE 1722.1 field values
 	local message_type = mIEEE17221Fields.GetMessageType()
@@ -118,6 +122,36 @@ function m.AddFieldsToSubtree(buffer, subtree)
 	if command_type == mSpecs.COMMAND_TYPES.GET_MEDIA_CLOCK_REFERENCE_INFO
 	or command_type == mSpecs.COMMAND_TYPES.SET_MEDIA_CLOCK_REFERENCE_INFO
 	then
+
+		-- Read Control data Length
+		local control_data_length = mIEEE17221Fields.GetControldataLength()
+
+		-- If the control data length is smaller than expected
+		local expected_control_data_length = 20
+		if control_data_length < expected_control_data_length then
+
+			-- Build eror message
+			local error_message = "Control Data Length value is too small for this command"
+				.. " (CDL = " .. control_data_length
+				.. ", expected: " .. expected_control_data_length .. ")"
+
+			-- Get control data length error expert field from headers
+			local f_control_data_length_errors = mFields.GetExpertField("mvu.expert.control_data_length_error")
+
+			-- If expert field was found
+			if f_control_data_length_errors ~= nil then
+				-- Add control data length error to the subtree
+				subtree:add_tvb_expert_info(f_control_data_length_errors, buffer(16, 2), error_message)
+			end
+
+			-- Add error
+			table.insert(errors, error_message)
+
+			-- Do no more dissecting, stop function here
+			return errors
+
+		end
+
 		-- Get clock domain index
 		local clock_domain_index = mvu_payload_bytes:int(2, 2)
 
@@ -133,6 +167,36 @@ function m.AddFieldsToSubtree(buffer, subtree)
 	or (message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE and
 		(command_type == mSpecs.COMMAND_TYPES.SET_MEDIA_CLOCK_REFERENCE_INFO or command_type == mSpecs.COMMAND_TYPES.GET_MEDIA_CLOCK_REFERENCE_INFO))
 	then
+
+		-- Read Control data Length
+		local control_data_length = mIEEE17221Fields.GetControldataLength()
+
+		-- If the control data length is smaller than expected
+		local expected_control_data_length = 92
+		if control_data_length < expected_control_data_length then
+
+			-- Build eror message
+			local error_message = "Control Data Length value is too small for this command"
+				.. " (CDL = " .. control_data_length
+				.. ", expected: " .. expected_control_data_length .. ")"
+
+			-- Get control data length error expert field from headers
+			local f_control_data_length_errors = mFields.GetExpertField("mvu.expert.control_data_length_error")
+
+			-- If expert field was found
+			if f_control_data_length_errors ~= nil then
+				-- Add control data length error to the subtree
+				subtree:add_tvb_expert_info(f_control_data_length_errors, buffer(16, 2), error_message)
+			end
+
+			-- Add error
+			table.insert(errors, error_message)
+
+			-- Do no more dissecting, stop function here
+			return errors
+
+		end
+
 		-- Get media clock reference info flags
 		local media_clock_reference_info_flags = mvu_payload_bytes:int(4, 1)
 
@@ -149,6 +213,9 @@ function m.AddFieldsToSubtree(buffer, subtree)
 		-- Write media clock domain name to teh MVU subtree
 		subtree:add(m._fields["mvu.media_clock.domain_name"], buffer(mvu_payload_start + 12, 64), media_clock_domain_name)
 	end
+
+	-- Return errors
+	return errors
 
 end
 

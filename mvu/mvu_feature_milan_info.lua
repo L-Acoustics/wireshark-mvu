@@ -99,10 +99,13 @@ function m.AddFieldsToSubtree(buffer, subtree)
 
 		-- If the control data length is smaller than expected
 		-- Expected CDL for this command: 20
-		if control_data_length < 20 then
+		local expected_control_data_length = 20
+		if control_data_length < expected_control_data_length then
 
-			-- Generate error message
-			local error_message = "Control Data Length (" .. control_data_length .. ") is too small (expected 20 for this command type)"
+			-- Build eror message
+			local error_message = "Control Data Length value is too small for this command"
+				.. " (CDL = " .. control_data_length
+				.. ", expected: " .. expected_control_data_length .. ")"
 
 			-- Get control data length error expert field from headers
 			local f_control_data_length_errors = mFields.GetExpertField("mvu.expert.control_data_length_error")
