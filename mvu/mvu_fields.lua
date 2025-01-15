@@ -79,6 +79,28 @@ function m.CreateExpertField(abbr, expert)
 
 end
 
+--- Get a field by its abbreviated name
+--- @param abbr string abbreviated field name
+--- @return any|nil expert_field
+function m.GetField(abbr)
+    -- If the field exists in the list
+    if m._fields[abbr] ~= nil then
+        -- Return the field
+		return m._fields[abbr]
+    end
+end
+
+--- Get an expert field by its abbreviated name
+--- @param abbr string abbreviated expert field name
+--- @return any|nil expert_field
+function m.GetExpertField(abbr)
+    -- If the expert field exists in the list
+    if m._experts[abbr] ~= nil then
+        -- Return the expert field
+		return m._experts[abbr]
+    end
+end
+
 --- Register all requested MVU fields into the protocol
 function m.RegisterAllFieldsInProtocol()
 

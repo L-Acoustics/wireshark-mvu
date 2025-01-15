@@ -67,7 +67,7 @@ function mProto.Proto.dissector(buffer, pinfo, tree)
 
 		-- Add Milan Info fields to subtree
 		if #errors == 0 then
-			mMilanInfo.AddFieldsToSubtree(buffer, mvuSubtree)
+			errors = mMilanInfo.AddFieldsToSubtree(buffer, mvuSubtree)
 		end
 
 		-- Add System Unique Id fields to subtree

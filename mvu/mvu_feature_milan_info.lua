@@ -77,10 +77,14 @@ end
 --- Add fields to the subtree
 --- @param buffer any The buffer to dissect (TVB object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tvb.html#lua_class_Tvb)
 --- @param subtree table The tree on which to add the procotol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
+--- @return table<string> errors List of errors encountered
 function m.AddFieldsToSubtree(buffer, subtree)
 
+	-- Init list of errors
+	local errors = {}
+
 	-- Read IEEE 1722.1 field values
-	local message_type        = mIEEE17221Fields.GetMessageType()
+	local message_type = mIEEE17221Fields.GetMessageType()
 
 	-- Read MVU header field values
 	local command_type = mHeaders.GetCommandType()
@@ -90,8 +94,35 @@ function m.AddFieldsToSubtree(buffer, subtree)
 	and command_type == mSpecs.COMMAND_TYPES.GET_MILAN_INFO
 	then
 
+		-- Read Control data Length
+		local control_data_length = mIEEE17221Fields.GetControldataLength()
+
+		-- If the control data length is smaller than expected
+		-- Expected CDL for this command: 20
+		if control_data_length < 20 then
+
+			-- Generate error message
+			local error_message = "Control Data Length (" .. control_data_length .. ") is too small (expected 20 for this command type)"
+
+			-- Get control data length error expert field from headers
+			local f_control_data_length_errors = mFields.GetExpertField("mvu.expert.control_data_length_error")
+
+			-- If expert field was found
+			if f_control_data_length_errors ~= nil then
+				-- Add control data length error to the subtree
+				subtree:add_tvb_expert_info(f_control_data_length_errors, buffer(16, 2), error_message)
+			end
+
+			-- Add error
+			table.insert(errors, error_message)
+
+			-- Do no more dissecting, stop function here
+			return errors
+
+		end
+
 		-- Get MVU payload bytes from buffer
-		local mvu_payload_bytes, mvu_payload_start = mHeaders.GetMvuPayload()
+		local mvu_payload_bytes, mvu_payload_start, mvu_payload_length = mHeaders.GetMvuPayload()
 
 		-- Read protocol version (4 bytes)
 		local protocol_version = mvu_payload_bytes:int(4, 4)
@@ -110,6 +141,9 @@ function m.AddFieldsToSubtree(buffer, subtree)
 		subtree:add(m._fields["mvu.feature.redundancy"], buffer(mvu_payload_start + 8, 4))
 
 	end
+
+	-- Return errors
+	return errors
 
 end
 
