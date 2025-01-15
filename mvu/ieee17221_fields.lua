@@ -42,8 +42,8 @@ function m.GetControldataLength()
     if field ~= nil then
         -- Read field info
         local field_info = field()
-        -- If field_info has the expected type
-        if field_info.type == ftypes.UINT16 then
+        -- If field_info exists and has the expected type
+        if field_info ~= nil and field_info.type == ftypes.UINT16 then
             -- Return the field value
             return field_info.value
         end
@@ -62,7 +62,7 @@ function m.GetMessageType()
         -- Read field info
         local field_info = field()
         -- If field_info has the expected type
-        if field_info.type == ftypes.UINT8 then
+        if field_info ~= nil and field_info.type == ftypes.UINT8 then
             -- Return the field value
             return field_info.value
         end
@@ -81,7 +81,7 @@ function m.GetVendorUniqueProtocolIdHexString()
         -- Read field info
         local field_info = field()
         -- If field_info has the expected type
-        if field_info.type == ftypes.UINT48 then
+        if field_info ~= nil and field_info.type == ftypes.UINT48 then
             -- Return the field value converted to lower case hex string
             return field_info.range:bytes():tohex(true)
         end
