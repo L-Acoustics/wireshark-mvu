@@ -84,10 +84,10 @@ function m.AddFieldsToSubtree(buffer, subtree)
 		subtree:add(m._fields["mvu.media_clock.domain_name_valid"], buffer(mvu_payload_start + 4, 1))
 
 		-- Get media clock domain name
-		local media_clock_domain_name = mvu_payload_bytes:string(12, 12)
+		local media_clock_domain_name = buffer(mvu_payload_start + 12, 64):string()
 
 		-- Write media clock domain name to teh MVU subtree
-		subtree:add(m._fields["mvu.media_clock.domain_name"], buffer(mvu_payload_start + 12, 12), media_clock_domain_name)
+		subtree:add(m._fields["mvu.media_clock.domain_name"], buffer(mvu_payload_start + 12, 64), media_clock_domain_name)
 	end
 
 end
