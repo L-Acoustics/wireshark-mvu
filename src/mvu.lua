@@ -13,11 +13,11 @@ local mFields = require("mvu_fields")
 local mSpecs = require("mvu_specs")
 local mHeaders = require("mvu_headers")
 local mIEEE17221Fields = require("ieee17221_fields")
-local mControl = require("control")
+local mControl = require("mvu_control")
 local mMilanInfo = require("mvu_feature_milan_info")
 local mSystemUniqueId = require("mvu_feature_system_unique_id")
 local mClockreferenceInfo = require("mvu_feature_clock_reference_info")
-local mHelpers = require("helpers")
+local mHelpers = require("mvu_helpers")
 
 -- Load IEEE 1722.1 fields needed for dissecting MVU packets
 mIEEE17221Fields.LoadAllFields()

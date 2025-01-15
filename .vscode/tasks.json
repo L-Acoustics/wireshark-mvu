@@ -7,7 +7,7 @@
       "label": "Deploy",
       "type": "shell",
       "windows": {
-        "command": "'*.lua','mvu' | ForEach-Object { Copy-Item -Path $_ -Destination $env:APPDATA/Wireshark/plugins -Recurse -Verbose -Force }"
+        "command": "'src/*.lua' | ForEach-Object { Copy-Item -Path $_ -Destination $env:APPDATA/Wireshark/plugins/mvu/ -Recurse -Verbose -Force }"
       },
       "group": {
         "kind": "build",
