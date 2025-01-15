@@ -36,6 +36,9 @@ m._mvu_payload_bytes = nil
 -- The index in the packer buffer where the MVU payload starts
 m._mvu_payload_start = 0
 
+-- The length of the MVU payload
+m._mvu_payload_length = 0
+
 --------------------
 -- Public Methods --
 --------------------
@@ -83,9 +86,9 @@ function m.CreateMvuSubtree(buffer, tree)
 		--   8 bytes for IEEE1722.1 controller ID
 		--   2 bytes for IEEE1722.1 sequence ID
 		--   6 bytes for IEEE1722.1 vendor protocol ID
-		local mvu_payload_start = 14 + 4 + 8 + 8 + 2 + 6
+		m._mvu_payload_start = 14 + 4 + 8 + 8 + 2 + 6
 		-- Note: the control_data_length includes IEEE1722.1 headers so the MVU payload size is the control data length - IEEE1722.1 headers length (16 bytes)
-		local mvu_payload_length = control_data_length - 16
+		m._mvu_payload_length = control_data_length - 16
 
 		-- Determine the subtree title
 		local subtree_title = "Milan Vendor Unique"
@@ -93,7 +96,7 @@ function m.CreateMvuSubtree(buffer, tree)
 			.. (message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE and " (Response)" or "")
 
 		-- Add MVU subtree to packet details
-		m._subtree = tree:add(mProto.Proto, buffer(mvu_payload_start, mvu_payload_length), subtree_title)
+		m._subtree = tree:add(mProto.Proto, buffer(m._mvu_payload_start), subtree_title)
 
 		-- Return the subtree
 		return m._subtree
@@ -118,8 +121,8 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree)
 	--   6 bytes for IEEE1722.1 vendor protocol ID
 	m._mvu_payload_start = 14 + 4 + 8 + 8 + 2 + 6
 	-- Note: the control_data_length includes IEEE1722.1 headers so the MVU payload size is the control data length - IEEE1722.1 headers length (16 bytes)
-	local mvu_payload_length = control_data_length - 16
-	m._mvu_payload_bytes = buffer:bytes(m._mvu_payload_start, mvu_payload_length)
+	m._mvu_payload_length = control_data_length - 16
+	m._mvu_payload_bytes = buffer:bytes(m._mvu_payload_start--[[, m._mvu_payload_length]])
 
 	---
 	--- Command Type
@@ -180,10 +183,10 @@ function m.GetStatusCode()
 	return m._status_code
 end
 
---- Read the MVU payload portion of the packet buffer
---- @return any|nil mvu_payload_bytes, number mvu_payload_start
-function m.GetMvuPayloadBytes()
-	return m._mvu_payload_bytes, m._mvu_payload_start
+--- Read the MVU payload portion of the packet buffer and its location in the buffer
+--- @return any|nil mvu_payload_bytes, number mvu_payload_start, number mvu_payload_length
+function m.GetMvuPayload()
+	return m._mvu_payload_bytes, m._mvu_payload_start, m._mvu_payload_length
 end
 
 -- Return the module object

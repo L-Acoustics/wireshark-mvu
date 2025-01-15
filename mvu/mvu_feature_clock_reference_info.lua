@@ -50,7 +50,7 @@ function m.AddFieldsToSubtree(buffer, subtree)
 	local command_type = mHeaders.GetCommandType()
 
 	-- Get MVU payload bytes from buffer
-	local mvu_payload_bytes, mvu_payload_start = mHeaders.GetMvuPayloadBytes()
+	local mvu_payload_bytes, mvu_payload_start = mHeaders.GetMvuPayload()
 
 	-- If the message is one of these:
 	--   GET_MEDIA_CLOCK_REFERENCE_INFO command

@@ -51,7 +51,7 @@ function m.AddFieldsToSubtree(buffer, subtree)
 	then
 
 		-- Get MVU payload bytes from buffer
-		local mvu_payload_bytes, mvu_payload_start = mHeaders.GetMvuPayloadBytes()
+		local mvu_payload_bytes, mvu_payload_start = mHeaders.GetMvuPayload()
 
 		-- Read protocol version (4 bytes)
 		local protocol_version = mvu_payload_bytes:int(4, 4)
