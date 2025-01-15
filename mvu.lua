@@ -55,10 +55,11 @@ function mProto.Proto.dissector(buffer, pinfo, tree)
 		-- Add MVU subtree to packet details
 		local mvuSubtree = mHeaders.CreateMvuSubtree(buffer, tree)
 
+		-- Read MVU payload and positions
+		mHeaders.ReadMvuPayloadAndPosition(buffer)
+
 		-- Add header fields to subtree
-		if #errors == 0 then
-			errors = mHelpers.MergeTables(errors, mHeaders.AddHeaderFieldsToSubtree(buffer, mvuSubtree))
-		end
+		errors = mHeaders.AddHeaderFieldsToSubtree(buffer, mvuSubtree)
 
 		--------------
 		-- Features --

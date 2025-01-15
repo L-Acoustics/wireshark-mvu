@@ -77,45 +77,9 @@ function m.DeclareFields()
 
 end
 
---- Create the packet description subtree for MVU
+--- Read the MVU payload bytes and position in buffer
 --- @param buffer any The buffer to dissect (TVB object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tvb.html#lua_class_Tvb)
---- @param tree table The tree on which to add the procotol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
---- @return table mvu_subtree
-function m.CreateMvuSubtree(buffer, tree)
-
-		-- Read IEEE 1722.1 field values
-		local control_data_length = mIEEE17221Fields.GetControldataLength()
-		local message_type        = mIEEE17221Fields.GetMessageType()
-
-		-- Get MVU payload bytes from buffer
-		-- Skip:
-		--   14 bytes for Ethernet header
-		--   4 bytes for IEEE1722 subtype
-		--   8 bytes for IEEE1722 stream ID
-		--   8 bytes for IEEE1722.1 controller ID
-		--   2 bytes for IEEE1722.1 sequence ID
-		--   6 bytes for IEEE1722.1 vendor protocol ID
-		m._mvu_payload_start = 14 + 4 + 8 + 8 + 2 + 6
-		-- Note: the control_data_length includes IEEE1722.1 headers so the MVU payload size is the control data length - IEEE1722.1 headers length (16 bytes)
-		m._mvu_payload_length = control_data_length - 16
-
-		-- Determine the subtree title
-		local subtree_title = "Milan Vendor Unique"
-			.. (message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND  and " (Command)" or "")
-			.. (message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE and " (Response)" or "")
-
-		-- Add MVU subtree to packet details
-		m._subtree = tree:add(mProto.Proto, buffer(m._mvu_payload_start), subtree_title)
-
-		-- Return the subtree
-		return m._subtree
-end
-
---- Add header fields to the subtree
---- @param buffer any The buffer to dissect (TVB object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tvb.html#lua_class_Tvb)
---- @param subtree table The tree on which to add the procotol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
---- @return table|nil errors
-function m.AddHeaderFieldsToSubtree(buffer, subtree)
+function m.ReadMvuPayloadAndPosition(buffer)
 
 	-- Read payloads positions
 	-- Packet structure:
@@ -133,6 +97,37 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree)
 	-- Read MVU payload (read to end of packet)
 	m._mvu_payload_bytes = buffer:bytes(m._mvu_payload_start)
 	m._mvu_payload_length = m._mvu_payload_bytes:len()
+
+end
+
+--- Create the packet description subtree for MVU
+--- Must be called after ReadMvuPayloadAndPosition()
+--- @param buffer any The buffer to dissect (TVB object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tvb.html#lua_class_Tvb)
+--- @param tree table The tree on which to add the procotol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
+--- @return table mvu_subtree
+function m.CreateMvuSubtree(buffer, tree)
+
+		-- Read IEEE 1722.1 field values
+		local message_type        = mIEEE17221Fields.GetMessageType()
+
+		-- Determine the subtree title
+		local subtree_title = "Milan Vendor Unique"
+			.. (message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND  and " (Command)" or "")
+			.. (message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE and " (Response)" or "")
+
+		-- Add MVU subtree to packet details
+		m._subtree = tree:add(mProto.Proto, buffer(m._mvu_payload_start), subtree_title)
+
+		-- Return the subtree
+		return m._subtree
+end
+
+--- Add header fields to the subtree
+--- Must be called after ReadMvuPayloadAndPosition() and DeclareFields()
+--- @param buffer any The buffer to dissect (TVB object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tvb.html#lua_class_Tvb)
+--- @param subtree table The tree on which to add the procotol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
+--- @return table<string> errors
+function m.AddHeaderFieldsToSubtree(buffer, subtree)
 
 	---
 	--- Command Type
@@ -175,15 +170,13 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree)
 	end
 
 	-- Return list of errors if any
-	if #errors > 0 then
-		return errors
-	end
+	return errors
 
 end
 
 --- Alter the packet information object to write MVU details in the packet columns
---- @param pinfo any
---- @param errors table|nil
+--- @param pinfo any packet info (PIinfo object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Pinfo.html#lua_class_Pinfo)
+--- @param errors table<string>|nil List of string errors found during dissecting, worth mentioning in the packet info
 function m.WritePacketInfo(pinfo, errors)
 
 	-- Change protocol name to MVU
