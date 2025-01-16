@@ -17,7 +17,6 @@ local mControl = require("mvu_control")
 local mMilanInfo = require("mvu_feature_milan_info")
 local mSystemUniqueId = require("mvu_feature_system_unique_id")
 local mClockreferenceInfo = require("mvu_feature_clock_reference_info")
-local mHelpers = require("mvu_helpers")
 
 -- Load IEEE 1722.1 fields needed for dissecting MVU packets
 mIEEE17221Fields.LoadAllFields()
@@ -80,14 +79,23 @@ function mProto.Proto.dissector(buffer, pinfo, tree)
 			errors = mClockreferenceInfo.AddFieldsToSubtree(buffer, mvuSubtree)
 		end
 
-		-- Add plugin information to the subtree
-		mvuSubtree:add("[Dissector version: " .. mPluginInfo.VERSION .. "]")
-		mvuSubtree:add("[Based on Milan Specifications version: " .. mSpecs.SPEC_VERSION .. "]")
-
 		-----------------
 		-- Packet Info --
 		-----------------
+
+		-- Write to packet info columns
 		mHeaders.WritePacketInfo(pinfo, errors)
+
+		-----------------
+		-- Plugin Info --
+		-----------------
+
+		-- Register plugin informatino into Wireshark
+		mPluginInfo.RegisterPluginInfo()
+
+		-- Add plugin information to the subtree
+		mvuSubtree:add("[Dissector version: " .. mPluginInfo.GetVersion() .. "]")
+		mvuSubtree:add("[Based on Milan Specifications version: " .. mSpecs.SPEC_VERSION .. "]")
 
 	end
 

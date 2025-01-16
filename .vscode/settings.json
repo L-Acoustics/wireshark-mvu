@@ -11,6 +11,7 @@
     "bit",
     "ftypes",
     "ProtoExpert",
-    "expert"
+    "expert",
+    "set_plugin_info"
   ]
 }
