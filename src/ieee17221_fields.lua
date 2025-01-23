@@ -18,6 +18,7 @@ m._fields = {}
 m._FIELD_NAMES = {
     CONTROL_DATA_LENGTH       = "ieee17221.control_data_length",
     MESSAGE_TYPE              = "ieee17221.message_type",
+    VENDOR_UNIQUE_STATUS_CODE = "ieee17221.status",
     VENDOR_UNIQUE_PROTOCOL_ID = "ieee17221.protocol_id",
 }
 
@@ -30,6 +31,7 @@ m._FIELD_NAMES = {
 function m.LoadAllFields()
     m._GetField(m._FIELD_NAMES.CONTROL_DATA_LENGTH)
     m._GetField(m._FIELD_NAMES.MESSAGE_TYPE)
+    m._GetField(m._FIELD_NAMES.VENDOR_UNIQUE_STATUS_CODE)
     m._GetField(m._FIELD_NAMES.VENDOR_UNIQUE_PROTOCOL_ID)
 end
 
@@ -55,6 +57,23 @@ end
 function m.GetMessageType()
     -- Get field
     local field = m._GetField(m._FIELD_NAMES.MESSAGE_TYPE)
+    -- If field exists
+    if field ~= nil then
+        -- Read field info
+        local field_info = field()
+        -- If field_info has the expected type
+        if field_info ~= nil and field_info.type == ftypes.UINT8 then
+            -- Return the field value
+            return field_info.value
+        end
+    end
+end
+
+--- Read the value of Vendor Unique Status Code field
+--- @return number|nil status_code
+function m.GetVendorUniqueStatusCode()
+    -- Get field
+    local field = m._GetField(m._FIELD_NAMES.VENDOR_UNIQUE_STATUS_CODE)
     -- If field exists
     if field ~= nil then
         -- Read field info
