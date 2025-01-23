@@ -46,5 +46,31 @@ function m.MergeTables(t1, t2)
 	return t
 end
 
+--- Compare two string-formated version numbers (e.g. "5.4.21" or "10.0.0.8")
+--- @param v1 string
+--- @param v2 string
+--- @return number|nil result 0 if versions are equivalent, 1 if v1 newer than v2, -1 if v2 is newer than v1, nil in case of error
+function m.CompareVersions(v1, v2)
+
+    -- Split string to arrays of numbers
+    local m1 = {}
+    for num in string.gmatch(tostring(v1), "%d+") do table.insert(m1, tonumber(num)); end
+    local m2 = {}
+    for num in string.gmatch(tostring(v2), "%d+") do table.insert(m2, tonumber(num)); end
+
+    -- If no numbers found
+    if (#m1 == 0 or #m2 == 0) then return nil; end
+
+    -- For each pair of numbers
+    for i = 1, math.max(#m1, #m2) do
+        if     (m1[i] or 0) < (m2[i] or 0) then return -1
+        elseif (m1[i] or 0) > (m2[i] or 0) then return  1
+        end
+    end
+
+    -- If all numbers were passed with no difference detected, then version are equal
+    return 0
+end
+
 -- Return the module object
 return m

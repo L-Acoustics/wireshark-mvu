@@ -18,6 +18,16 @@ local mMilanInfo = require("mvu_feature_milan_info")
 local mSystemUniqueId = require("mvu_feature_system_unique_id")
 local mClockreferenceInfo = require("mvu_feature_clock_reference_info")
 
+-- Check compatibility with Wireshark version
+if not mControl.IsWiresharkVersionCompatible() then
+	-- Report incompatibility of plugin to user
+	local incompatibility_message =
+		"The MVU plugin (mvu.lua) requires Wireshark version ".. mControl.GetMinimumWiresharkVersion()  .." or newer." .. "\n"
+		.. "To analyze MVU packets, please update the version of Wireshark."
+	report_failure(incompatibility_message)
+	return
+end
+
 -- Load IEEE 1722.1 fields needed for dissecting MVU packets
 mIEEE17221Fields.LoadAllFields()
 

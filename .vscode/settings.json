@@ -12,6 +12,8 @@
     "ftypes",
     "ProtoExpert",
     "expert",
-    "set_plugin_info"
+    "set_plugin_info",
+    "get_version",
+    "report_failure"
   ]
 }
