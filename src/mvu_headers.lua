@@ -64,7 +64,10 @@ function m.DeclareFields()
 
 	-- Status code (taken from IEEE 1722.1 header)
 	local status_valuestring = mHelpers.GetTableValuesWithNumberKey(mSpecs.STATUS_CODES)
-	m._fields["mvu.status"]       = mFields.CreateField(ProtoField.uint8("mvu.status", "Status", base.HEX, status_valuestring))
+	m._fields["mvu.status"] = mFields.CreateField(ProtoField.uint8("mvu.status", "Status", base.HEX, status_valuestring))
+
+	-- Milan specification revision version
+	m._fields["mvu.specifications_version"] = mFields.CreateField(ProtoField.string("mvu.specifications_version"))
 
 	-------------------
 	-- EXPERT FIELDS --
@@ -138,6 +141,23 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree)
 
 	-- Write command type and description to the MVU subtree
 	subtree:add(m._fields["mvu.command_type"], buffer(m._mvu_payload_start, 2), m._command_type)
+
+	---
+	--- Command Milan version
+	---
+
+	-- Read IEEE 1722.1 field values
+	local message_type = mIEEE17221Fields.GetMessageType()
+	local control_data_length = mIEEE17221Fields.GetControldataLength()
+
+	-- Get Milan specification revision implemented by the message
+	local milan_version = mSpecs.GetMilanVersionOfCommand(message_type, m._command_type, control_data_length)
+
+	-- If the Milan version was detected
+	if type(milan_version) == "string" and #milan_version > 0 then
+		-- Write Milan version to the subtree
+		subtree:add(m._fields["mvu.specifications_version"], milan_version, "[Version " .. milan_version .. "]")
+	end
 
 	---
 	--- Status code

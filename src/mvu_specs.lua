@@ -5,6 +5,9 @@
 --- Milan Vendor Unique data localted in IEEE 1722.1 packets
 ---
 
+-- Require dependency modules
+local mIEEE17221Specs = require("ieee17221_specs")
+
 -- Init the module object to return
 local m = {}
 
@@ -67,6 +70,107 @@ function m.GetCommandTypeDescription(command_type)
         -- Return "Unknown"
         return "Unknown"
     end
+end
+
+--- Get the version of Milan specification implemented by the provided command or response
+--- @param message_type number|nil The type of message (as defined in IEEE1722.1 AECP_MESSAGE_TYPES enum)
+--- @param command_type number|nil The type of command (ad defined in MVU COMMAND_TYPES enum)
+--- @param control_data_length number|nil The value of the Copntrol Data Length field of the packet holding the command
+--- @return string|nil milan_version Milan specification revision number. nil if version is unknown
+function m.GetMilanVersionOfCommand(message_type, command_type, control_data_length)
+
+	-- GET_MILAN_INFO
+	if command_type == m.COMMAND_TYPES.GET_MILAN_INFO then
+
+		-- Command
+		if message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND then
+			-- Version 1.1 (CDL = 20)
+			if control_data_length == 20 then
+				return "1.1"
+			end
+
+		-- Response
+		elseif message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE then
+			-- Version 1.1a (CDL = 32)
+			if control_data_length == 32 then
+				return "1.1"
+			end
+		end
+
+	-- SET_SYSTEM_UNIQUE_ID
+	elseif command_type == m.COMMAND_TYPES.SET_SYSTEM_UNIQUE_ID then
+
+		-- Command
+		if message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND then
+			-- Version 1.2 (CDL = 24)
+			if control_data_length == 24 then
+				return "1.2"
+			end
+
+		-- Response
+		elseif message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE then
+			-- Version 1.2 (CDL = 24)
+			if control_data_length == 24 then
+				return "1.2"
+			end
+		end
+
+	-- GET_SYSTEM_UNIQUE_ID
+	elseif command_type == m.COMMAND_TYPES.GET_SYSTEM_UNIQUE_ID then
+
+		-- Command
+		if message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND then
+			-- Version 1.2 (CDL = 20)
+			if control_data_length == 20 then
+				return "1.2"
+			end
+
+		-- Response
+		elseif message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE then
+			-- Version 1.2 (CDL = 24)
+			if control_data_length == 24 then
+				return "1.2"
+			end
+		end
+
+	-- SET_MEDIA_CLOCK_REFERENCE_INFO
+	elseif command_type == m.COMMAND_TYPES.SET_MEDIA_CLOCK_REFERENCE_INFO then
+
+		-- Command
+		if message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND then
+			-- Version 1.2 (CDL = 92)
+			if control_data_length == 92 then
+				return "1.2"
+			end
+
+		-- Response
+		elseif message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE then
+			-- Version 1.2 (CDL = 92)
+			if control_data_length == 92 then
+				return "1.2"
+			end
+		end
+
+	-- GET_MEDIA_CLOCK_REFERENCE_INFO
+	elseif command_type == m.COMMAND_TYPES.GET_MEDIA_CLOCK_REFERENCE_INFO then
+
+		-- Command
+		if message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND then
+			-- Version 1.2 (CDL = 20)
+			if control_data_length == 20 then
+				return "1.2"
+			end
+
+		-- Response
+		elseif message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE then
+			-- Version 1.2 (CDL = 92)
+			if control_data_length == 92 then
+				return "1.2"
+			end
+		end
+
+	end
+
 end
 
 -- Return the module object
