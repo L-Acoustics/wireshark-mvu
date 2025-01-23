@@ -17,5 +17,11 @@ m.AECP_MESSAGE_TYPES = {
     VENDOR_UNIQUE_RESPONSE = 7, [7] = "VENDOR_UNIQUE_RESPONSE",
 }
 
+-- Vendor Unique status codes
+m.VENDOR_UNIQUE_STATUS_CODES = {
+    SUCCESS         = 0, [0] = "SUCCESS",
+    NOT_IMPLEMENTED = 1, [1] = "NOT_IMPLEMENTED"
+}
+
 -- Return module object
 return m

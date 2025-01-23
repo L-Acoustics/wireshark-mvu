@@ -63,7 +63,7 @@ function m.DeclareFields()
 	m._fields["mvu.command_type"] = mFields.CreateField(ProtoField.uint32("mvu.command_type", "Command Type", base.HEX, command_type_valuestring))
 
 	-- Status code (taken from IEEE 1722.1 header)
-	local status_valuestring = mHelpers.GetTableValuesWithNumberKey(mSpecs.STATUS_CODES)
+	local status_valuestring = mHelpers.GetTableValuesWithNumberKey(mIEEE17221Specs.VENDOR_UNIQUE_STATUS_CODES)
 	m._fields["mvu.status"] = mFields.CreateField(ProtoField.uint8("mvu.status", "Status", base.HEX, status_valuestring))
 
 	-- Milan specification revision version
