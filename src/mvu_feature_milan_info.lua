@@ -67,6 +67,17 @@ function m.DeclareFields()
 			0x00000002) -- bit mask for this field
 	)
 
+	-- Certification version (the version number of the Milan certifications that the PAAD-AE has passed)
+	m._fields["mvu.certification_version"]
+	= mFields.CreateField(
+		ProtoField.string(
+			"mvu.certification_version",
+			"Certification version",
+			base.ASCII,
+			"The version number of the Milan certifications that the PAAD-AE has passed"
+		)
+	)
+
 	-------------------
 	-- EXPERT FIELDS --
 	-------------------
@@ -191,6 +202,21 @@ function m.AddFieldsToSubtree(buffer, subtree)
 		-- Write individual features flags to the MVU subtree
 		subtree:add(m._fields["mvu.feature.talker_dynamic_mappings"], buffer(mvu_payload_start + 8, 4))
 		subtree:add(m._fields["mvu.feature.redundancy"], buffer(mvu_payload_start + 8, 4))
+
+		--
+		-- Certification version
+		--
+
+		-- Read certification version numbers
+		local certification_version_numbers = { string.unpack("bbbb", mvu_payload_bytes:raw(12, 4)) }
+
+		-- If certification numbers are not zeros
+		if certification_version_numbers[1] > 0 then
+			-- Build string version
+			local certification_version = string.format("%d.%d", certification_version_numbers[1], certification_version_numbers[2])
+			-- Write certification version
+			subtree:add(m._fields["mvu.certification_version"], buffer(mvu_payload_start + 12, 4), certification_version)
+		end
 
 	end
 
