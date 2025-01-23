@@ -34,18 +34,31 @@ function m.DeclareFields()
 	-- See documentation: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Proto.html#lua_class_ProtoField
 
 	-- Clock domain index
+	--   Expected in:
+	--     GET_MEDIA_CLOCK_REFERENCE_INFO command
+	--     GET_MEDIA_CLOCK_REFERENCE_INFO response
+	--     SET_MEDIA_CLOCK_REFERENCE_INFO command
+	--     SET_MEDIA_CLOCK_REFERENCE_INFO response
 	m._fields["mvu.clock_domain_index"]
 	= mFields.CreateField(
 		ProtoField.uint16("mvu.clock_domain_index", "Clock Domain Index", base.DEC)
 	)
 
 	-- Flags for Media Clock fields validity
+	--   Expected in:
+	--     GET_MEDIA_CLOCK_REFERENCE_INFO response
+	--     SET_MEDIA_CLOCK_REFERENCE_INFO command
+	--     SET_MEDIA_CLOCK_REFERENCE_INFO response
 	m._fields["mvu.media_clock_flags"]
 	= mFields.CreateField(
 		ProtoField.uint32("mvu.media_clock_flags", "Media Clock Flags", base.HEX)
 	)
 
 	-- Media clock referency priority field validity
+	--   Expected in:
+	--     GET_MEDIA_CLOCK_REFERENCE_INFO response
+	--     SET_MEDIA_CLOCK_REFERENCE_INFO command
+	--     SET_MEDIA_CLOCK_REFERENCE_INFO response
 	m._fields["mvu.media_clock.reference_priority_valid"]
 	= mFields.CreateField(
 		ProtoField.bool(
@@ -57,6 +70,10 @@ function m.DeclareFields()
 	)
 
 	-- Media clock domain name field validity
+	--   Expected in:
+	--     GET_MEDIA_CLOCK_REFERENCE_INFO response
+	--     SET_MEDIA_CLOCK_REFERENCE_INFO command
+	--     SET_MEDIA_CLOCK_REFERENCE_INFO response
 	m._fields["mvu.media_clock.domain_name_valid"]
 	= mFields.CreateField(
 		ProtoField.bool(
@@ -68,28 +85,40 @@ function m.DeclareFields()
 	)
 
 	-- Default media clock reference priority
+	--   Expected in:
+	--     GET_MEDIA_CLOCK_REFERENCE_INFO response
+	--     SET_MEDIA_CLOCK_REFERENCE_INFO command
+	--     SET_MEDIA_CLOCK_REFERENCE_INFO response
 	m._fields["mvu.default_mcr_prio"]
 	= mFields.CreateField(
 		ProtoField.uint8("mvu.default_mcr_prio", "Default Media Clock Reference Priority", base.DEC)
 	)
 
 	-- User media clock reference priority
+	--   Expected in:
+	--     GET_MEDIA_CLOCK_REFERENCE_INFO response
+	--     SET_MEDIA_CLOCK_REFERENCE_INFO command
+	--     SET_MEDIA_CLOCK_REFERENCE_INFO response
 	m._fields["mvu.user_mcr_prio"]
 	= mFields.CreateField(
 		ProtoField.uint8("mvu.user_mcr_prio", "User Media Clock Reference Priority", base.DEC)
 	)
 
 	-- Media clock domain name
+	--   Expected in:
+	--     GET_MEDIA_CLOCK_REFERENCE_INFO response
+	--     SET_MEDIA_CLOCK_REFERENCE_INFO command
+	--     SET_MEDIA_CLOCK_REFERENCE_INFO response
 	m._fields["mvu.media_clock.domain_name"]
 	= mFields.CreateField(
 		ProtoField.string("mvu.media_clock.domain_name", "Media Clock Domain Name", base.UNICODE)
 	)
 
-	-- System unique ID
-	m._fields["mvu.system_unique_id"]
-	= mFields.CreateField(
-		ProtoField.uint32("mvu.system_unique_id", "System Unique ID", base.HEX)
-	)
+	-- -- System unique ID
+	-- m._fields["mvu.system_unique_id"]
+	-- = mFields.CreateField(
+	-- 	ProtoField.uint32("mvu.system_unique_id", "System Unique ID", base.HEX)
+	-- )
 
 	-------------------
 	-- EXPERT FIELDS --
@@ -123,6 +152,10 @@ function m.AddFieldsToSubtree(buffer, subtree)
 	or command_type == mSpecs.COMMAND_TYPES.SET_MEDIA_CLOCK_REFERENCE_INFO
 	then
 
+		----------------------------------
+		-- Validate Control Data Length --
+		----------------------------------
+
 		-- Read Control data Length
 		local control_data_length = mIEEE17221Fields.GetControldataLength()
 
@@ -152,6 +185,14 @@ function m.AddFieldsToSubtree(buffer, subtree)
 
 		end
 
+		----------------------------
+		-- Add fields to the tree --
+		----------------------------
+
+		--
+		-- Clock domain index
+		--
+
 		-- Get clock domain index
 		local clock_domain_index = mvu_payload_bytes:int(2, 2)
 
@@ -167,6 +208,10 @@ function m.AddFieldsToSubtree(buffer, subtree)
 	or (message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE and
 		(command_type == mSpecs.COMMAND_TYPES.SET_MEDIA_CLOCK_REFERENCE_INFO or command_type == mSpecs.COMMAND_TYPES.GET_MEDIA_CLOCK_REFERENCE_INFO))
 	then
+
+		----------------------------------
+		-- Validate Control Data Length --
+		----------------------------------
 
 		-- Read Control data Length
 		local control_data_length = mIEEE17221Fields.GetControldataLength()
@@ -197,6 +242,14 @@ function m.AddFieldsToSubtree(buffer, subtree)
 
 		end
 
+		----------------------------
+		-- Add fields to the tree --
+		----------------------------
+
+		--
+		-- Media clock reference info flags
+		--
+
 		-- Get media clock reference info flags
 		local media_clock_reference_info_flags = mvu_payload_bytes:int(4, 1)
 
@@ -206,6 +259,30 @@ function m.AddFieldsToSubtree(buffer, subtree)
 		-- Write individual media clock reference info flags to the MVU subtree
 		subtree:add(m._fields["mvu.media_clock.reference_priority_valid"], buffer(mvu_payload_start + 4, 1))
 		subtree:add(m._fields["mvu.media_clock.domain_name_valid"], buffer(mvu_payload_start + 4, 1))
+
+		--
+		-- Default media clock reference priority
+		--
+
+		-- Get default media clock reference priority
+		local default_media_clock_reference_priority = mvu_payload_bytes:uint(6, 1)
+
+		-- Write default media clock reference priority to the MVY subtree
+		subtree:add(m._fields["mvu.default_mcr_prio"], buffer(mvu_payload_start + 6, 1), default_media_clock_reference_priority)
+
+		--
+		-- User media clock reference priority
+		--
+
+		-- Get user media clock reference priority
+		local user_media_clock_reference_priority = mvu_payload_bytes:uint(7, 1)
+
+		-- Write user media clock reference priority to the MVY subtree
+		subtree:add(m._fields["mvu.user_mcr_prio"], buffer(mvu_payload_start + 7, 1), user_media_clock_reference_priority)
+
+		--
+		-- Media clock domain name
+		--
 
 		-- Get media clock domain name
 		local media_clock_domain_name = buffer(mvu_payload_start + 12, 64):raw()

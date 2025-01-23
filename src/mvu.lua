@@ -104,7 +104,7 @@ function mProto.Proto.dissector(buffer, pinfo, tree)
 		mPluginInfo.RegisterPluginInfo()
 
 		-- Add plugin information to the subtree
-		mvuSubtree:add("[Dissector version: " .. mPluginInfo.GetVersion() .. "]")
+		mvuSubtree:add("[MVU plugin version: " .. mPluginInfo.GetVersion() .. "]")
 		mvuSubtree:add("[Based on Milan Specifications version: " .. mSpecs.SPEC_VERSION .. "]")
 
 	end
