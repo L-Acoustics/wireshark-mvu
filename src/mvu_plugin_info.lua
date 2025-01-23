@@ -14,7 +14,7 @@ local m = {}
 m._info = {
 	version = "1.0.0.0",
 	author = "L-Acoustics",
-	description = "Lua plugin for dissecting Milan Vendor Unique information in IEEE1722.1 frames in WireShark",
+	description = "Lua plugin for dissecting Milan Vendor Unique information in IEEE1722.1 frames in Wireshark",
 	repository = "http://serv-gitlab-rddev/software/3rdparty/wireshark-mvu"
 }
 

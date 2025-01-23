@@ -1,6 +1,6 @@
-# WireShark-MVU
+# Wireshark-MVU
 
-Lua plugin for dissecting Milan Vendor Unique information in IEEE1722.1 frames in WireShark
+Lua plugin for dissecting Milan Vendor Unique information in IEEE1722.1 frames in Wireshark
 
 ## Manual plugin installation
 
