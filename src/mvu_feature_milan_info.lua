@@ -10,6 +10,7 @@ local mSpecs = require("mvu_specs")
 local mHeaders = require("mvu_headers")
 local mIEEE17221Specs = require("ieee17221_specs")
 local mIEEE17221Fields = require("ieee17221_fields")
+local mControl = require("mvu_control")
 
 -- Init module object
 local m = {}
@@ -95,49 +96,23 @@ function m.AddFieldsToSubtree(buffer, subtree)
 	local errors = {}
 
 	-- Read IEEE 1722.1 field values
-	local message_type = mIEEE17221Fields.GetMessageType()
-	local status_code  = mIEEE17221Fields.GetVendorUniqueStatusCode()
+	local message_type        = mIEEE17221Fields.GetMessageType()
+	local status_code         = mIEEE17221Fields.GetVendorUniqueStatusCode()
+	local control_data_length = mIEEE17221Fields.GetControldataLength()
 
 	-- Read MVU header field values
 	local command_type = mHeaders.GetCommandType()
 
-	-- If the message is a GET_MILAN_INFO command
-	-- or is a NOT_IMPLEMENTED response to a GET_MILAN_INFO command
-	if 	command_type == mSpecs.COMMAND_TYPES.GET_MILAN_INFO
-	and ((message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND and status_code == mIEEE17221Specs.VENDOR_UNIQUE_STATUS_CODES.SUCCESS)
-	or (message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE and status_code == mIEEE17221Specs.VENDOR_UNIQUE_STATUS_CODES.NOT_IMPLEMENTED))
-	then
+	-- Get the Milan version for this command
+	local milan_version = mSpecs.GetMilanVersionOfCommand(message_type, command_type, control_data_length)
 
-		-- Read Control data Length
-		local control_data_length = mIEEE17221Fields.GetControldataLength()
-
-		-- If the control data length is smaller than expected
-		-- Expected CDL for this command: 20
-		local expected_control_data_length = 20
-		if control_data_length < expected_control_data_length then
-
-			-- Build eror message
-			local error_message = "Control Data Length value is too small for this command"
-				.. " (CDL = " .. control_data_length
-				.. ", expected: " .. expected_control_data_length .. ")"
-
-			-- Get control data length error expert field from headers
-			local f_control_data_length_errors = mFields.GetExpertField("mvu.expert.control_data_length_error")
-
-			-- If expert field was found
-			if f_control_data_length_errors ~= nil then
-				-- Add control data length error to the subtree
-				subtree:add_tvb_expert_info(f_control_data_length_errors, buffer(16, 2), error_message)
-			end
-
-			-- Add error
-			table.insert(errors, error_message)
-
-			-- Do no more dissecting, stop function here
-			return errors
-
-		end
-
+	-- If no Milan version was found for this command,
+	-- it means that the Control data Length is unexpected
+	if milan_version == nil then
+		-- Insert error
+		errors = mControl.InsertControlDataLengthError(control_data_length, buffer, subtree, errors)
+		-- Stop function here
+		return errors
 	end
 
 	-- If the message is a SUCCESS reponse to a GET_MILAN_INFO command
@@ -146,35 +121,9 @@ function m.AddFieldsToSubtree(buffer, subtree)
 	and command_type == mSpecs.COMMAND_TYPES.GET_MILAN_INFO
 	then
 
-		-- Read Control data Length
-		local control_data_length = mIEEE17221Fields.GetControldataLength()
-
-		-- If the control data length is smaller than expected
-		-- Expected CDL for this command: 32
-		local expected_control_data_length = 32
-		if control_data_length < expected_control_data_length then
-
-			-- Build eror message
-			local error_message = "Control Data Length value is too small for this command"
-				.. " (CDL = " .. control_data_length
-				.. ", expected: " .. expected_control_data_length .. ")"
-
-			-- Get control data length error expert field from headers
-			local f_control_data_length_errors = mFields.GetExpertField("mvu.expert.control_data_length_error")
-
-			-- If expert field was found
-			if f_control_data_length_errors ~= nil then
-				-- Add control data length error to the subtree
-				subtree:add_tvb_expert_info(f_control_data_length_errors, buffer(16, 2), error_message)
-			end
-
-			-- Add error
-			table.insert(errors, error_message)
-
-			-- Do no more dissecting, stop function here
-			return errors
-
-		end
+		----------------------------
+		-- Add fields to the tree --
+		----------------------------
 
 		-- Get MVU payload bytes from buffer
 		local mvu_payload_bytes, mvu_payload_start, mvu_payload_length = mHeaders.GetMvuPayload()

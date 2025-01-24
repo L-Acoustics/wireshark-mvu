@@ -9,6 +9,7 @@ local mSpecs = require("mvu_specs")
 local mIEEE17221Specs = require("ieee17221_specs")
 local mIEEE17221Fields = require("ieee17221_fields")
 local mHelpers = require("mvu_helpers")
+local mFields = require("mvu_fields")
 
 -- Init module object
 local m = {}
@@ -61,6 +62,34 @@ function m.IsMvuPacket()
 	-- and the message type is either a V.U. Command or V.U. Response
 	and (message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND
 	    or message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE)
+end
+
+--- Insert an error message of incorrect Control Data Length in the subtree
+--- @param control_data_length number|nil The value of the Control Data Length field
+--- @param buffer any The buffer to dissect (TVB object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tvb.html#lua_class_Tvb)
+--- @param subtree any The tree on which to add the procotol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
+--- @param errors table<string> List of existing error messages
+--- @return table<string> errors Altered list of error messages
+function m.InsertControlDataLengthError(control_data_length, buffer, subtree, errors)
+
+	-- Build eror message
+	local error_message = "Unexpected or unsupported Control Data Length (" .. control_data_length .. ") for this command"
+
+	-- Get control data length error expert field from headers
+	local f_control_data_length_errors = mFields.GetExpertField("mvu.expert.control_data_length_error")
+
+	-- If expert field was found
+	if f_control_data_length_errors ~= nil then
+		-- Add control data length error to the subtree
+		subtree:add_tvb_expert_info(f_control_data_length_errors, buffer(16, 2), error_message)
+	end
+
+	-- Add error
+	table.insert(errors, error_message)
+
+	-- Return the updated list of errors
+	return errors
+
 end
 
 -- Return module object

@@ -184,9 +184,8 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree)
 	if control_data_length < minimum_control_data_length then
 
 		-- Build eror message
-		local error_message = "Control Data Length value is too small"
-			.. " (CDL = " .. control_data_length
-			.. ", minimum expected: " .. minimum_control_data_length .. ")"
+		local error_message = "Control Data Length (" .. control_data_length .. ") is too small for an MVU message"
+			.. " (minimum expected: " .. minimum_control_data_length .. ")"
 
 		-- Add control data length error to the subtree
 		subtree:add_tvb_expert_info(m._experts["mvu.expert.control_data_length_error"], buffer(16, 2), error_message)
