@@ -22,6 +22,11 @@ local m = {}
 -- Internal list of fields
 m._fields = {}
 
+-- List of fields related to GET_SYSTEM_UNIQUE_ID/SET_SYSTEM_UNIQUE_ID commands/responses
+m._FIELD_NAMES = {
+    SYSTEM_UNIQUE_ID = "mvu.system_unique_id",
+}
+
 --------------------
 -- Public Methods --
 --------------------
@@ -35,9 +40,9 @@ function m.DeclareFields()
 	-- See documentation: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Proto.html#lua_class_ProtoField
 
 	-- System unique ID
-	m._fields["mvu.system_unique_id"]
+	m._fields[m._FIELD_NAMES.SYSTEM_UNIQUE_ID]
 	= mFields.CreateField(
-		ProtoField.uint32 ("mvu.system_unique_id", "System Unique ID", base.HEX)
+		ProtoField.uint32(m._FIELD_NAMES.SYSTEM_UNIQUE_ID, "System Unique ID", base.HEX)
 	)
 
 	-------------------
@@ -91,7 +96,7 @@ function m.AddFieldsToSubtree(buffer, subtree)
 		local system_unique_id = mvu_payload_bytes:int(4, 4)
 
 		-- Write system unique ID to the MVU subtree
-		subtree:add(m._fields["mvu.system_unique_id"], buffer(mvu_payload_start + 4, 4), system_unique_id)
+		subtree:add(m._fields[m._FIELD_NAMES.SYSTEM_UNIQUE_ID], buffer(mvu_payload_start + 4, 4), system_unique_id)
 	end
 
 	-- Return errors

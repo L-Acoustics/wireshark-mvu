@@ -22,6 +22,15 @@ local m = {}
 -- Internal list of fields
 m._fields = {}
 
+-- List of fields related to GET_MILAN_INFO commands/responses
+m._FIELD_NAMES = {
+    PROTOCOL_VERSION                = "mvu.protocol_version",
+    FEATURE_FLAGS                   = "mvu.feature_flags",
+    FEATURE_REDUNDANCY              = "mvu.feature.redundancy",
+    FEATURE_TALKER_DYNAMIC_MAPPINGS = "mvu.feature.talker_dynamic_mappings",
+    PAAD_CERTIFICATION_VERSION      = "mvu.paad_certification_version",
+}
+
 --------------------
 -- Public Methods --
 --------------------
@@ -35,22 +44,22 @@ function m.DeclareFields()
 	-- See documentation: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Proto.html#lua_class_ProtoField
 
 	-- Protocol version
-	m._fields["mvu.protocol_version"]
+	m._fields[m._FIELD_NAMES.PROTOCOL_VERSION]
 	= mFields.CreateField(
-		ProtoField.uint32("mvu.protocol_version", "Protocol Version", base.DEC)
+		ProtoField.uint32(m._FIELD_NAMES.PROTOCOL_VERSION, "Protocol Version", base.DEC)
 	)
 
 	-- Flags for available Milan features
-	m._fields["mvu.feature_flags"]
+	m._fields[m._FIELD_NAMES.FEATURE_FLAGS]
 	= mFields.CreateField(
-		ProtoField.uint32("mvu.feature_flags", "Feature Flags", base.HEX)
+		ProtoField.uint32(m._FIELD_NAMES.FEATURE_FLAGS, "Feature Flags", base.HEX)
 	)
 
 	-- Feature: Redundancy
-	m._fields["mvu.feature.redundancy"]
+	m._fields[m._FIELD_NAMES.FEATURE_REDUNDANCY]
 	= mFields.CreateField(
 		ProtoField.bool(
-			"mvu.feature.redundancy",
+			m._FIELD_NAMES.FEATURE_REDUNDANCY,
 			"REDUNDANCY",
 			32,          -- parent bitfield size
 			nil,         -- table of value strings
@@ -58,10 +67,10 @@ function m.DeclareFields()
 	)
 
 	-- Feature: Talker dynamic mappings while running
-	m._fields["mvu.feature.talker_dynamic_mappings"]
+	m._fields[m._FIELD_NAMES.FEATURE_TALKER_DYNAMIC_MAPPINGS]
 	= mFields.CreateField(
 		ProtoField.bool(
-			"mvu.feature.talker_dynamic_mappings",
+			m._FIELD_NAMES.FEATURE_TALKER_DYNAMIC_MAPPINGS,
 			"TALKER_DYNAMIC_MAPPINGS_WHILE_RUNNING",
 			32,         -- parent bitfield size
 			nil,        -- table of value strings
@@ -69,11 +78,11 @@ function m.DeclareFields()
 	)
 
 	-- Certification version (the version number of the Milan certifications that the PAAD-AE has passed)
-	m._fields["mvu.certification_version"]
+	m._fields[m._FIELD_NAMES.PAAD_CERTIFICATION_VERSION]
 	= mFields.CreateField(
 		ProtoField.string(
-			"mvu.certification_version",
-			"Certification version",
+			m._FIELD_NAMES.PAAD_CERTIFICATION_VERSION,
+			"PAAD certification version",
 			base.ASCII,
 			"The version number of the Milan certifications that the PAAD-AE has passed"
 		)
@@ -136,7 +145,7 @@ function m.AddFieldsToSubtree(buffer, subtree)
 		local protocol_version = mvu_payload_bytes:int(4, 4)
 
 		-- Write protocol version to the MVU subtree
-		subtree:add(m._fields["mvu.protocol_version"], buffer(mvu_payload_start + 4, 4), protocol_version)
+		subtree:add(m._fields[m._FIELD_NAMES.PROTOCOL_VERSION], buffer(mvu_payload_start + 4, 4), protocol_version)
 
 		--
 		-- Feature flags
@@ -146,11 +155,11 @@ function m.AddFieldsToSubtree(buffer, subtree)
 		local feature_flags = mvu_payload_bytes:int(8, 4)
 
 		-- Write feature flags to the MVU subtree
-		subtree:add(m._fields["mvu.feature_flags"], buffer(mvu_payload_start + 8, 4), feature_flags)
+		subtree:add(m._fields[m._FIELD_NAMES.FEATURE_FLAGS], buffer(mvu_payload_start + 8, 4), feature_flags)
 
 		-- Write individual features flags to the MVU subtree
-		subtree:add(m._fields["mvu.feature.talker_dynamic_mappings"], buffer(mvu_payload_start + 8, 4))
-		subtree:add(m._fields["mvu.feature.redundancy"], buffer(mvu_payload_start + 8, 4))
+		subtree:add(m._fields[m._FIELD_NAMES.FEATURE_TALKER_DYNAMIC_MAPPINGS], buffer(mvu_payload_start + 8, 4))
+		subtree:add(m._fields[m._FIELD_NAMES.FEATURE_REDUNDANCY], buffer(mvu_payload_start + 8, 4))
 
 		--
 		-- Certification version
@@ -164,7 +173,7 @@ function m.AddFieldsToSubtree(buffer, subtree)
 			-- Build string version
 			local certification_version = string.format("%d.%d", certification_version_numbers[1], certification_version_numbers[2])
 			-- Write certification version
-			subtree:add(m._fields["mvu.certification_version"], buffer(mvu_payload_start + 12, 4), certification_version)
+			subtree:add(m._fields[m._FIELD_NAMES.PAAD_CERTIFICATION_VERSION], buffer(mvu_payload_start + 12, 4), certification_version)
 		end
 
 	end

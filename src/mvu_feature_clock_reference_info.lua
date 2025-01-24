@@ -22,6 +22,17 @@ local m = {}
 -- Internal list of fields
 m._fields = {}
 
+-- List of fields related to GET_CLOCK_REFERENCE_INFO/SET_CLOCK_REFERENCE_INFO commands/responses
+m._FIELD_NAMES = {
+    CLOCK_DOMAIN_INDEX                   = "mvu.clock_domain_index",
+    MEDIA_CLOCK_FLAGS                    = "mvu.media_clock_flags",
+    MEDIA_CLOCK_REFERENCE_PRIORITY_VALID = "mvu.media_clock.reference_priority_valid",
+    MEDIA_CLOCK_DOMAIN_NAME_VALID        = "mvu.media_clock.domain_name_valid",
+    DEFAULT_MCR_PRIORITY                 = "mvu.default_mcr_prio",
+    USER_MCR_PRIORITY                    = "mvu.user_mcr_prio",
+    MEDIA_CLOCK_DOMAIN_NAME              = "mvu.media_clock.domain_name",
+}
+
 --------------------
 -- Public Methods --
 --------------------
@@ -40,9 +51,9 @@ function m.DeclareFields()
 	--     GET_MEDIA_CLOCK_REFERENCE_INFO response
 	--     SET_MEDIA_CLOCK_REFERENCE_INFO command
 	--     SET_MEDIA_CLOCK_REFERENCE_INFO response
-	m._fields["mvu.clock_domain_index"]
+	m._fields[m._FIELD_NAMES.CLOCK_DOMAIN_INDEX]
 	= mFields.CreateField(
-		ProtoField.uint16("mvu.clock_domain_index", "Clock Domain Index", base.DEC)
+		ProtoField.uint16(m._FIELD_NAMES.CLOCK_DOMAIN_INDEX, "Clock Domain Index", base.DEC)
 	)
 
 	-- Flags for Media Clock fields validity
@@ -50,9 +61,9 @@ function m.DeclareFields()
 	--     GET_MEDIA_CLOCK_REFERENCE_INFO response
 	--     SET_MEDIA_CLOCK_REFERENCE_INFO command
 	--     SET_MEDIA_CLOCK_REFERENCE_INFO response
-	m._fields["mvu.media_clock_flags"]
+	m._fields[m._FIELD_NAMES.MEDIA_CLOCK_FLAGS]
 	= mFields.CreateField(
-		ProtoField.uint32("mvu.media_clock_flags", "Media Clock Flags", base.HEX)
+		ProtoField.uint32(m._FIELD_NAMES.MEDIA_CLOCK_FLAGS, "Media Clock Flags", base.HEX)
 	)
 
 	-- Media clock referency priority field validity
@@ -60,10 +71,10 @@ function m.DeclareFields()
 	--     GET_MEDIA_CLOCK_REFERENCE_INFO response
 	--     SET_MEDIA_CLOCK_REFERENCE_INFO command
 	--     SET_MEDIA_CLOCK_REFERENCE_INFO response
-	m._fields["mvu.media_clock.reference_priority_valid"]
+	m._fields[m._FIELD_NAMES.MEDIA_CLOCK_REFERENCE_PRIORITY_VALID]
 	= mFields.CreateField(
 		ProtoField.bool(
-			"mvu.media_clock.reference_priority_valid",
+			m._FIELD_NAMES.MEDIA_CLOCK_REFERENCE_PRIORITY_VALID,
 			"REFERENCE PRIORITY VALID",
 			8,    -- parent bitfield size
 			nil,  -- table of value strings
@@ -75,10 +86,10 @@ function m.DeclareFields()
 	--     GET_MEDIA_CLOCK_REFERENCE_INFO response
 	--     SET_MEDIA_CLOCK_REFERENCE_INFO command
 	--     SET_MEDIA_CLOCK_REFERENCE_INFO response
-	m._fields["mvu.media_clock.domain_name_valid"]
+	m._fields[m._FIELD_NAMES.MEDIA_CLOCK_DOMAIN_NAME_VALID]
 	= mFields.CreateField(
 		ProtoField.bool(
-			"mvu.media_clock.domain_name_valid",
+			m._FIELD_NAMES.MEDIA_CLOCK_DOMAIN_NAME_VALID,
 			"DOMAIN NAME VALID",
 			8,    -- parent bitfield size
 			nil,  -- table of value strings
@@ -90,9 +101,9 @@ function m.DeclareFields()
 	--     GET_MEDIA_CLOCK_REFERENCE_INFO response
 	--     SET_MEDIA_CLOCK_REFERENCE_INFO command
 	--     SET_MEDIA_CLOCK_REFERENCE_INFO response
-	m._fields["mvu.default_mcr_prio"]
+	m._fields[m._FIELD_NAMES.DEFAULT_MCR_PRIORITY]
 	= mFields.CreateField(
-		ProtoField.uint8("mvu.default_mcr_prio", "Default Media Clock Reference Priority", base.DEC)
+		ProtoField.uint8(m._FIELD_NAMES.DEFAULT_MCR_PRIORITY, "Default Media Clock Reference Priority", base.DEC)
 	)
 
 	-- User media clock reference priority
@@ -100,9 +111,9 @@ function m.DeclareFields()
 	--     GET_MEDIA_CLOCK_REFERENCE_INFO response
 	--     SET_MEDIA_CLOCK_REFERENCE_INFO command
 	--     SET_MEDIA_CLOCK_REFERENCE_INFO response
-	m._fields["mvu.user_mcr_prio"]
+	m._fields[m._FIELD_NAMES.USER_MCR_PRIORITY]
 	= mFields.CreateField(
-		ProtoField.uint8("mvu.user_mcr_prio", "User Media Clock Reference Priority", base.DEC)
+		ProtoField.uint8(m._FIELD_NAMES.USER_MCR_PRIORITY, "User Media Clock Reference Priority", base.DEC)
 	)
 
 	-- Media clock domain name
@@ -110,9 +121,9 @@ function m.DeclareFields()
 	--     GET_MEDIA_CLOCK_REFERENCE_INFO response
 	--     SET_MEDIA_CLOCK_REFERENCE_INFO command
 	--     SET_MEDIA_CLOCK_REFERENCE_INFO response
-	m._fields["mvu.media_clock.domain_name"]
+	m._fields[m._FIELD_NAMES.MEDIA_CLOCK_DOMAIN_NAME]
 	= mFields.CreateField(
-		ProtoField.string("mvu.media_clock.domain_name", "Media Clock Domain Name", base.UNICODE)
+		ProtoField.string(m._FIELD_NAMES.MEDIA_CLOCK_DOMAIN_NAME, "Media Clock Domain Name", base.UNICODE)
 	)
 
 	-- -- System unique ID
@@ -206,8 +217,8 @@ function m.AddFieldsToSubtree(buffer, subtree)
 		subtree:add(m._fields["mvu.media_clock_flags"], buffer(mvu_payload_start + 4, 1), media_clock_reference_info_flags)
 
 		-- Write individual media clock reference info flags to the MVU subtree
-		subtree:add(m._fields["mvu.media_clock.reference_priority_valid"], buffer(mvu_payload_start + 4, 1))
-		subtree:add(m._fields["mvu.media_clock.domain_name_valid"], buffer(mvu_payload_start + 4, 1))
+		subtree:add(m._fields[m._FIELD_NAMES.MEDIA_CLOCK_REFERENCE_PRIORITY_VALID], buffer(mvu_payload_start + 4, 1))
+		subtree:add(m._fields[m._FIELD_NAMES.MEDIA_CLOCK_DOMAIN_NAME_VALID], buffer(mvu_payload_start + 4, 1))
 
 		--
 		-- Default media clock reference priority
@@ -217,7 +228,7 @@ function m.AddFieldsToSubtree(buffer, subtree)
 		local default_media_clock_reference_priority = mvu_payload_bytes:uint(6, 1)
 
 		-- Write default media clock reference priority to the MVY subtree
-		subtree:add(m._fields["mvu.default_mcr_prio"], buffer(mvu_payload_start + 6, 1), default_media_clock_reference_priority)
+		subtree:add(m._fields[m._FIELD_NAMES.DEFAULT_MCR_PRIORITY], buffer(mvu_payload_start + 6, 1), default_media_clock_reference_priority)
 
 		--
 		-- User media clock reference priority
@@ -227,7 +238,7 @@ function m.AddFieldsToSubtree(buffer, subtree)
 		local user_media_clock_reference_priority = mvu_payload_bytes:uint(7, 1)
 
 		-- Write user media clock reference priority to the MVY subtree
-		subtree:add(m._fields["mvu.user_mcr_prio"], buffer(mvu_payload_start + 7, 1), user_media_clock_reference_priority)
+		subtree:add(m._fields[m._FIELD_NAMES.USER_MCR_PRIORITY], buffer(mvu_payload_start + 7, 1), user_media_clock_reference_priority)
 
 		--
 		-- Media clock domain name
@@ -241,7 +252,7 @@ function m.AddFieldsToSubtree(buffer, subtree)
 		local media_clock_domain_name_length = null_character_position ~= nil and (null_character_position - 1) or 64
 
 		-- Write media clock domain name to the MVU subtree
-		subtree:add(m._fields["mvu.media_clock.domain_name"], buffer(mvu_payload_start + 12, media_clock_domain_name_length), media_clock_domain_name)
+		subtree:add(m._fields[m._FIELD_NAMES.MEDIA_CLOCK_DOMAIN_NAME], buffer(mvu_payload_start + 12, media_clock_domain_name_length), media_clock_domain_name)
 
 	end
 
