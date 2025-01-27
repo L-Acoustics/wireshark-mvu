@@ -219,11 +219,22 @@ end
 --- @param errors table<string>|nil List of string errors found during dissecting, worth mentioning in the packet info
 function m.WritePacketInfo(pinfo, errors)
 
+	-- Read IEEE 1722.1 field values
+	local message_type        = mIEEE17221Fields.GetMessageType()
+	local control_data_length = mIEEE17221Fields.GetControldataLength()
+
+	-- Read MVU header field values
+	local command_type = m.GetCommandType()
+
+	-- Get the Milan version for this command
+	local milan_version = mSpecs.GetMilanVersionOfCommand(message_type, command_type, control_data_length)
+
 	-- Change protocol name to MVU
 	pinfo.cols["protocol"] = "MVU"
-
-	-- Read IEEE 1722.1 field values
-	local message_type = mIEEE17221Fields.GetMessageType()
+	-- Add message Milan versino if detected
+	if type(milan_version) == "string" and #milan_version > 0 then
+		pinfo.cols["protocol"] = "MVU " .. milan_version
+	end
 
 	-- Init info text with command type
 	local packet_info = mSpecs.GetCommandTypeDescription(m._command_type)
