@@ -10,6 +10,7 @@ local mIEEE17221Specs = require("ieee17221_specs")
 local mIEEE17221Fields = require("ieee17221_fields")
 local mHelpers = require("mvu_helpers")
 local mFields = require("mvu_fields")
+local mHeaders = require("mvu_headers")
 
 -- Init module object
 local m = {}
@@ -89,6 +90,28 @@ function m.InsertControlDataLengthError(control_data_length, buffer, subtree, er
 
 	-- Return the updated list of errors
 	return errors
+
+end
+
+--- Insert a message in the tree if there are unimplemented extra bytes at the end of the payload
+--- @param subtree any The tree on which to add the procotol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
+function m.InsertUnimplementedExtraBytesMessage(subtree)
+
+	-- Read IEEE 1722.1 field values
+	local message_type        = mIEEE17221Fields.GetMessageType()
+	local control_data_length = mIEEE17221Fields.GetControldataLength()
+
+	-- Read MVU header field values
+	local command_type = mHeaders.GetCommandType()
+
+	-- Get the Milan version for this command
+	local _, unimplemented_extra_bytes = mSpecs.GetMilanVersionOfCommand(message_type, command_type, control_data_length)
+
+	-- If there are unimplemented extra bytes at the end of the payload
+	if unimplemented_extra_bytes == true then
+		-- Insert message in the subtree to warn that the message may implement a newer version of Milan specifications
+		subtree:add("[Additional bytes at end of payload. This PAAD may implement a newer version of Milan. Consider updating this plugin.]")
+	end
 
 end
 

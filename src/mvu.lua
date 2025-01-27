@@ -89,6 +89,11 @@ function mProto.Proto.dissector(buffer, pinfo, tree)
 			errors = mClockreferenceInfo.AddFieldsToSubtree(buffer, mvuSubtree)
 		end
 
+		-- Insert message in case there are unimplemented extra bytes at end of payload
+		if #errors == 0 then
+			mControl.InsertUnimplementedExtraBytesMessage(mvuSubtree)
+		end
+
 		-----------------
 		-- Packet Info --
 		-----------------
