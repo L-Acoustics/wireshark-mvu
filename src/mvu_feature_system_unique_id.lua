@@ -55,11 +55,10 @@ end
 --- Add fields to the subtree
 --- @param buffer any The buffer to dissect (TVB object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tvb.html#lua_class_Tvb)
 --- @param subtree table The tree on which to add the procotol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
+--- @param errors table<string> Existing errors
 --- @return table<string> errors List of errors encountered
-function m.AddFieldsToSubtree(buffer, subtree)
-
-	-- Init list of errors
-	local errors = {}
+--- @return boolean|nil blocking_errors Indicates if one of the returned errors is blocking and should interrupt further packet analysis
+function m.AddFieldsToSubtree(buffer, subtree, errors)
 
 	-- Read IEEE 1722.1 field values
 	local message_type        = mIEEE17221Fields.GetMessageType()
@@ -76,8 +75,8 @@ function m.AddFieldsToSubtree(buffer, subtree)
 	if milan_version == nil then
 		-- Insert error
 		errors = mControl.InsertControlDataLengthError(control_data_length, buffer, subtree, errors)
-		-- Stop function here
-		return errors
+		-- Return blocking error
+		return errors, true
 	end
 
 	-- if the message is a SET_SYSTEM_UNIQUE_ID command or a GET_SYSTEM_UNIQUE_ID response
@@ -99,7 +98,7 @@ function m.AddFieldsToSubtree(buffer, subtree)
 		subtree:add(m._fields[m._FIELD_NAMES.SYSTEM_UNIQUE_ID], buffer(mvu_payload_start + 4, 4), system_unique_id)
 	end
 
-	-- Return errors
+	-- Return non-blocking errors
 	return errors
 
 end

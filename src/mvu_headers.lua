@@ -11,6 +11,7 @@ local mSpecs = require("mvu_specs")
 local mIEEE17221Fields = require("ieee17221_fields")
 local mIEEE17221Specs = require("ieee17221_specs")
 local mHelpers = require("mvu_helpers")
+local mIEEE8023Specs = require("ieee8023_specs")
 
 -- Init the module object to return
 local m = {}
@@ -130,7 +131,12 @@ end
 --- @param buffer any The buffer to dissect (TVB object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tvb.html#lua_class_Tvb)
 --- @param subtree table The tree on which to add the procotol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
 --- @return table<string> errors
+--- @return boolean|nil blocking_errors Indicates if one of the returned errors is blocking and should interrupt further packet analysis
 function m.AddHeaderFieldsToSubtree(buffer, subtree)
+
+	-- Read IEEE 1722.1 field values
+	local message_type = mIEEE17221Fields.GetMessageType()
+	local control_data_length = mIEEE17221Fields.GetControldataLength()
 
 	---
 	--- Command Type
@@ -145,10 +151,6 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree)
 	---
 	--- Command Milan version
 	---
-
-	-- Read IEEE 1722.1 field values
-	local message_type = mIEEE17221Fields.GetMessageType()
-	local control_data_length = mIEEE17221Fields.GetControldataLength()
 
 	-- Get Milan specification revision implemented by the message
 	local milan_version = mSpecs.GetMilanVersionOfCommand(message_type, m._command_type, control_data_length)
@@ -175,9 +177,6 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree)
 
 	local errors = {}
 
-	-- Read IEEE 1722.1 field values
-	local control_data_length = mIEEE17221Fields.GetControldataLength()
-
 	-- If the Control data Length is smaller than expected
 	-- (the minimum length is 20 bytes for the smallest MVU command)
 	local minimum_control_data_length = 20
@@ -193,8 +192,27 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree)
 		-- Add error message to errors lise
 		table.insert(errors, error_message)
 
+		-- Return blocking error
+		return errors, true
+
+	end
+
+	-- If the Control data Length is greater than the maximum allowed value
+	if control_data_length > 524 then
+
+		-- Builder error message
+		local error_message = "Control Data Length (" .. control_data_length .. ") is greater than maximum allowed value (254)"
+
+		-- Add control data length error to the subtree
+		subtree:add_tvb_expert_info(m._experts["mvu.expert.control_data_length_error"], buffer(16, 2), error_message)
+
+		-- Add error message to errors lise
+		table.insert(errors, error_message)
+
+	end
+
 	-- If the Control Data Length is greater than the control data payload
-	elseif m._control_data_start + control_data_length > buffer:len() then
+	if m._control_data_start + control_data_length > buffer:len() then
 
 		-- Build eror message
 		local actual_control_data_payload_size = buffer:len() - m._control_data_start
@@ -207,9 +225,26 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree)
 
 		-- Add error message to errors lise
 		table.insert(errors, error_message)
+
 	end
 
-	-- Return list of errors if any
+	-- If the frame contains more bytes than the Control Data Length is describing (unless the frame has the minimum Ethernet size)
+	local control_data_end = math.max(m._control_data_start + control_data_length, mIEEE8023Specs.MINIMUM_FRAME_SIZE_WITHOUT_FCS)
+	local remaining_length = buffer:reported_length_remaining(control_data_end)
+	if remaining_length > 0 then
+
+		-- Build eror message
+		local error_message = "The frame contains " .. remaining_length .. " unexepected remaining bytes after the control data payload"
+
+		-- Add control data length error to the subtree
+		subtree:add_tvb_expert_info(m._experts["mvu.expert.control_data_length_error"], buffer(control_data_end, remaining_length), error_message)
+
+		-- Add error message to errors lise
+		table.insert(errors, error_message)
+
+	end
+
+	-- Return list of non-blocking errors if any
 	return errors
 
 end

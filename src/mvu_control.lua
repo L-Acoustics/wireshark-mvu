@@ -74,7 +74,7 @@ end
 function m.InsertControlDataLengthError(control_data_length, buffer, subtree, errors)
 
 	-- Build eror message
-	local error_message = "Unexpected or unsupported Control Data Length (" .. control_data_length .. ") for this command"
+	local error_message = "Unexpected Control Data Length (" .. control_data_length .. ") for this command"
 
 	-- Get control data length error expert field from headers
 	local f_control_data_length_errors = mFields.GetExpertField("mvu.expert.control_data_length_error")

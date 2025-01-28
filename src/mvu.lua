@@ -56,41 +56,42 @@ function mProto.Proto.dissector(buffer, pinfo, tree)
 
 		-- Init table of errors that we may encounter during dissecting
 		local errors = {}
+		local blocking_errors
 
 		-------------
 		-- Headers --
 		-------------
 
-		-- Add MVU subtree to packet details
-		local mvuSubtree = mHeaders.CreateMvuSubtree(buffer, tree)
-
 		-- Read MVU payload and positions
 		mHeaders.ReadMvuPayloadAndPosition(buffer)
 
+		-- Add MVU subtree to packet details
+		local mvuSubtree = mHeaders.CreateMvuSubtree(buffer, tree)
+
 		-- Add header fields to subtree
-		errors = mHeaders.AddHeaderFieldsToSubtree(buffer, mvuSubtree)
+		errors, blocking_errors = mHeaders.AddHeaderFieldsToSubtree(buffer, mvuSubtree)
 
 		--------------
 		-- Features --
 		--------------
 
 		-- Add Milan Info fields to subtree
-		if #errors == 0 then
-			errors = mMilanInfo.AddFieldsToSubtree(buffer, mvuSubtree)
+		if not blocking_errors then
+			errors, blocking_errors = mMilanInfo.AddFieldsToSubtree(buffer, mvuSubtree, errors)
 		end
 
 		-- Add System Unique Id fields to subtree
-		if #errors == 0 then
-			error = mSystemUniqueId.AddFieldsToSubtree(buffer, mvuSubtree)
+		if not blocking_errors then
+			error, blocking_errors = mSystemUniqueId.AddFieldsToSubtree(buffer, mvuSubtree, errors)
 		end
 
 		-- Add Clock Reference Info fields to subtree
-		if #errors == 0 then
-			errors = mClockreferenceInfo.AddFieldsToSubtree(buffer, mvuSubtree)
+		if not blocking_errors then
+			errors, blocking_errors = mClockreferenceInfo.AddFieldsToSubtree(buffer, mvuSubtree, errors)
 		end
 
 		-- Insert message in case there are unimplemented extra bytes at end of payload
-		if #errors == 0 then
+		if not blocking_errors then
 			mControl.InsertUnimplementedExtraBytesMessage(mvuSubtree)
 		end
 
