@@ -6,6 +6,7 @@
 
 -- Require dependency modules
 local mIEEE17221Specs = require("ieee17221_specs")
+local mIEEE17221Fields = require("ieee17221_fields")
 
 -- Init module object
 local m = {}
@@ -31,17 +32,29 @@ function m.ClearConversations()
 end
 
 --- Register a message and its metadata in the conversation
---- @param controller_entity_id string|nil The ID of the controller entity that initiated the command
---- @param sequence_id number|nil Unique sequence ID for this conversation
---- @param message_type number|nil The message type (VENDOR_UNIQUE_COMMAND or VENDOR_UNIQUE_RESPONSE)
 --- @param message_metadata table Table containing the data that we want to store for this message
---- @param frame_number number The number of the frame containing the message
+--- @param frame_number number The frame number in the packet capture
 --- @return string|nil error Error message in case of problem
-function m.RegisterMessage(controller_entity_id, sequence_id, message_type, message_metadata, frame_number)
+function m.RegisterMessage(message_metadata, frame_number)
 
 	------------------------
 	-- Validate arguments --
 	------------------------
+
+	-- Data table
+	if type(message_metadata) ~= "table" then
+		return
+	end
+
+	-- Controller entity ID
+	if type(frame_number) ~= "number" then
+		return
+	end
+
+	-- Read IEEE 1722.1 fields
+	local controller_entity_id = mIEEE17221Fields.GetControllerEntityId()
+	local sequence_id          = mIEEE17221Fields.GetSequenceId()
+	local message_type         = mIEEE17221Fields.GetMessageType()
 
 	-- Controller entity ID
 	if type(controller_entity_id) ~= "string" then
@@ -55,11 +68,6 @@ function m.RegisterMessage(controller_entity_id, sequence_id, message_type, mess
 
 	-- Message type
 	if type(message_type) ~= "number" or mIEEE17221Specs.AECP_MESSAGE_TYPES[message_type] == nil then
-		return
-	end
-
-	-- Data table
-	if type(message_metadata) ~= "table" then
 		return
 	end
 
@@ -128,41 +136,21 @@ function m.GetRegisterErrorMessageForFrame(frame_number)
 end
 
 --- Read stored data for a conversation message type
---- @param controller_entity_id string|nil The ID of the controller entity that initiated the command
---- @param sequence_id number|nil Unique sequence ID for this conversation
---- @param message_type number|nil The message type (VENDOR_UNIQUE_COMMAND or VENDOR_UNIQUE_RESPONSE)
+--- @param message_type number|nil The message type (VENDOR_UNIQUE_COMMAND or VENDOR_UNIQUE_RESPONSE). If nil, the message type of the current packet is considered.
 --- @return table|nil message_metadata Table containing the data that was stored for this message
-function m.GetConversationMessageData(controller_entity_id, sequence_id, message_type)
+function m.GetConversationMessageData(message_type)
 
-	------------------------
-	-- Validate arguments --
-	------------------------
-
-	-- Controller entity ID
-	if type(controller_entity_id) ~= "string" then
-		return
-	end
-
-	-- Sequence ID
-	if type(sequence_id) ~= "number" then
-		return
-	end
-
-	-- Message type
-	if type(message_type) ~= "number" or mIEEE17221Specs.AECP_MESSAGE_TYPES[message_type] == nil then
-		return
-	end
-
-	---------------------------
-	-- Fetch and return data --
-	---------------------------
+	-- Read IEEE 1722.1 fields
+	local controller_entity_id = mIEEE17221Fields.GetControllerEntityId()
+	local sequence_id          = mIEEE17221Fields.GetSequenceId()
+	local actual_message_type  = message_type and message_type or mIEEE17221Fields.GetMessageType()
 
 	-- If an entry exists for this controller_entity
-	if type(m._conversations[controller_entity_id]) == "table" then
+	if type(controller_entity_id) == "string" and type(m._conversations[controller_entity_id]) == "table" then
 		-- If an entry exists for this sequence ID
-		if type(m._conversations[controller_entity_id][sequence_id]) == "table" then
+		if type(sequence_id) == "number" and type(m._conversations[controller_entity_id][sequence_id]) == "table" then
 			-- Return the data stored for the provided message type
-			return m._conversations[controller_entity_id][sequence_id][message_type]
+			return m._conversations[controller_entity_id][sequence_id][actual_message_type]
 		end
 	end
 

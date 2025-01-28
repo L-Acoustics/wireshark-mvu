@@ -51,11 +51,17 @@ m._mvu_payload_bytes = nil
 -- The index in the packer buffer where the MVU payload starts
 m._mvu_payload_start = 0
 
+-- The index of the last byte in the MVU payload
+m._mvu_payload_end = 0
+
 -- The length of the MVU payload
 m._mvu_payload_length = 0
 
 -- The index in the paket buffer where the IEEE 1722.1 control data payload starts
 m._control_data_start = 0
+
+-- The index in the packet buffer of the last byte of the IEEE 1722.1 control data payload
+m._control_data_end = 0
 
 --------------------
 -- Public Methods --
@@ -109,6 +115,7 @@ function m.ReadMvuPayloadAndPosition(buffer)
 	--   8 bytes for IEEE1722.1 target_entity_id
 	--     (Start of Control Data payload)
 	m._control_data_start = 14 + 4 + 8
+	m._control_data_end = math.min(m._control_data_start + control_data_length, buffer:len()) - 1
 	--   8 bytes for IEEE1722.1 controller_entity_id
 	--   2 bytes for IEEE1722.1 sequence_id
 	--   6 bytes for IEEE1722.1 vendor unique protocol ID
@@ -116,7 +123,10 @@ function m.ReadMvuPayloadAndPosition(buffer)
 	m._mvu_payload_start = m._control_data_start + 8 + 2 + 6
 
 	-- The MVU payload ends with the Control Data payload
-	m._mvu_payload_length = control_data_length - (m._mvu_payload_start - m._control_data_start)
+	m._mvu_payload_end = m._control_data_end
+
+	-- Deduce the MVU payload length from start and end positions
+	m._mvu_payload_length = math.max(0, 1 + m._mvu_payload_end - m._mvu_payload_start)
 
 	-- Read MVU payload (read to end of packet)
 	m._mvu_payload_bytes = buffer:bytes(m._mvu_payload_start, m._mvu_payload_length)
@@ -268,14 +278,11 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo)
 	-- Register the message in a conversation --
 	--------------------------------------------
 
+	-- Init error message
 	local register_error_message
 
 	-- If we visit the packet for the first time
 	if not pinfo.visited then
-
-		-- Read IEEE 1722.1 fields
-		local controller_entity_id = mIEEE17221Fields.GetControllerEntityId()
-		local sequence_id          = mIEEE17221Fields.GetSequenceId()
 
 		-- Build message data to be stored
 		local message_metadata = {
@@ -284,7 +291,7 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo)
 		}
 
 		-- Register message
-		register_error_message = mConversations.RegisterMessage(controller_entity_id, sequence_id, message_type, message_metadata, pinfo.number)
+		register_error_message = mConversations.RegisterMessage(message_metadata, pinfo.number)
 
 	-- If we have already visited the packet
 	else
