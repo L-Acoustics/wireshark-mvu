@@ -17,6 +17,7 @@ local mControl = require("mvu_control")
 local mMilanInfo = require("mvu_feature_milan_info")
 local mSystemUniqueId = require("mvu_feature_system_unique_id")
 local mClockreferenceInfo = require("mvu_feature_clock_reference_info")
+local mConversations = require("mvu_conversations")
 
 -- Check compatibility with Wireshark version
 if not mControl.IsWiresharkVersionCompatible() then
@@ -44,6 +45,12 @@ mFields.RegisterAllFieldsInProtocol()
 -- IMPLEMENTATION --
 --------------------
 
+--- The init routine of the dissector
+function mProto.Proto.init()
+	-- Clear conversations
+	mConversations.ClearConversations()
+end
+
 --- Implementation of protocol's dissector
 --- @see documentation https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Proto.html#lua_class_attrib_proto_dissector
 --- @param buffer any The buffer to dissect (TVB object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tvb.html#lua_class_Tvb)
@@ -52,7 +59,7 @@ mFields.RegisterAllFieldsInProtocol()
 function mProto.Proto.dissector(buffer, pinfo, tree)
 
 	-- If we are dissecting a MVU packet and the packet is visited
-	if mControl.IsMvuPacket() and pinfo.visited then
+	if mControl.IsMvuPacket() then
 
 		-- Init table of errors that we may encounter during dissecting
 		local errors = {}
@@ -69,7 +76,7 @@ function mProto.Proto.dissector(buffer, pinfo, tree)
 		local mvuSubtree = mHeaders.CreateMvuSubtree(buffer, tree)
 
 		-- Add header fields to subtree
-		errors, blocking_errors = mHeaders.AddHeaderFieldsToSubtree(buffer, mvuSubtree)
+		errors, blocking_errors = mHeaders.AddHeaderFieldsToSubtree(buffer, mvuSubtree, pinfo)
 
 		--------------
 		-- Features --

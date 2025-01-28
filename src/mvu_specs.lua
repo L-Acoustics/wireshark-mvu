@@ -19,7 +19,7 @@ local m = {}
 m.SPEC_VERSION = "1.2" -- Revision 1.2 of November 29, 2023
 
 -- Protocol ID for MVU
-m.PROTOCOL_ID = "001bc50ac100"
+m.PROTOCOL_ID = "0x001BC50AC100"
 
 -- List of known MVU commands
 m.COMMAND_TYPES = {

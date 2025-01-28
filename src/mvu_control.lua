@@ -59,7 +59,7 @@ function m.IsMvuPacket()
 	-- The Control data Field is valid
 	return control_data_length ~= nil
 	-- and the Vendor Unique Protocol ID matches MVU
-	and vendor_unique_protocol_id == mSpecs.PROTOCOL_ID
+	and type(vendor_unique_protocol_id) == "string" and vendor_unique_protocol_id:lower() == mSpecs.PROTOCOL_ID:lower()
 	-- and the message type is either a V.U. Command or V.U. Response
 	and (message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND
 	    or message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE)

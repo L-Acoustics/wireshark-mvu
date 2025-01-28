@@ -17,7 +17,9 @@ m._fields = {}
 -- List of IEEE 1722.1 Wireshark field names
 m._FIELD_NAMES = {
     CONTROL_DATA_LENGTH       = "ieee17221.control_data_length",
+    CONTROLLER_ENTITY_ID      = "ieee17221.controller_guid",
     MESSAGE_TYPE              = "ieee17221.message_type",
+    SEQUENCE_ID               = "ieee17221.sequence_id",
     VENDOR_UNIQUE_STATUS_CODE = "ieee17221.status",
     VENDOR_UNIQUE_PROTOCOL_ID = "ieee17221.protocol_id",
 }
@@ -30,7 +32,9 @@ m._FIELD_NAMES = {
 --- Must be called before the protocol's dissector gets called
 function m.LoadAllFields()
     m._GetField(m._FIELD_NAMES.CONTROL_DATA_LENGTH)
+    m._GetField(m._FIELD_NAMES.CONTROLLER_ENTITY_ID)
     m._GetField(m._FIELD_NAMES.MESSAGE_TYPE)
+    m._GetField(m._FIELD_NAMES.SEQUENCE_ID)
     m._GetField(m._FIELD_NAMES.VENDOR_UNIQUE_STATUS_CODE)
     m._GetField(m._FIELD_NAMES.VENDOR_UNIQUE_PROTOCOL_ID)
 end
@@ -52,6 +56,23 @@ function m.GetControldataLength()
     end
 end
 
+--- Read the value or Controller Entity ID as an hexadecimal string
+--- @return string|nil vendor_unique_protocol_id
+function m.GetControllerEntityId()
+    -- Get field
+    local field = m._GetField(m._FIELD_NAMES.CONTROLLER_ENTITY_ID)
+    -- If field exists
+    if field ~= nil then
+        -- Read field info
+        local field_info = field()
+        -- If field_info has the expected type
+        if field_info ~= nil and field_info.type == ftypes.UINT64 then
+            -- Return the field value converted to lower case hex string
+            return "0x" .. field_info.range:bytes():tohex(true)
+        end
+    end
+end
+
 --- Read the value of Message Type field
 --- @return number|nil message_type
 function m.GetMessageType()
@@ -63,6 +84,23 @@ function m.GetMessageType()
         local field_info = field()
         -- If field_info has the expected type
         if field_info ~= nil and field_info.type == ftypes.UINT8 then
+            -- Return the field value
+            return field_info.value
+        end
+    end
+end
+
+--- Read the value of Sequence ID field
+--- @return number|nil sequence_id
+function m.GetSequenceId()
+    -- Get field
+    local field = m._GetField(m._FIELD_NAMES.SEQUENCE_ID)
+    -- If field exists
+    if field ~= nil then
+        -- Read field info
+        local field_info = field()
+        -- If field_info has the expected type
+        if field_info ~= nil and field_info.type == ftypes.UINT16 then
             -- Return the field value
             return field_info.value
         end
@@ -98,7 +136,7 @@ function m.GetVendorUniqueProtocolIdHexString()
         -- If field_info has the expected type
         if field_info ~= nil and field_info.type == ftypes.UINT48 then
             -- Return the field value converted to lower case hex string
-            return field_info.range:bytes():tohex(true)
+            return "0x" .. field_info.range:bytes():tohex(true):lower()
         end
     end
 end

@@ -12,6 +12,7 @@ local mIEEE17221Fields = require("ieee17221_fields")
 local mIEEE17221Specs = require("ieee17221_specs")
 local mHelpers = require("mvu_helpers")
 local mIEEE8023Specs = require("ieee8023_specs")
+local mConversations = require("mvu_conversations")
 
 -- Init the module object to return
 local m = {}
@@ -22,6 +23,15 @@ local m = {}
 
 -- Internal list of fields
 m._fields = {}
+
+-- List of Wireshark field names related to MVU headers
+m._FIELD_NAMES = {
+    COMMAND_TYPE              = "mvu.command_type",
+    STATUS                    = "mvu.status",
+    SPECIFICATIONS_VERSION    = "mvu.specifications_version",
+    SEQUENCE_ID_DUPLICATE     = "mvu.expert.sequence_id_duplicate",
+    CONTROL_DATA_LENGTH_ERROR = "mvu.expert.control_data_length_error",
+}
 
 -- Internal list of expert fields
 m._experts = {}
@@ -61,23 +71,27 @@ function m.DeclareFields()
 
 	-- Compand type
 	local command_type_valuestring = mHelpers.GetTableValuesWithNumberKey(mSpecs.COMMAND_TYPES)
-	m._fields["mvu.command_type"] = mFields.CreateField(ProtoField.uint32("mvu.command_type", "Command Type", base.HEX, command_type_valuestring))
+	m._fields[m._FIELD_NAMES.COMMAND_TYPE] = mFields.CreateField(ProtoField.uint32(m._FIELD_NAMES.COMMAND_TYPE, "Command Type", base.HEX, command_type_valuestring))
 
 	-- Status code (taken from IEEE 1722.1 header)
 	local status_valuestring = mHelpers.GetTableValuesWithNumberKey(mIEEE17221Specs.VENDOR_UNIQUE_STATUS_CODES)
-	m._fields["mvu.status"] = mFields.CreateField(ProtoField.uint8("mvu.status", "Status", base.HEX, status_valuestring))
+	m._fields[m._FIELD_NAMES.STATUS] = mFields.CreateField(ProtoField.uint8(m._FIELD_NAMES.STATUS, "Status", base.HEX, status_valuestring))
 
 	-- Milan specification revision version
-	m._fields["mvu.specifications_version"] = mFields.CreateField(ProtoField.string("mvu.specifications_version"))
+	m._fields[m._FIELD_NAMES.SPECIFICATIONS_VERSION] = mFields.CreateField(ProtoField.string(m._FIELD_NAMES.SPECIFICATIONS_VERSION))
 
 	-------------------
 	-- EXPERT FIELDS --
 	-------------------
 	-- See documentation: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Proto.html#lua_class_ProtoExpert
 
+	-- Sequence ID duplicate
+	local sequence_id_duplicate = ProtoExpert.new(m._FIELD_NAMES.SEQUENCE_ID_DUPLICATE, "Sequence ID duplicate", expert.group.PROTOCOL, expert.severity.ERROR)
+	m._experts[m._FIELD_NAMES.SEQUENCE_ID_DUPLICATE] = mFields.CreateExpertField(m._FIELD_NAMES.SEQUENCE_ID_DUPLICATE, sequence_id_duplicate)
+
 	-- Control Data Length error
-	local control_data_length_error = ProtoExpert.new("mvu.expert.control_data_length_error", "Control Data Length error", expert.group.PROTOCOL, expert.severity.ERROR)
-	m._experts["mvu.expert.control_data_length_error"] = mFields.CreateExpertField("mvu.expert.control_data_length_error", control_data_length_error)
+	local control_data_length_error = ProtoExpert.new(m._FIELD_NAMES.CONTROL_DATA_LENGTH_ERROR, "Control Data Length error", expert.group.PROTOCOL, expert.severity.ERROR)
+	m._experts[m._FIELD_NAMES.CONTROL_DATA_LENGTH_ERROR] = mFields.CreateExpertField(m._FIELD_NAMES.CONTROL_DATA_LENGTH_ERROR, control_data_length_error)
 
 end
 
@@ -135,9 +149,10 @@ end
 --- Must be called after ReadMvuPayloadAndPosition() and DeclareFields()
 --- @param buffer any The buffer to dissect (TVB object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tvb.html#lua_class_Tvb)
 --- @param subtree table The tree on which to add the procotol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
+--- @param pinfo any Packet info (Pinfo object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Pinfo.html#lua_class_Pinfo)
 --- @return table<string> errors
 --- @return boolean|nil blocking_errors Indicates if one of the returned errors is blocking and should interrupt further packet analysis
-function m.AddHeaderFieldsToSubtree(buffer, subtree)
+function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo)
 
 	-- Read IEEE 1722.1 field values
 	local message_type = mIEEE17221Fields.GetMessageType()
@@ -151,7 +166,7 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree)
 	m._command_type = bit.band(0x7fff, m._mvu_payload_bytes:int(0, 2))
 
 	-- Write command type and description to the MVU subtree
-	subtree:add(m._fields["mvu.command_type"], buffer(m._mvu_payload_start, 2), m._command_type)
+	subtree:add(m._fields[m._FIELD_NAMES.COMMAND_TYPE], buffer(m._mvu_payload_start, 2), m._command_type)
 
 	---
 	--- Command Milan version
@@ -163,7 +178,7 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree)
 	-- If the Milan version was detected
 	if type(milan_version) == "string" and #milan_version > 0 then
 		-- Write Milan version to the subtree
-		subtree:add(m._fields["mvu.specifications_version"], milan_version, "[Version " .. milan_version .. "]")
+		subtree:add(m._fields[m._FIELD_NAMES.SPECIFICATIONS_VERSION], milan_version, "[Version " .. milan_version .. "]")
 	end
 
 	---
@@ -174,7 +189,7 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree)
 	m._status_code = bit.rshift(buffer(16, 1):uint(), 3)
 
 	-- Write status to the MVU subtree
-	subtree:add(m._fields["mvu.status"], buffer(16, 1), m._status_code)
+	subtree:add(m._fields[m._FIELD_NAMES.STATUS], buffer(16, 1), m._status_code)
 
 	---
 	--- Check errors
@@ -192,9 +207,9 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree)
 			.. " (minimum expected: " .. minimum_control_data_length .. ")"
 
 		-- Add control data length error to the subtree
-		subtree:add_tvb_expert_info(m._experts["mvu.expert.control_data_length_error"], buffer(16, 2), error_message)
+		subtree:add_tvb_expert_info(m._experts[m._FIELD_NAMES.CONTROL_DATA_LENGTH_ERROR], buffer(16, 2), error_message)
 
-		-- Add error message to errors lise
+		-- Add error message to errors list
 		table.insert(errors, error_message)
 
 		-- Return blocking error
@@ -209,9 +224,9 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree)
 		local error_message = "Control Data Length (" .. control_data_length .. ") is greater than maximum allowed value (254)"
 
 		-- Add control data length error to the subtree
-		subtree:add_tvb_expert_info(m._experts["mvu.expert.control_data_length_error"], buffer(16, 2), error_message)
+		subtree:add_tvb_expert_info(m._experts[m._FIELD_NAMES.CONTROL_DATA_LENGTH_ERROR], buffer(16, 2), error_message)
 
-		-- Add error message to errors lise
+		-- Add error message to errors list
 		table.insert(errors, error_message)
 
 	end
@@ -226,9 +241,9 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree)
 			.. ", control data payload size: " .. actual_control_data_payload_size .. ")"
 
 		-- Add control data length error to the subtree
-		subtree:add_tvb_expert_info(m._experts["mvu.expert.control_data_length_error"], buffer(16, 2), error_message)
+		subtree:add_tvb_expert_info(m._experts[m._FIELD_NAMES.CONTROL_DATA_LENGTH_ERROR], buffer(16, 2), error_message)
 
-		-- Add error message to errors lise
+		-- Add error message to errors list
 		table.insert(errors, error_message)
 
 	end
@@ -242,10 +257,49 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree)
 		local error_message = "The frame contains " .. remaining_length .. " unexepected remaining bytes after the control data payload"
 
 		-- Add control data length error to the subtree
-		subtree:add_tvb_expert_info(m._experts["mvu.expert.control_data_length_error"], buffer(control_data_end, remaining_length), error_message)
+		subtree:add_tvb_expert_info(m._experts[m._FIELD_NAMES.CONTROL_DATA_LENGTH_ERROR], buffer(control_data_end, remaining_length), error_message)
 
-		-- Add error message to errors lise
+		-- Add error message to errors list
 		table.insert(errors, error_message)
+
+	end
+
+	--------------------------------------------
+	-- Register the message in a conversation --
+	--------------------------------------------
+
+	local register_error_message
+
+	-- If we visit the packet for the first time
+	if not pinfo.visited then
+
+		-- Read IEEE 1722.1 fields
+		local controller_entity_id = mIEEE17221Fields.GetControllerEntityId()
+		local sequence_id          = mIEEE17221Fields.GetSequenceId()
+
+		-- Build message data to be stored
+		local message_metadata = {
+			frameNumber = pinfo.number,
+			controlDataLength = control_data_length,
+		}
+
+		-- Register message
+		register_error_message = mConversations.RegisterMessage(controller_entity_id, sequence_id, message_type, message_metadata, pinfo.number)
+
+	-- If we have already visited the packet
+	else
+		-- Get the possible error message generated during the registering of this message on first visit
+		register_error_message = mConversations.GetRegisterErrorMessageForFrame(pinfo.number)
+	end
+
+	-- In case of message registering error
+	if register_error_message then
+
+		-- Add sequence ID duplicate error to the subtree
+		subtree:add_tvb_expert_info(m._experts[m._FIELD_NAMES.SEQUENCE_ID_DUPLICATE], buffer(26, 10), register_error_message)
+
+		-- Add error message to errors list
+		table.insert(errors, register_error_message)
 
 	end
 
