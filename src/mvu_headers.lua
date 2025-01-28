@@ -29,6 +29,7 @@ m._FIELD_NAMES = {
     COMMAND_TYPE              = "mvu.command_type",
     STATUS                    = "mvu.status",
     SPECIFICATIONS_VERSION    = "mvu.specifications_version",
+    HAS_ERRORS                = "mvu.has_errors",
     SEQUENCE_ID_DUPLICATE     = "mvu.expert.sequence_id_duplicate",
     CONTROL_DATA_LENGTH_ERROR = "mvu.expert.control_data_length_error",
 }
@@ -85,6 +86,9 @@ function m.DeclareFields()
 
 	-- Milan specification revision version
 	m._fields[m._FIELD_NAMES.SPECIFICATIONS_VERSION] = mFields.CreateField(ProtoField.string(m._FIELD_NAMES.SPECIFICATIONS_VERSION))
+
+	-- Flag for when the MVU packet has errors
+	m._fields[m._FIELD_NAMES.HAS_ERRORS] = mFields.CreateField(ProtoField.bool(m._FIELD_NAMES.HAS_ERRORS))
 
 	-------------------
 	-- EXPERT FIELDS --
@@ -274,6 +278,44 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo)
 
 	end
 
+	-- If the message is a response to a not-implemented command
+	if message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE
+	and m._status_code == mIEEE17221Specs.VENDOR_UNIQUE_STATUS_CODES.NOT_IMPLEMENTED
+	then
+
+		-- Get information about the initial command
+		local initial_command_data = mConversations.GetConversationMessageData(mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND)
+
+		-- If initial command data was found
+		if type(initial_command_data) == "table" then
+
+			-- If the control data length of the initial command was found
+			if type(initial_command_data.controlDataLength) == "number" then
+
+				-- If the current response CDL is different from the initial command CDL
+				if control_data_length ~= initial_command_data.controlDataLength then
+
+					-- Build error message
+					local error_message = "The Control Data Length ("..control_data_length..")"
+						.. " shall match that of the initial command (CDL = "..initial_command_data.controlDataLength
+						-- Insert initial command frame number if known
+						.. (type(initial_command_data.frameNumber) == "number" and ", frame number "..initial_command_data.frameNumber or "")
+						.. ") when the PAAD does not implement it."
+
+					-- Add control data length error to the subtree
+					subtree:add_tvb_expert_info(m._experts[m._FIELD_NAMES.CONTROL_DATA_LENGTH_ERROR], buffer(control_data_end, remaining_length), error_message)
+
+					-- Add error message to errors list
+					table.insert(errors, error_message)
+
+				end
+			end
+		end
+
+		--  Return breaking error
+		return errors, true
+	end
+
 	--------------------------------------------
 	-- Register the message in a conversation --
 	--------------------------------------------
@@ -313,6 +355,16 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo)
 	-- Return list of non-blocking errors if any
 	return errors
 
+end
+
+--- Set the value of the Has Errors field
+--- @param has_errors boolean
+--- @param subtree table The tree on which to add the procotol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
+function m.SetHasErrorsField(has_errors, subtree)
+	if (has_errors) then
+		-- Add Has Errors field to the subtree
+		subtree:add(m._fields[m._FIELD_NAMES.HAS_ERRORS], true, "The packet has errors!")
+	end
 end
 
 --- Alter the packet information object to write MVU details in the packet columns

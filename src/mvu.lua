@@ -106,6 +106,10 @@ function mProto.Proto.dissector(buffer, pinfo, tree)
 		-- Packet Info --
 		-----------------
 
+		-- Has Errors field
+		local has_errors = #errors > 0
+		mHeaders.SetHasErrorsField(has_errors, mvuSubtree)
+
 		-- Write to packet info columns
 		mHeaders.WritePacketInfo(pinfo, errors)
 
