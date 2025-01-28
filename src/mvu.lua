@@ -121,7 +121,9 @@ function mProto.Proto.dissector(buffer, pinfo, tree)
 		mPluginInfo.RegisterPluginInfo()
 
 		-- Add plugin information to the subtree
-		mvuSubtree:add("[MVU plugin version " .. mPluginInfo.GetVersion() .. ", supports Milan Specifications up to version " .. mSpecs.SPEC_VERSION .. "]")
+		mvuSubtree:add("MVU plugin version " .. mPluginInfo.GetVersion() .. ", supports Milan Specifications up to version " .. mSpecs.SPEC_VERSION)
+			--- Mark as a generated field (with data inferred but not contained in the packet)
+			:set_generated(true)
 
 	end
 

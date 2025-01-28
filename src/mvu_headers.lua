@@ -192,7 +192,9 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo)
 	-- If the Milan version was detected
 	if type(milan_version) == "string" and #milan_version > 0 then
 		-- Write Milan version to the subtree
-		subtree:add(m._fields[m._FIELD_NAMES.SPECIFICATIONS_VERSION], milan_version, "[Version " .. milan_version .. "]")
+		subtree:add(m._fields[m._FIELD_NAMES.SPECIFICATIONS_VERSION], milan_version, "Version " .. milan_version)
+			--- Mark as a generated field (with data inferred but not contained in the packet)
+			:set_generated(true)
 	end
 
 	---
@@ -363,7 +365,9 @@ end
 function m.SetHasErrorsField(has_errors, subtree)
 	if (has_errors) then
 		-- Add Has Errors field to the subtree
-		subtree:add(m._fields[m._FIELD_NAMES.HAS_ERRORS], true, "The packet has errors!")
+		subtree:add(m._fields[m._FIELD_NAMES.HAS_ERRORS], true, "The MVU packet has errors!")
+			--- Mark as a generated field (with data inferred but not contained in the packet)
+			:set_generated(true)
 	end
 end
 
