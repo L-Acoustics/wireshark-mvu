@@ -85,22 +85,27 @@ end
 --- @param buffer any The buffer to dissect (TVB object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tvb.html#lua_class_Tvb)
 function m.ReadMvuPayloadAndPosition(buffer)
 
+	-- Read IEEE1722.1 fields
+	local control_data_length = mIEEE17221Fields.GetControldataLength()
+
 	-- Read payloads positions
 	-- Packet structure:
-	--   14 bytes for Ethernet header
-	--   4 bytes for IEEE1722 subtype
-	--   8 bytes for IEEE1722 stream ID
+	--  14 bytes for Ethernet header
+	--   4 bytes for IEEE1722(.1) subtype data
+	--   8 bytes for IEEE1722.1 target_entity_id
 	--     (Start of Control Data payload)
 	m._control_data_start = 14 + 4 + 8
-	--   8 bytes for IEEE1722.1 controller ID
-	--   2 bytes for IEEE1722.1 sequence ID
-	--   6 bytes for IEEE1722.1 vendor protocol ID
+	--   8 bytes for IEEE1722.1 controller_entity_id
+	--   2 bytes for IEEE1722.1 sequence_id
+	--   6 bytes for IEEE1722.1 vendor unique protocol ID
 	--     (Start of MVU payload)
 	m._mvu_payload_start = m._control_data_start + 8 + 2 + 6
 
+	-- The MVU payload ends with the Control Data payload
+	m._mvu_payload_length = control_data_length - (m._mvu_payload_start - m._control_data_start)
+
 	-- Read MVU payload (read to end of packet)
-	m._mvu_payload_bytes = buffer:bytes(m._mvu_payload_start)
-	m._mvu_payload_length = m._mvu_payload_bytes:len()
+	m._mvu_payload_bytes = buffer:bytes(m._mvu_payload_start, m._mvu_payload_length)
 
 end
 
@@ -120,7 +125,7 @@ function m.CreateMvuSubtree(buffer, tree)
 			.. (message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE and " (Response)" or "")
 
 		-- Add MVU subtree to packet details
-		m._subtree = tree:add(mProto.Proto, buffer(m._mvu_payload_start), subtree_title)
+		m._subtree = tree:add(mProto.Proto, buffer(m._mvu_payload_start, m._mvu_payload_length), subtree_title)
 
 		-- Return the subtree
 		return m._subtree
