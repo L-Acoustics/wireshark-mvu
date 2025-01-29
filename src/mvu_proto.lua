@@ -1,8 +1,8 @@
 ---
 --- mvu_proto.lua
---- 
+---
 --- Contains the MVU Wireshark protocol object and fields
---- 
+---
 
 -- Init the module object to return
 local m = {}

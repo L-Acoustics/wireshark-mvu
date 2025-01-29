@@ -56,7 +56,7 @@ function m.IsMvuPacket()
 	local vendor_unique_protocol_id = mIEEE17221Fields.GetVendorUniqueProtocolIdHexString()
 
 	-- It is an MVU packet if:
-	-- The Control data Field is valid
+	-- The Control Data Field is valid
 	return control_data_length ~= nil
 	-- and the Vendor Unique Protocol ID matches MVU
 	and type(vendor_unique_protocol_id) == "string" and vendor_unique_protocol_id:lower() == mSpecs.PROTOCOL_ID:lower()
@@ -77,7 +77,7 @@ function m.InsertControlDataLengthError(control_data_length, buffer, subtree, er
 	local error_message = "Unexpected Control Data Length (" .. control_data_length .. ") for this command"
 
 	-- Get control data length error expert field from headers
-	local f_control_data_length_errors = mFields.GetExpertField("mvu.expert.control_data_length_error")
+	local f_control_data_length_errors = mFields.GetExpertField(mHeaders._FIELD_NAMES.CONTROL_DATA_LENGTH_ERROR)
 
 	-- If expert field was found
 	if f_control_data_length_errors ~= nil then
@@ -110,7 +110,9 @@ function m.InsertUnimplementedExtraBytesMessage(subtree)
 	-- If there are unimplemented extra bytes at the end of the payload
 	if unimplemented_extra_bytes == true then
 		-- Insert message in the subtree to warn that the message may implement a newer version of Milan specifications
-		subtree:add("[Additional bytes at end of payload. This PAAD may implement a newer version of Milan. Consider updating this plugin.]")
+		subtree:add("Additional bytes at end of payload. This PAAD may implement a newer version of Milan. Consider updating this plugin.")
+			--- Mark as a generated field (with data inferred but not contained in the packet)
+			:set_generated(true)
 	end
 
 end

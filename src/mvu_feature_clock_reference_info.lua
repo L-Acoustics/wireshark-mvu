@@ -23,6 +23,7 @@ local m = {}
 m._fields = {}
 
 -- List of fields related to GET_CLOCK_REFERENCE_INFO/SET_CLOCK_REFERENCE_INFO commands/responses
+-- These field names can be used in Wireshark display filters to analyze MVU packets
 m._FIELD_NAMES = {
     CLOCK_DOMAIN_INDEX                   = "mvu.clock_domain_index",
     MEDIA_CLOCK_FLAGS                    = "mvu.media_clock_flags",
@@ -126,12 +127,6 @@ function m.DeclareFields()
 		ProtoField.string(m._FIELD_NAMES.MEDIA_CLOCK_DOMAIN_NAME, "Media Clock Domain Name", base.UNICODE)
 	)
 
-	-- -- System unique ID
-	-- m._fields["mvu.system_unique_id"]
-	-- = mFields.CreateField(
-	-- 	ProtoField.uint32("mvu.system_unique_id", "System Unique ID", base.HEX)
-	-- )
-
 	-------------------
 	-- EXPERT FIELDS --
 	-------------------
@@ -158,7 +153,7 @@ function m.AddFieldsToSubtree(buffer, subtree, errors)
 	local milan_version = mSpecs.GetMilanVersionOfCommand(message_type, command_type, control_data_length)
 
 	-- If no Milan version was found for this command,
-	-- it means that the Control data Length is unexpected
+	-- it means that the Control Data Length is unexpected
 	if milan_version == nil then
 		-- Insert error
 		errors = mControl.InsertControlDataLengthError(control_data_length, buffer, subtree, errors)

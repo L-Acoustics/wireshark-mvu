@@ -1,7 +1,7 @@
 ---
 --- mvu_fields.lua
 ---
---- Contains the MVU Wireshark protocol fields
+--- Gathers and registers the MVU Wireshark protocol fields
 ---
 
 -- Require dependencies
@@ -102,6 +102,7 @@ function m.GetExpertField(abbr)
 end
 
 --- Register all requested MVU fields into the protocol
+--- Must be called after all fields have been created using CreateField() and CreateExpertField()
 function m.RegisterAllFieldsInProtocol()
 
     -- Register fields

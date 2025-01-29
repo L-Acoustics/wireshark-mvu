@@ -15,6 +15,7 @@ local m = {}
 m._fields = {}
 
 -- List of IEEE 1722.1 Wireshark field names
+-- (fields implemented in the existing Wireshark dissector for IEEE 1722.1 protocol)
 m._FIELD_NAMES = {
     CONTROL_DATA_LENGTH       = "ieee17221.control_data_length",
     CONTROLLER_ENTITY_ID      = "ieee17221.controller_guid",

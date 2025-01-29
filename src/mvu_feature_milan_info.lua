@@ -23,6 +23,7 @@ local m = {}
 m._fields = {}
 
 -- List of fields related to GET_MILAN_INFO commands/responses
+-- These field names can be used in Wireshark display filters to analyze MVU packets
 m._FIELD_NAMES = {
     PROTOCOL_VERSION                = "mvu.protocol_version",
     FEATURE_FLAGS                   = "mvu.feature_flags",
@@ -44,18 +45,26 @@ function m.DeclareFields()
 	-- See documentation: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Proto.html#lua_class_ProtoField
 
 	-- Protocol version
+	--   Expected in:
+	--     GET_MILAN_INFO command
+	--     GET_MILAN_INFO response
+	--     GET_SYSTEM_UNIQUE_ID command
 	m._fields[m._FIELD_NAMES.PROTOCOL_VERSION]
 	= mFields.CreateField(
 		ProtoField.uint32(m._FIELD_NAMES.PROTOCOL_VERSION, "Protocol Version", base.DEC)
 	)
 
 	-- Flags for available Milan features
+	--   Expected in:
+	--     GET_MILAN_INFO response
 	m._fields[m._FIELD_NAMES.FEATURE_FLAGS]
 	= mFields.CreateField(
 		ProtoField.uint32(m._FIELD_NAMES.FEATURE_FLAGS, "Feature Flags", base.HEX)
 	)
 
 	-- Feature: Redundancy
+	--   Expected in:
+	--     GET_MILAN_INFO response
 	m._fields[m._FIELD_NAMES.FEATURE_REDUNDANCY]
 	= mFields.CreateField(
 		ProtoField.bool(
@@ -67,6 +76,8 @@ function m.DeclareFields()
 	)
 
 	-- Feature: Talker dynamic mappings while running
+	--   Expected in:
+	--     GET_MILAN_INFO response
 	m._fields[m._FIELD_NAMES.FEATURE_TALKER_DYNAMIC_MAPPINGS]
 	= mFields.CreateField(
 		ProtoField.bool(
@@ -78,6 +89,8 @@ function m.DeclareFields()
 	)
 
 	-- Certification version (the version number of the Milan certifications that the PAAD-AE has passed)
+	--   Expected in:
+	--     GET_MILAN_INFO response
 	m._fields[m._FIELD_NAMES.PAAD_CERTIFICATION_VERSION]
 	= mFields.CreateField(
 		ProtoField.string(
@@ -115,7 +128,7 @@ function m.AddFieldsToSubtree(buffer, subtree, errors)
 	local milan_version = mSpecs.GetMilanVersionOfCommand(message_type, command_type, control_data_length)
 
 	-- If no Milan version was found for this command,
-	-- it means that the Control data Length is unexpected
+	-- it means that the Control Data Length is unexpected
 	if milan_version == nil then
 		-- Insert error
 		errors = mControl.InsertControlDataLengthError(control_data_length, buffer, subtree, errors)

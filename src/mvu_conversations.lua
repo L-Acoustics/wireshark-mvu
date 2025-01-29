@@ -1,7 +1,11 @@
 ---
 --- mvu_conversations.lua
 ---
---- Keeps track of information of passed visited packets for inter-packet analysis
+--- Keeps track of information of visited packets for inter-packet analysis
+--- A conversation is a collection of packets with the same values for the
+--- following IEEE 1722.1 fields:
+---   - Controller entity ID
+---   - Sequence ID
 ---
 
 -- Require dependency modules
@@ -29,6 +33,8 @@ m._register_error_messages = {}
 function m.ClearConversations()
 	-- Clear the conversations table
 	m._conversations = {}
+	--- Clear error message
+	m._register_error_messages = {}
 end
 
 --- Register a message and its metadata in the conversations
@@ -37,9 +43,9 @@ end
 --- @return string|nil error Error message in case of problem
 function m.RegisterMessage(message_metadata, frame_number)
 
-	------------------------
-	-- Validate arguments --
-	------------------------
+	-----------------------------------
+	-- Validate arguments and fields --
+	-----------------------------------
 
 	-- Data table
 	if type(message_metadata) ~= "table" then
@@ -113,7 +119,8 @@ function m.RegisterMessage(message_metadata, frame_number)
 
 end
 
---- Get the error message possibly generated during the call to RegisterMessage() when the packet was first visited
+--- Get the error message possibly generated during the call to RegisterMessage()
+--- when the packet was first visited
 --- @param frame_number number The frame number of the associated packet
 --- @return string|nil error Error message in case there was a problem during registering
 function m.GetRegisterErrorMessageForFrame(frame_number)
@@ -135,11 +142,11 @@ function m.GetConversationMessageData(message_type)
 	local sequence_id          = mIEEE17221Fields.GetSequenceId()
 	local actual_message_type  = message_type and message_type or mIEEE17221Fields.GetMessageType()
 
-	-- If an entry exists for this controller_entity
+	-- If an entry exists for this controller entity ID
 	if type(controller_entity_id) == "string" and type(m._conversations[controller_entity_id]) == "table" then
 		-- If an entry exists for this sequence ID
 		if type(sequence_id) == "number" and type(m._conversations[controller_entity_id][sequence_id]) == "table" then
-			-- Return the data stored for the provided message type
+			-- Return the data stored for the provided message type, if any
 			return m._conversations[controller_entity_id][sequence_id][actual_message_type]
 		end
 	end
