@@ -1,7 +1,7 @@
 ---
 --- ieee8023_specs.lua
 ---
---- Constants and information comming from the IEEE 802.3 specifications
+--- Constants and information coming from the IEEE 802.3 specifications
 ---
 
 -- Init module object

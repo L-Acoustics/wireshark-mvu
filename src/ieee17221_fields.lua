@@ -41,7 +41,7 @@ end
 
 --- Read the value of Control Data Length field
 --- @return number|nil control_data_length
-function m.GetControldataLength()
+function m.GetControlDataLength()
     -- Get field
     local field = m._GetField(m._FIELD_NAMES.CONTROL_DATA_LENGTH)
     -- If field exists
@@ -56,7 +56,7 @@ function m.GetControldataLength()
     end
 end
 
---- Read the value or Controller Entity ID as an hexadecimal string
+--- Read the value of Controller Entity ID field as an hexadecimal string (e.g. "0x001b92ffff050870")
 --- @return string|nil vendor_unique_protocol_id
 function m.GetControllerEntityId()
     -- Get field
@@ -124,7 +124,7 @@ function m.GetVendorUniqueStatusCode()
     end
 end
 
---- Read the value or Vendor Unique Procol ID as an hexadecimal string
+--- Read the value or Vendor Unique Protocol ID field as an hexadecimal string (e.g. "0x0000001bc50ac100" for MVU)
 --- @return string|nil vendor_unique_protocol_id
 function m.GetVendorUniqueProtocolIdHexString()
     -- Get field

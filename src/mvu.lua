@@ -16,7 +16,7 @@ local mIEEE17221Fields = require("ieee17221_fields")
 local mControl = require("mvu_control")
 local mMilanInfo = require("mvu_feature_milan_info")
 local mSystemUniqueId = require("mvu_feature_system_unique_id")
-local mClockreferenceInfo = require("mvu_feature_clock_reference_info")
+local mClockReferenceInfo = require("mvu_feature_clock_reference_info")
 local mConversations = require("mvu_conversations")
 
 -- Check compatibility with Wireshark version
@@ -36,7 +36,7 @@ mIEEE17221Fields.LoadAllFields()
 mHeaders.DeclareFields()
 mMilanInfo.DeclareFields()
 mSystemUniqueId.DeclareFields()
-mClockreferenceInfo.DeclareFields()
+mClockReferenceInfo.DeclareFields()
 
 -- Register declared fields to protocol
 mFields.RegisterAllFieldsInProtocol()
@@ -55,10 +55,10 @@ end
 --- @see documentation https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Proto.html#lua_class_attrib_proto_dissector
 --- @param buffer any The buffer to dissect (TVB object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tvb.html#lua_class_Tvb)
 --- @param pinfo table The packet info (PInfo object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Pinfo.html#lua_class_Pinfo)
---- @param tree table The tree on which to add the procotol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
+--- @param tree table The tree on which to add the protocol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
 function mProto.Proto.dissector(buffer, pinfo, tree)
 
-	-- If we are dissecting a MVU packet and the packet is visited
+	-- If we are dissecting an MVU packet
 	if mControl.IsMvuPacket() then
 
 		-- Init table of errors that we may encounter during dissecting
@@ -94,7 +94,7 @@ function mProto.Proto.dissector(buffer, pinfo, tree)
 
 		-- Add Clock Reference Info fields to subtree
 		if not blocking_errors then
-			errors, blocking_errors = mClockreferenceInfo.AddFieldsToSubtree(buffer, mvuSubtree, errors)
+			errors, blocking_errors = mClockReferenceInfo.AddFieldsToSubtree(buffer, mvuSubtree, errors)
 		end
 
 		-- Insert message in case there are unimplemented extra bytes at end of payload
@@ -106,7 +106,7 @@ function mProto.Proto.dissector(buffer, pinfo, tree)
 		-- Packet Info --
 		-----------------
 
-		-- Has Errors field
+		-- Aff the Has Errors field to the subtree
 		local has_errors = #errors > 0
 		mHeaders.SetHasErrorsField(has_errors, mvuSubtree)
 
@@ -117,7 +117,7 @@ function mProto.Proto.dissector(buffer, pinfo, tree)
 		-- Plugin Info --
 		-----------------
 
-		-- Register plugin informatino into Wireshark
+		-- Register plugin information into Wireshark
 		mPluginInfo.RegisterPluginInfo()
 
 		-- Add plugin information to the subtree

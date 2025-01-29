@@ -97,7 +97,7 @@ end
 
 --- Add fields to the subtree
 --- @param buffer any The buffer to dissect (TVB object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tvb.html#lua_class_Tvb)
---- @param subtree table The tree on which to add the procotol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
+--- @param subtree table The tree on which to add the protocol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
 --- @param errors table<string> Existing errors
 --- @return table<string> errors Amended list of errors
 --- @return boolean|nil blocking_errors Indicates if one of the returned errors is blocking and should interrupt further packet analysis
@@ -106,7 +106,7 @@ function m.AddFieldsToSubtree(buffer, subtree, errors)
 	-- Read IEEE 1722.1 field values
 	local message_type        = mIEEE17221Fields.GetMessageType()
 	local status_code         = mIEEE17221Fields.GetVendorUniqueStatusCode()
-	local control_data_length = mIEEE17221Fields.GetControldataLength()
+	local control_data_length = mIEEE17221Fields.GetControlDataLength()
 
 	-- Read MVU header field values
 	local command_type = mHeaders.GetCommandType()
@@ -123,7 +123,7 @@ function m.AddFieldsToSubtree(buffer, subtree, errors)
 		return errors, true
 	end
 
-	-- If the message is a SUCCESS reponse to a GET_MILAN_INFO command
+	-- If the message is a SUCCESS response to a GET_MILAN_INFO command
 	if 	message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE
 	and status_code == mIEEE17221Specs.VENDOR_UNIQUE_STATUS_CODES.SUCCESS
 	and command_type == mSpecs.COMMAND_TYPES.GET_MILAN_INFO
@@ -134,7 +134,7 @@ function m.AddFieldsToSubtree(buffer, subtree, errors)
 		----------------------------
 
 		-- Get MVU payload bytes from buffer
-		local mvu_payload_bytes, mvu_payload_start, mvu_payload_length = mHeaders.GetMvuPayload()
+		local mvu_payload_bytes, mvu_payload_start = mHeaders.GetMvuPayload()
 
 		--
 		-- Protocol version

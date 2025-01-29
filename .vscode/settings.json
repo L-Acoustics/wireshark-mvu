@@ -15,5 +15,14 @@
     "set_plugin_info",
     "get_version",
     "report_failure"
+  ],
+  "cSpell.words": [
+    "AECP",
+    "ftypes",
+    "PAAD",
+    "pinfo",
+    "postdissector",
+    "tohex",
+    "valuestring"
   ]
 }

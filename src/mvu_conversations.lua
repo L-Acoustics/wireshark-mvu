@@ -1,7 +1,7 @@
 ---
 --- mvu_conversations.lua
 ---
---- Keep strack of information of passed visited packets for inter-packet analysis
+--- Keeps track of information of passed visited packets for inter-packet analysis
 ---
 
 -- Require dependency modules
@@ -31,7 +31,7 @@ function m.ClearConversations()
 	m._conversations = {}
 end
 
---- Register a message and its metadata in the conversation
+--- Register a message and its metadata in the conversations
 --- @param message_metadata table Table containing the data that we want to store for this message
 --- @param frame_number number The frame number in the packet capture
 --- @return string|nil error Error message in case of problem
@@ -88,28 +88,18 @@ function m.RegisterMessage(message_metadata, frame_number)
 	-- If an entry already exists for this message type
 	if m._conversations[controller_entity_id][sequence_id][message_type] ~= nil then
 
-		-- Init error message
-		local error_message = ""
-
-		-- Get frame number of previosly parsed packet
+		-- Get frame number of previously parsed packet
 		local previous_frame_number = m._conversations[controller_entity_id][sequence_id][message_type].frameNumber
 
-		-- If previous frame number was found
-		if type(previous_frame_number) == "number" then
-			error_message = "Another packet (frame number "..previous_frame_number..")"
-				.. " with this controller entity ID ("..controller_entity_id.."),"
-				.. " sequence ID ("..sequence_id..")"
-				.. " and message type ("..mIEEE17221Specs.AECP_MESSAGE_TYPES[message_type]..")"
-				.. " was already parsed."
-		else
-			error_message = "Another packet"
-				.. " with this controller entity ID ("..controller_entity_id.."),"
-				.. " sequence ID ("..sequence_id..")"
-				.. " and message type ("..mIEEE17221Specs.AECP_MESSAGE_TYPES[message_type]..")"
-				.. " was already parsed."
-		end
+		-- Build error message
+		local error_message = "Another packet"
+			.. (type(previous_frame_number) == "number" and " (frame number "..previous_frame_number..")" or "")
+			.. " with this controller entity ID ("..controller_entity_id.."),"
+			.. " sequence ID ("..sequence_id..")"
+			.. " and message type ("..mIEEE17221Specs.AECP_MESSAGE_TYPES[message_type]..")"
+			.. " was already parsed."
 
-		-- Save error message
+		-- Save the error message for when the packet gets visited again later
 		m._register_error_messages[frame_number] = error_message
 
 		-- Return the error message
@@ -123,9 +113,9 @@ function m.RegisterMessage(message_metadata, frame_number)
 
 end
 
---- Get the error message possibly generated during the call to RegisterMessage() for this frame number
---- @param frame_number number The number of the frame containing the message
---- @return string|nil error Error message in case of problem
+--- Get the error message possibly generated during the call to RegisterMessage() when the packet was first visited
+--- @param frame_number number The frame number of the associated packet
+--- @return string|nil error Error message in case there was a problem during registering
 function m.GetRegisterErrorMessageForFrame(frame_number)
 	-- Validate argument
 	if type(frame_number) ~= "number" then
@@ -136,7 +126,7 @@ function m.GetRegisterErrorMessageForFrame(frame_number)
 end
 
 --- Read stored data for a conversation message type
---- @param message_type number|nil The message type (VENDOR_UNIQUE_COMMAND or VENDOR_UNIQUE_RESPONSE). If nil, the message type of the current packet is considered.
+--- @param message_type number|nil The message type (VENDOR_UNIQUE_COMMAND or VENDOR_UNIQUE_RESPONSE). If nil, the message type of the currently visited packet is considered.
 --- @return table|nil message_metadata Table containing the data that was stored for this message
 function m.GetConversationMessageData(message_type)
 

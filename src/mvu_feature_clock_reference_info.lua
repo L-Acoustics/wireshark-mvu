@@ -28,8 +28,8 @@ m._FIELD_NAMES = {
     MEDIA_CLOCK_FLAGS                    = "mvu.media_clock_flags",
     MEDIA_CLOCK_REFERENCE_PRIORITY_VALID = "mvu.media_clock.reference_priority_valid",
     MEDIA_CLOCK_DOMAIN_NAME_VALID        = "mvu.media_clock.domain_name_valid",
-    DEFAULT_MCR_PRIORITY                 = "mvu.default_mcr_prio",
-    USER_MCR_PRIORITY                    = "mvu.user_mcr_prio",
+    DEFAULT_MCR_PRIORITY                 = "mvu.default_mcr_priority",
+    USER_MCR_PRIORITY                    = "mvu.user_mcr_priority",
     MEDIA_CLOCK_DOMAIN_NAME              = "mvu.media_clock.domain_name",
 }
 
@@ -66,7 +66,7 @@ function m.DeclareFields()
 		ProtoField.uint32(m._FIELD_NAMES.MEDIA_CLOCK_FLAGS, "Media Clock Flags", base.HEX)
 	)
 
-	-- Media clock referency priority field validity
+	-- Media clock reference priority field validity
 	--   Expected in:
 	--     GET_MEDIA_CLOCK_REFERENCE_INFO response
 	--     SET_MEDIA_CLOCK_REFERENCE_INFO command
@@ -141,7 +141,7 @@ end
 
 --- Add fields to the subtree
 --- @param buffer any The buffer to dissect (TVB object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tvb.html#lua_class_Tvb)
---- @param subtree table The tree on which to add the procotol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
+--- @param subtree table The tree on which to add the protocol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
 --- @param errors table<string> Existing errors
 --- @return table<string> errors List of errors encountered
 --- @return boolean|nil blocking_errors Indicates if one of the returned errors is blocking and should interrupt further packet analysis
@@ -149,7 +149,7 @@ function m.AddFieldsToSubtree(buffer, subtree, errors)
 
 	-- Read IEEE 1722.1 field values
 	local message_type        = mIEEE17221Fields.GetMessageType()
-	local control_data_length = mIEEE17221Fields.GetControldataLength()
+	local control_data_length = mIEEE17221Fields.GetControlDataLength()
 
 	-- Read MVU header field values
 	local command_type = mHeaders.GetCommandType()

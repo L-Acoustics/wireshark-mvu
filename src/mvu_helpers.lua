@@ -46,7 +46,7 @@ function m.MergeTables(t1, t2)
 	return t
 end
 
---- Compare two string-formated version numbers (e.g. "5.4.21" or "10.0.0.8")
+--- Compare two string-formatted version numbers (e.g. "5.4.21" or "10.0.0.8")
 --- @param v1 string
 --- @param v2 string
 --- @return number|nil result 0 if versions are equivalent, 1 if v1 newer than v2, -1 if v2 is newer than v1, nil in case of error

@@ -1,7 +1,7 @@
 ---
 --- ieee17221_specs.lua
 ---
---- Constants and information comming from the IEEE 1722.1 specifications
+--- Constants and information coming from the IEEE 1722.1 specifications
 ---
 
 -- Init module object
