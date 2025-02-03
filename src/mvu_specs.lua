@@ -22,12 +22,6 @@
 	limitations under the License.
 
 ]]
----
---- mvu_specs.lua
----
---- Constants and information coming from the Milan Specifications related to
---- Milan Vendor Unique data located in IEEE 1722.1 packets
----
 
 -- Stop here if the version of Wireshark is not supported
 local mCompatibility = require("mvu_compatibility")
