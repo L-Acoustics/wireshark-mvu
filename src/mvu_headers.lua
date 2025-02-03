@@ -4,6 +4,12 @@
 --- Handles protocol fields extracted from MVU headers
 ---
 
+-- Stop here if the version of Wireshark is not supported
+local mCompatibility = require("mvu_compatibility")
+if not mCompatibility.IsWiresharkVersionCompatible() then
+	return
+end
+
 -- Require dependency modules
 local mProto = require("mvu_proto")
 local mFields = require("mvu_fields")

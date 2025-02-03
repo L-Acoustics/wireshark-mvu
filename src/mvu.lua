@@ -6,6 +6,17 @@
 --- Declares and implements 'mvu' protocol for displaying information related
 --- to Milan Vendor Unique data in IEEE 1722.1 packets
 
+-- Check compatibility with Wireshark version
+local mCompatibility = require("mvu_compatibility")
+if not mCompatibility.IsWiresharkVersionCompatible() then
+	-- Report incompatibility of plugin to user
+	local incompatibility_message =
+		"The MVU plugin (mvu.lua) requires Wireshark version ".. mCompatibility.GetMinimumWiresharkVersion()  .." or newer." .. "\n"
+		.. "To analyze MVU packets, please update the version of Wireshark."
+	report_failure(incompatibility_message)
+	return
+end
+
 -- Require dependency modules
 local mPluginInfo = require("mvu_plugin_info")
 local mProto = require("mvu_proto")
@@ -13,21 +24,11 @@ local mFields = require("mvu_fields")
 local mSpecs = require("mvu_specs")
 local mHeaders = require("mvu_headers")
 local mIEEE17221Fields = require("ieee17221_fields")
-local mControl = require("mvu_control")
 local mMilanInfo = require("mvu_feature_milan_info")
 local mSystemUniqueId = require("mvu_feature_system_unique_id")
 local mClockreferenceInfo = require("mvu_feature_clock_reference_info")
 local mConversations = require("mvu_conversations")
-
--- Check compatibility with Wireshark version
-if not mControl.IsWiresharkVersionCompatible() then
-	-- Report incompatibility of plugin to user
-	local incompatibility_message =
-		"The MVU plugin (mvu.lua) requires Wireshark version ".. mControl.GetMinimumWiresharkVersion()  .." or newer." .. "\n"
-		.. "To analyze MVU packets, please update the version of Wireshark."
-	report_failure(incompatibility_message)
-	return
-end
+local mControl = require("mvu_control")
 
 -- Load IEEE 1722.1 fields needed for dissecting MVU packets
 mIEEE17221Fields.LoadAllFields()

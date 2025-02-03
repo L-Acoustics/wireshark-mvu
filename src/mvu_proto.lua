@@ -4,6 +4,12 @@
 --- Contains the MVU Wireshark protocol object and fields
 --- 
 
+-- Stop here if the version of Wireshark is not supported
+local mCompatibility = require("mvu_compatibility")
+if not mCompatibility.IsWiresharkVersionCompatible() then
+	return
+end
+
 -- Init the module object to return
 local m = {}
 

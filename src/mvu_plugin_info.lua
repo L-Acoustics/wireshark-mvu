@@ -18,7 +18,6 @@ m._info = {
 	repository = "http://serv-gitlab-rddev/software/3rdparty/wireshark-mvu"
 }
 
-------
 --------------------
 -- Public Methods --
 --------------------

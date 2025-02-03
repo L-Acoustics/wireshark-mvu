@@ -4,6 +4,12 @@
 --- Constants and information comming from the IEEE 1722.1 specifications
 ---
 
+-- Stop here if the version of Wireshark is not supported
+local mCompatibility = require("mvu_compatibility")
+if not mCompatibility.IsWiresharkVersionCompatible() then
+	return
+end
+
 -- Init module object
 local m = {}
 
