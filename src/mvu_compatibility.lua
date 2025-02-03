@@ -23,7 +23,7 @@
 ]]
 
 -- Require dependency modules
-local mHelpers = require("mvu_helpers")
+local mHelpers = require("helpers")
 
 -- Init module object
 local m = {}

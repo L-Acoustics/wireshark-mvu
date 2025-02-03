@@ -26,12 +26,6 @@
 
 ]]
 
--- Stop here if the version of Wireshark is not supported
-local mCompatibility = require("mvu_compatibility")
-if not mCompatibility.IsWiresharkVersionCompatible() then
-	return
-end
-
 -- Require dependency modules
 local mIEEE17221Specs = require("ieee17221_specs")
 local mIEEE17221Fields = require("ieee17221_fields")
