@@ -1,8 +1,27 @@
----
---- mvu_feature_system_unique_id.lua
----
---- Handle fields related to GET_SYSTEM_UNIQUE_ID/SET_SYSTEM_UNIQUE_ID commands/responses
----
+--[[
+	Copyright (c) 2025 by L-Acoustics.
+
+	This file is part of the Milan Vendor Unique plugin for Wireshark
+	---
+		Handle fields related to GET_SYSTEM_UNIQUE_ID/SET_SYSTEM_UNIQUE_ID
+		commands/responses
+	---
+
+	Authors: Benjamin Landrot
+
+	Licensed under the GNU General Public License (GPL) version 2
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at
+
+		https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
+
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express of implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
+
+]]
 
 -- Stop here if the version of Wireshark is not supported
 local mCompatibility = require("mvu_compatibility")
@@ -29,6 +48,7 @@ local m = {}
 m._fields = {}
 
 -- List of fields related to GET_SYSTEM_UNIQUE_ID/SET_SYSTEM_UNIQUE_ID commands/responses
+-- These field names can be used in Wireshark display filters to analyze MVU packets
 m._FIELD_NAMES = {
     SYSTEM_UNIQUE_ID = "mvu.system_unique_id",
 }
@@ -46,6 +66,10 @@ function m.DeclareFields()
 	-- See documentation: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Proto.html#lua_class_ProtoField
 
 	-- System unique ID
+	--   Expected in:
+	--     GET_SYSTEM_UNIQUE_ID response
+	--     SET_SYSTEM_UNIQUE_ID command
+	--     SET_SYSTEM_UNIQUE_ID response
 	m._fields[m._FIELD_NAMES.SYSTEM_UNIQUE_ID]
 	= mFields.CreateField(
 		ProtoField.uint32(m._FIELD_NAMES.SYSTEM_UNIQUE_ID, "System Unique ID", base.HEX)
@@ -60,7 +84,7 @@ end
 
 --- Add fields to the subtree
 --- @param buffer any The buffer to dissect (TVB object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tvb.html#lua_class_Tvb)
---- @param subtree table The tree on which to add the procotol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
+--- @param subtree table The tree on which to add the protocol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
 --- @param errors table<string> Existing errors
 --- @return table<string> errors List of errors encountered
 --- @return boolean|nil blocking_errors Indicates if one of the returned errors is blocking and should interrupt further packet analysis
@@ -68,7 +92,7 @@ function m.AddFieldsToSubtree(buffer, subtree, errors)
 
 	-- Read IEEE 1722.1 field values
 	local message_type        = mIEEE17221Fields.GetMessageType()
-	local control_data_length = mIEEE17221Fields.GetControldataLength()
+	local control_data_length = mIEEE17221Fields.GetControlDataLength()
 
 	-- Read MVU header field values
 	local command_type = mHeaders.GetCommandType()
@@ -77,7 +101,7 @@ function m.AddFieldsToSubtree(buffer, subtree, errors)
 	local milan_version = mSpecs.GetMilanVersionOfCommand(message_type, command_type, control_data_length)
 
 	-- If no Milan version was found for this command,
-	-- it means that the Control data Length is unexpected
+	-- it means that the Control Data Length is unexpected
 	if milan_version == nil then
 		-- Insert error
 		errors = mControl.InsertControlDataLengthError(control_data_length, buffer, subtree, errors)

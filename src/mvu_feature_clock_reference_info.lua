@@ -1,8 +1,27 @@
----
---- mvu_feature_clock_reference_info.lua
----
---- Handle fields related to GET_CLOCK_REFERENCE_INFO/SET_CLOCK_REFERENCE_INFO commands/responses
----
+--[[
+	Copyright (c) 2025 by L-Acoustics.
+
+	This file is part of the Milan Vendor Unique plugin for Wireshark
+	---
+		Handle fields related to GET_CLOCK_REFERENCE_INFO/SET_CLOCK_REFERENCE_INFO
+		commands/responses
+	---
+
+	Authors: Benjamin Landrot
+
+	Licensed under the GNU General Public License (GPL) version 2
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at
+
+		https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
+
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express of implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
+
+]]
 
 -- Stop here if the version of Wireshark is not supported
 local mCompatibility = require("mvu_compatibility")
@@ -29,13 +48,14 @@ local m = {}
 m._fields = {}
 
 -- List of fields related to GET_CLOCK_REFERENCE_INFO/SET_CLOCK_REFERENCE_INFO commands/responses
+-- These field names can be used in Wireshark display filters to analyze MVU packets
 m._FIELD_NAMES = {
     CLOCK_DOMAIN_INDEX                   = "mvu.clock_domain_index",
     MEDIA_CLOCK_FLAGS                    = "mvu.media_clock_flags",
     MEDIA_CLOCK_REFERENCE_PRIORITY_VALID = "mvu.media_clock.reference_priority_valid",
     MEDIA_CLOCK_DOMAIN_NAME_VALID        = "mvu.media_clock.domain_name_valid",
-    DEFAULT_MCR_PRIORITY                 = "mvu.default_mcr_prio",
-    USER_MCR_PRIORITY                    = "mvu.user_mcr_prio",
+    DEFAULT_MCR_PRIORITY                 = "mvu.default_mcr_priority",
+    USER_MCR_PRIORITY                    = "mvu.user_mcr_priority",
     MEDIA_CLOCK_DOMAIN_NAME              = "mvu.media_clock.domain_name",
 }
 
@@ -72,7 +92,7 @@ function m.DeclareFields()
 		ProtoField.uint32(m._FIELD_NAMES.MEDIA_CLOCK_FLAGS, "Media Clock Flags", base.HEX)
 	)
 
-	-- Media clock referency priority field validity
+	-- Media clock reference priority field validity
 	--   Expected in:
 	--     GET_MEDIA_CLOCK_REFERENCE_INFO response
 	--     SET_MEDIA_CLOCK_REFERENCE_INFO command
@@ -132,12 +152,6 @@ function m.DeclareFields()
 		ProtoField.string(m._FIELD_NAMES.MEDIA_CLOCK_DOMAIN_NAME, "Media Clock Domain Name", base.UNICODE)
 	)
 
-	-- -- System unique ID
-	-- m._fields["mvu.system_unique_id"]
-	-- = mFields.CreateField(
-	-- 	ProtoField.uint32("mvu.system_unique_id", "System Unique ID", base.HEX)
-	-- )
-
 	-------------------
 	-- EXPERT FIELDS --
 	-------------------
@@ -147,7 +161,7 @@ end
 
 --- Add fields to the subtree
 --- @param buffer any The buffer to dissect (TVB object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tvb.html#lua_class_Tvb)
---- @param subtree table The tree on which to add the procotol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
+--- @param subtree table The tree on which to add the protocol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
 --- @param errors table<string> Existing errors
 --- @return table<string> errors List of errors encountered
 --- @return boolean|nil blocking_errors Indicates if one of the returned errors is blocking and should interrupt further packet analysis
@@ -155,7 +169,7 @@ function m.AddFieldsToSubtree(buffer, subtree, errors)
 
 	-- Read IEEE 1722.1 field values
 	local message_type        = mIEEE17221Fields.GetMessageType()
-	local control_data_length = mIEEE17221Fields.GetControldataLength()
+	local control_data_length = mIEEE17221Fields.GetControlDataLength()
 
 	-- Read MVU header field values
 	local command_type = mHeaders.GetCommandType()
@@ -164,7 +178,7 @@ function m.AddFieldsToSubtree(buffer, subtree, errors)
 	local milan_version = mSpecs.GetMilanVersionOfCommand(message_type, command_type, control_data_length)
 
 	-- If no Milan version was found for this command,
-	-- it means that the Control data Length is unexpected
+	-- it means that the Control Data Length is unexpected
 	if milan_version == nil then
 		-- Insert error
 		errors = mControl.InsertControlDataLengthError(control_data_length, buffer, subtree, errors)

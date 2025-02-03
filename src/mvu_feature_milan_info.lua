@@ -1,8 +1,26 @@
----
---- mvu_feature_milan_info.lua
----
---- Handle fields related to GET_MILAN_INFO commands
----
+--[[
+	Copyright (c) 2025 by L-Acoustics.
+
+	This file is part of the Milan Vendor Unique plugin for Wireshark
+	---
+		Handle fields related to GET_MILAN_INFO commands
+	---
+
+	Authors: Benjamin Landrot
+
+	Licensed under the GNU General Public License (GPL) version 2
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at
+
+		https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
+
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express of implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
+
+]]
 
 -- Stop here if the version of Wireshark is not supported
 local mCompatibility = require("mvu_compatibility")
@@ -29,6 +47,7 @@ local m = {}
 m._fields = {}
 
 -- List of fields related to GET_MILAN_INFO commands/responses
+-- These field names can be used in Wireshark display filters to analyze MVU packets
 m._FIELD_NAMES = {
     PROTOCOL_VERSION                = "mvu.protocol_version",
     FEATURE_FLAGS                   = "mvu.feature_flags",
@@ -50,18 +69,26 @@ function m.DeclareFields()
 	-- See documentation: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Proto.html#lua_class_ProtoField
 
 	-- Protocol version
+	--   Expected in:
+	--     GET_MILAN_INFO command
+	--     GET_MILAN_INFO response
+	--     GET_SYSTEM_UNIQUE_ID command
 	m._fields[m._FIELD_NAMES.PROTOCOL_VERSION]
 	= mFields.CreateField(
 		ProtoField.uint32(m._FIELD_NAMES.PROTOCOL_VERSION, "Protocol Version", base.DEC)
 	)
 
 	-- Flags for available Milan features
+	--   Expected in:
+	--     GET_MILAN_INFO response
 	m._fields[m._FIELD_NAMES.FEATURE_FLAGS]
 	= mFields.CreateField(
 		ProtoField.uint32(m._FIELD_NAMES.FEATURE_FLAGS, "Feature Flags", base.HEX)
 	)
 
 	-- Feature: Redundancy
+	--   Expected in:
+	--     GET_MILAN_INFO response
 	m._fields[m._FIELD_NAMES.FEATURE_REDUNDANCY]
 	= mFields.CreateField(
 		ProtoField.bool(
@@ -73,6 +100,8 @@ function m.DeclareFields()
 	)
 
 	-- Feature: Talker dynamic mappings while running
+	--   Expected in:
+	--     GET_MILAN_INFO response
 	m._fields[m._FIELD_NAMES.FEATURE_TALKER_DYNAMIC_MAPPINGS]
 	= mFields.CreateField(
 		ProtoField.bool(
@@ -84,6 +113,8 @@ function m.DeclareFields()
 	)
 
 	-- Certification version (the version number of the Milan certifications that the PAAD-AE has passed)
+	--   Expected in:
+	--     GET_MILAN_INFO response
 	m._fields[m._FIELD_NAMES.PAAD_CERTIFICATION_VERSION]
 	= mFields.CreateField(
 		ProtoField.string(
@@ -103,7 +134,7 @@ end
 
 --- Add fields to the subtree
 --- @param buffer any The buffer to dissect (TVB object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tvb.html#lua_class_Tvb)
---- @param subtree table The tree on which to add the procotol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
+--- @param subtree table The tree on which to add the protocol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
 --- @param errors table<string> Existing errors
 --- @return table<string> errors Amended list of errors
 --- @return boolean|nil blocking_errors Indicates if one of the returned errors is blocking and should interrupt further packet analysis
@@ -112,7 +143,7 @@ function m.AddFieldsToSubtree(buffer, subtree, errors)
 	-- Read IEEE 1722.1 field values
 	local message_type        = mIEEE17221Fields.GetMessageType()
 	local status_code         = mIEEE17221Fields.GetVendorUniqueStatusCode()
-	local control_data_length = mIEEE17221Fields.GetControldataLength()
+	local control_data_length = mIEEE17221Fields.GetControlDataLength()
 
 	-- Read MVU header field values
 	local command_type = mHeaders.GetCommandType()
@@ -121,7 +152,7 @@ function m.AddFieldsToSubtree(buffer, subtree, errors)
 	local milan_version = mSpecs.GetMilanVersionOfCommand(message_type, command_type, control_data_length)
 
 	-- If no Milan version was found for this command,
-	-- it means that the Control data Length is unexpected
+	-- it means that the Control Data Length is unexpected
 	if milan_version == nil then
 		-- Insert error
 		errors = mControl.InsertControlDataLengthError(control_data_length, buffer, subtree, errors)
@@ -129,7 +160,7 @@ function m.AddFieldsToSubtree(buffer, subtree, errors)
 		return errors, true
 	end
 
-	-- If the message is a SUCCESS reponse to a GET_MILAN_INFO command
+	-- If the message is a SUCCESS response to a GET_MILAN_INFO command
 	if 	message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE
 	and status_code == mIEEE17221Specs.VENDOR_UNIQUE_STATUS_CODES.SUCCESS
 	and command_type == mSpecs.COMMAND_TYPES.GET_MILAN_INFO
@@ -140,7 +171,7 @@ function m.AddFieldsToSubtree(buffer, subtree, errors)
 		----------------------------
 
 		-- Get MVU payload bytes from buffer
-		local mvu_payload_bytes, mvu_payload_start, mvu_payload_length = mHeaders.GetMvuPayload()
+		local mvu_payload_bytes, mvu_payload_start = mHeaders.GetMvuPayload()
 
 		--
 		-- Protocol version

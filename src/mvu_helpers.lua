@@ -1,8 +1,26 @@
----
---- helpers.lua
----
---- Global helper functions
----
+--[[
+	Copyright (c) 2025 by L-Acoustics.
+
+	This file is part of the Milan Vendor Unique plugin for Wireshark
+	---
+		Global helper functions
+	---
+
+	Authors: Benjamin Landrot
+
+	Licensed under the GNU General Public License (GPL) version 2
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at
+
+		https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
+
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express of implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
+
+]]
 
 -- Init the module object to return
 local m = {}
@@ -46,7 +64,7 @@ function m.MergeTables(t1, t2)
 	return t
 end
 
---- Compare two string-formated version numbers (e.g. "5.4.21" or "10.0.0.8")
+--- Compare two string-formatted version numbers (e.g. "5.4.21" or "10.0.0.8")
 --- @param v1 string
 --- @param v2 string
 --- @return number|nil result 0 if versions are equivalent, 1 if v1 newer than v2, -1 if v2 is newer than v1, nil in case of error

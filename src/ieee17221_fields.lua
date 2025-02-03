@@ -1,8 +1,26 @@
----
---- ieee17221_specs.lua
----
---- Holds fields belonging to the IEEE 1722.1 protocol
----
+--[[
+	Copyright (c) 2025 by L-Acoustics.
+
+	This file is part of the Milan Vendor Unique plugin for Wireshark
+	---
+		Holds fields belonging to the IEEE 1722.1 protocol
+	---
+
+	Authors: Benjamin Landrot
+
+	Licensed under the GNU General Public License (GPL) version 2
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at
+
+		https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
+
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express of implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
+
+]]
 
 -- Stop here if the version of Wireshark is not supported
 local mCompatibility = require("mvu_compatibility")
@@ -21,6 +39,7 @@ local m = {}
 m._fields = {}
 
 -- List of IEEE 1722.1 Wireshark field names
+-- (fields implemented in the existing Wireshark dissector for IEEE 1722.1 protocol)
 m._FIELD_NAMES = {
     CONTROL_DATA_LENGTH       = "ieee17221.control_data_length",
     CONTROLLER_ENTITY_ID      = "ieee17221.controller_guid",
@@ -47,7 +66,7 @@ end
 
 --- Read the value of Control Data Length field
 --- @return number|nil control_data_length
-function m.GetControldataLength()
+function m.GetControlDataLength()
     -- Get field
     local field = m._GetField(m._FIELD_NAMES.CONTROL_DATA_LENGTH)
     -- If field exists
@@ -62,7 +81,7 @@ function m.GetControldataLength()
     end
 end
 
---- Read the value or Controller Entity ID as an hexadecimal string
+--- Read the value of Controller Entity ID field as an hexadecimal string (e.g. "0x001b92ffff050870")
 --- @return string|nil vendor_unique_protocol_id
 function m.GetControllerEntityId()
     -- Get field
@@ -130,7 +149,7 @@ function m.GetVendorUniqueStatusCode()
     end
 end
 
---- Read the value or Vendor Unique Procol ID as an hexadecimal string
+--- Read the value or Vendor Unique Protocol ID field as an hexadecimal string (e.g. "0x0000001bc50ac100" for MVU)
 --- @return string|nil vendor_unique_protocol_id
 function m.GetVendorUniqueProtocolIdHexString()
     -- Get field

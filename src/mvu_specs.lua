@@ -1,8 +1,32 @@
+--[[
+	Copyright (c) 2025 by L-Acoustics.
+
+	This file is part of the Milan Vendor Unique plugin for Wireshark
+	---
+		Constants and information coming from the Milan Specifications related
+		to Milan Vendor Unique data located in IEEE 1722.1 packets
+	---
+
+	Authors: Benjamin Landrot
+
+	Licensed under the GNU General Public License (GPL) version 2
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at
+
+		https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
+
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express of implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
+
+]]
 ---
 --- mvu_specs.lua
 ---
---- Constants and information comming from the Milan Specifications related to
---- Milan Vendor Unique data localted in IEEE 1722.1 packets
+--- Constants and information coming from the Milan Specifications related to
+--- Milan Vendor Unique data located in IEEE 1722.1 packets
 ---
 
 -- Stop here if the version of Wireshark is not supported
@@ -75,7 +99,7 @@ end
 --- Get the version of Milan specification implemented by the provided command or response
 --- @param message_type number|nil The type of message (as defined in IEEE1722.1 AECP_MESSAGE_TYPES enum)
 --- @param command_type number|nil The type of command (ad defined in MVU COMMAND_TYPES enum)
---- @param control_data_length number|nil The value of the Copntrol Data Length field of the packet holding the command
+--- @param control_data_length number|nil The value of the Control Data Length field of the packet holding the command
 --- @return string|nil milan_version Milan specification revision number. nil if version is unknown
 --- @return boolean|nil unimplemented_extra_bytes Indicates if there are bytes at the end of the payload that are not implemented by this plugin
 function m.GetMilanVersionOfCommand(message_type, command_type, control_data_length)

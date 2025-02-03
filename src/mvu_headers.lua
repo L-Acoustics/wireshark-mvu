@@ -1,8 +1,26 @@
----
---- mvu_headers.lua
----
---- Handles protocol fields extracted from MVU headers
----
+--[[
+	Copyright (c) 2025 by L-Acoustics.
+
+	This file is part of the Milan Vendor Unique plugin for Wireshark
+	---
+		Handles protocol fields extracted from MVU headers
+	---
+
+	Authors: Benjamin Landrot
+
+	Licensed under the GNU General Public License (GPL) version 2
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at
+
+		https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
+
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express of implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
+
+]]
 
 -- Stop here if the version of Wireshark is not supported
 local mCompatibility = require("mvu_compatibility")
@@ -31,6 +49,7 @@ local m = {}
 m._fields = {}
 
 -- List of Wireshark field names related to MVU headers
+-- These field names can be used in Wireshark display filters to analyze MVU packets
 m._FIELD_NAMES = {
     COMMAND_TYPE              = "mvu.command_type",
     STATUS                    = "mvu.status",
@@ -64,7 +83,7 @@ m._mvu_payload_end = 0
 -- The length of the MVU payload
 m._mvu_payload_length = 0
 
--- The index in the paket buffer where the IEEE 1722.1 control data payload starts
+-- The index in the packet buffer where the IEEE 1722.1 control data payload starts
 m._control_data_start = 0
 
 -- The index in the packet buffer of the last byte of the IEEE 1722.1 control data payload
@@ -82,7 +101,7 @@ function m.DeclareFields()
 	------------
 	-- See documentation: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Proto.html#lua_class_ProtoField
 
-	-- Compand type
+	-- Command type
 	local command_type_valuestring = mHelpers.GetTableValuesWithNumberKey(mSpecs.COMMAND_TYPES)
 	m._fields[m._FIELD_NAMES.COMMAND_TYPE] = mFields.CreateField(ProtoField.uint32(m._FIELD_NAMES.COMMAND_TYPE, "Command Type", base.HEX, command_type_valuestring))
 
@@ -101,9 +120,9 @@ function m.DeclareFields()
 	-------------------
 	-- See documentation: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Proto.html#lua_class_ProtoExpert
 
-	-- Sequence ID duplicate
-	local sequence_id_duplicate = ProtoExpert.new(m._FIELD_NAMES.SEQUENCE_ID_DUPLICATE, "Sequence ID duplicate", expert.group.PROTOCOL, expert.severity.ERROR)
-	m._experts[m._FIELD_NAMES.SEQUENCE_ID_DUPLICATE] = mFields.CreateExpertField(m._FIELD_NAMES.SEQUENCE_ID_DUPLICATE, sequence_id_duplicate)
+	-- Sequence ID duplicate error
+	local sequence_id_duplicate_error = ProtoExpert.new(m._FIELD_NAMES.SEQUENCE_ID_DUPLICATE, "Sequence ID duplicate error", expert.group.PROTOCOL, expert.severity.ERROR)
+	m._experts[m._FIELD_NAMES.SEQUENCE_ID_DUPLICATE] = mFields.CreateExpertField(m._FIELD_NAMES.SEQUENCE_ID_DUPLICATE, sequence_id_duplicate_error)
 
 	-- Control Data Length error
 	local control_data_length_error = ProtoExpert.new(m._FIELD_NAMES.CONTROL_DATA_LENGTH_ERROR, "Control Data Length error", expert.group.PROTOCOL, expert.severity.ERROR)
@@ -116,7 +135,7 @@ end
 function m.ReadMvuPayloadAndPosition(buffer)
 
 	-- Read IEEE1722.1 fields
-	local control_data_length = mIEEE17221Fields.GetControldataLength()
+	local control_data_length = mIEEE17221Fields.GetControlDataLength()
 
 	-- Read payloads positions
 	-- Packet structure:
@@ -125,12 +144,15 @@ function m.ReadMvuPayloadAndPosition(buffer)
 	--   8 bytes for IEEE1722.1 target_entity_id
 	--     (Start of Control Data payload)
 	m._control_data_start = 14 + 4 + 8
-	m._control_data_end = math.min(m._control_data_start + control_data_length, buffer:len()) - 1
 	--   8 bytes for IEEE1722.1 controller_entity_id
 	--   2 bytes for IEEE1722.1 sequence_id
 	--   6 bytes for IEEE1722.1 vendor unique protocol ID
 	--     (Start of MVU payload)
 	m._mvu_payload_start = m._control_data_start + 8 + 2 + 6
+
+	-- The end of the Control Data payload is calculated from the Control Data Length
+	-- Capping to end of packet in case control_data_length is unexpectedly too long
+	m._control_data_end = math.min(m._control_data_start + control_data_length, buffer:len()) - 1
 
 	-- The MVU payload ends with the Control Data payload
 	m._mvu_payload_end = m._control_data_end
@@ -138,7 +160,7 @@ function m.ReadMvuPayloadAndPosition(buffer)
 	-- Deduce the MVU payload length from start and end positions
 	m._mvu_payload_length = math.max(0, 1 + m._mvu_payload_end - m._mvu_payload_start)
 
-	-- Read MVU payload (read to end of packet)
+	-- Read MVU payload bytes for straight-forward access to MVU bytes in methods
 	m._mvu_payload_bytes = buffer:bytes(m._mvu_payload_start, m._mvu_payload_length)
 
 end
@@ -146,15 +168,16 @@ end
 --- Create the packet description subtree for MVU
 --- Must be called after ReadMvuPayloadAndPosition()
 --- @param buffer any The buffer to dissect (TVB object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tvb.html#lua_class_Tvb)
---- @param tree table The tree on which to add the procotol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
+--- @param tree table The tree on which to add the protocol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
 --- @return table mvu_subtree
 function m.CreateMvuSubtree(buffer, tree)
 
 		-- Read IEEE 1722.1 field values
-		local message_type        = mIEEE17221Fields.GetMessageType()
+		local message_type = mIEEE17221Fields.GetMessageType()
 
 		-- Determine the subtree title
 		local subtree_title = "Milan Vendor Unique"
+			-- append "(Command)" or "(Response)"
 			.. (message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND  and " (Command)" or "")
 			.. (message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE and " (Response)" or "")
 
@@ -168,15 +191,15 @@ end
 --- Add header fields to the subtree
 --- Must be called after ReadMvuPayloadAndPosition() and DeclareFields()
 --- @param buffer any The buffer to dissect (TVB object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tvb.html#lua_class_Tvb)
---- @param subtree table The tree on which to add the procotol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
+--- @param subtree table The tree on which to add the protocol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
 --- @param pinfo any Packet info (Pinfo object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Pinfo.html#lua_class_Pinfo)
 --- @return table<string> errors
 --- @return boolean|nil blocking_errors Indicates if one of the returned errors is blocking and should interrupt further packet analysis
 function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo)
 
 	-- Read IEEE 1722.1 field values
-	local message_type = mIEEE17221Fields.GetMessageType()
-	local control_data_length = mIEEE17221Fields.GetControldataLength()
+	local message_type        = mIEEE17221Fields.GetMessageType()
+	local control_data_length = mIEEE17221Fields.GetControlDataLength()
 
 	---
 	--- Command Type
@@ -219,12 +242,12 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo)
 
 	local errors = {}
 
-	-- If the Control data Length is smaller than expected
+	-- If the Control Data Length is smaller than expected
 	-- (the minimum length is 20 bytes for the smallest MVU command)
 	local minimum_control_data_length = 20
 	if control_data_length < minimum_control_data_length then
 
-		-- Build eror message
+		-- Build error message
 		local error_message = "Control Data Length (" .. control_data_length .. ") is too small for an MVU message"
 			.. " (minimum expected: " .. minimum_control_data_length .. ")"
 
@@ -239,7 +262,7 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo)
 
 	end
 
-	-- If the Control data Length is greater than the maximum allowed value
+	-- If the Control Data Length is greater than the maximum allowed value
 	if control_data_length > 524 then
 
 		-- Builder error message
@@ -253,10 +276,10 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo)
 
 	end
 
-	-- If the Control Data Length is greater than the control data payload
+	-- If the packet does not contain enough bytes to satisfy the Control Data Length
 	if m._control_data_start + control_data_length > buffer:len() then
 
-		-- Build eror message
+		-- Build error message
 		local actual_control_data_payload_size = buffer:len() - m._control_data_start
 		local error_message = "Missing bytes at end of packet according to to Control Data Length value"
 			.. " (CDL = " .. control_data_length
@@ -270,13 +293,15 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo)
 
 	end
 
-	-- If the frame contains more bytes than the Control Data Length is describing (unless the frame has the minimum Ethernet size)
+	-- If the packet contains more bytes than the Control Data Length is describing
+	-- (this is OK if the packet has exactly the minimum Ethernet size of 60 bytes
+	-- (without FCS), it is then expected to be zero-padded)
 	local control_data_end = math.max(m._control_data_start + control_data_length, mIEEE8023Specs.MINIMUM_FRAME_SIZE_WITHOUT_FCS)
 	local remaining_length = buffer:reported_length_remaining(control_data_end)
 	if remaining_length > 0 then
 
-		-- Build eror message
-		local error_message = "The frame contains " .. remaining_length .. " unexepected remaining bytes after the control data payload"
+		-- Build error message
+		local error_message = "The frame contains " .. remaining_length .. " unexpected remaining bytes after the control data payload"
 
 		-- Add control data length error to the subtree
 		subtree:add_tvb_expert_info(m._experts[m._FIELD_NAMES.CONTROL_DATA_LENGTH_ERROR], buffer(control_data_end, remaining_length), error_message)
@@ -286,12 +311,12 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo)
 
 	end
 
-	-- If the message is a response to a not-implemented command
+	-- If the message is a response to a command that the responder does not implement
 	if message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE
 	and m._status_code == mIEEE17221Specs.VENDOR_UNIQUE_STATUS_CODES.NOT_IMPLEMENTED
 	then
 
-		-- Get information about the initial command
+		-- Get information about the initial command using the conversations module
 		local initial_command_data = mConversations.GetConversationMessageData(mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND)
 
 		-- If initial command data was found
@@ -324,9 +349,9 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo)
 		return errors, true
 	end
 
-	--------------------------------------------
-	-- Register the message in a conversation --
-	--------------------------------------------
+	----------------------------------------------------------
+	-- Register the message in conversations on first visit --
+	----------------------------------------------------------
 
 	-- Init error message
 	local register_error_message
@@ -334,13 +359,13 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo)
 	-- If we visit the packet for the first time
 	if not pinfo.visited then
 
-		-- Build message data to be stored
+		-- Build message metadata to be stored
 		local message_metadata = {
 			frameNumber = pinfo.number,
 			controlDataLength = control_data_length,
 		}
 
-		-- Register message
+		-- Register message and metadata
 		register_error_message = mConversations.RegisterMessage(message_metadata, pinfo.number)
 
 	-- If we have already visited the packet
@@ -365,9 +390,9 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo)
 
 end
 
---- Set the value of the Has Errors field
+--- Set the value of the Has Errors field and add to subtree
 --- @param has_errors boolean
---- @param subtree table The tree on which to add the procotol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
+--- @param subtree table The tree on which to add the protocol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
 function m.SetHasErrorsField(has_errors, subtree)
 	if (has_errors) then
 		-- Add Has Errors field to the subtree
@@ -384,25 +409,26 @@ function m.WritePacketInfo(pinfo, errors)
 
 	-- Read IEEE 1722.1 field values
 	local message_type        = mIEEE17221Fields.GetMessageType()
-	local control_data_length = mIEEE17221Fields.GetControldataLength()
+	local control_data_length = mIEEE17221Fields.GetControlDataLength()
 
 	-- Read MVU header field values
 	local command_type = m.GetCommandType()
 
-	-- Get the Milan version for this command
+	-- Get the detected Milan version for this command
 	local milan_version = mSpecs.GetMilanVersionOfCommand(message_type, command_type, control_data_length)
 
-	-- Change protocol name to MVU
-	pinfo.cols["protocol"] = "MVU"
-	-- Add message Milan versino if detected
+	-- Change protocol name from IEEE1722.1 to MVU
 	if type(milan_version) == "string" and #milan_version > 0 then
+		-- Append command's Milan version if detected
 		pinfo.cols["protocol"] = "MVU " .. milan_version
+	else
+		pinfo.cols["protocol"] = "MVU"
 	end
 
 	-- Init info text with command type
 	local packet_info = mSpecs.GetCommandTypeDescription(m._command_type)
 
-	-- Append message type
+	-- Append message type to info text
 	if message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND then
 		packet_info = packet_info .. " (Command)"
 	end
@@ -410,7 +436,7 @@ function m.WritePacketInfo(pinfo, errors)
 		packet_info = packet_info .. " (Response)"
 	end
 
-	-- Append errors if any
+	-- Append errors if any to info text
 	if type(errors) == "table" and #errors > 0 then
 		packet_info = packet_info .. " [ERRORS: "
 		for _,error in pairs(errors) do
