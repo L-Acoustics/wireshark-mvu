@@ -23,17 +23,6 @@
 
 ]]
 
--- Check compatibility with Wireshark version
-local mCompatibility = require("mvu_compatibility")
-if not mCompatibility.IsWiresharkVersionCompatible() then
-	-- Report incompatibility of plugin to user
-	local incompatibility_message =
-		"The MVU plugin (mvu.lua) requires Wireshark version ".. mCompatibility.GetMinimumWiresharkVersion()  .." or newer." .. "\n"
-		.. "To analyze MVU packets, please update the version of Wireshark."
-	report_failure(incompatibility_message)
-	return
-end
-
 -- Require dependency modules
 local mPluginInfo = require("mvu_plugin_info")
 local mProto = require("mvu_proto")
@@ -46,6 +35,17 @@ local mSystemUniqueId = require("mvu_feature_system_unique_id")
 local mClockReferenceInfo = require("mvu_feature_clock_reference_info")
 local mConversations = require("mvu_conversations")
 local mControl = require("mvu_control")
+local mCompatibility = require("mvu_compatibility")
+
+-- Check compatibility with Wireshark version
+if not mCompatibility.IsWiresharkVersionCompatible() then
+	-- Report incompatibility of plugin to user
+	local incompatibility_message =
+		"The MVU plugin (mvu.lua) requires Wireshark version ".. mCompatibility.GetMinimumWiresharkVersion()  .." or newer." .. "\n"
+		.. "To analyze MVU packets, please update the version of Wireshark."
+	report_failure(incompatibility_message)
+	return
+end
 
 -- Load IEEE 1722.1 fields needed for dissecting MVU packets
 mIEEE17221Fields.LoadAllFields()

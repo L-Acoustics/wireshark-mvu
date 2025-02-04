@@ -2,6 +2,10 @@
 
 Lua plugin for dissecting Milan Vendor Unique information in IEEE1722.1 frames in Wireshark
 
+## Requirements
+
+The plugin requires a minimum version of Wireshark of 4.4.0
+
 ## Manual plugin installation
 
 https://www.wireshark.org/docs/wsug_html_chunked/ChPluginFolders.html
@@ -22,7 +26,7 @@ _The `mvu` directory is recommended for plugin files organization._
 
 ### macOS
 
-Is Wireshark is installed as a bundle application, copy the .lua files into:
+If Wireshark is installed as a bundle application, copy the .lua files into:
 
 ```
 <AppName>.app/Contents/Plugins/wireshark/mvu

@@ -33,7 +33,7 @@ local m = {}
 ---------------------
 
 --- The minimum supported version of Wireshark
-m._minimum_wireshark_version = "4.2.0"
+m._minimum_wireshark_version = "4.4.0"
 
 --------------------
 -- Public Methods --
