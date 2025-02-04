@@ -90,5 +90,51 @@ function m.CompareVersions(v1, v2)
     return 0
 end
 
+--- Convert and object to a hexadecimal string
+--- @param data any
+--- @param prefix_with_0x boolean
+--- @param upper_case boolean
+--- @return string hexadecimal_string
+function m.ToHexString(data, prefix_with_0x, upper_case)
+
+	-- Case when data is of type Tvb (see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tvb.html#lua_class_Tvb)
+	-- or TvbRange (see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tvb.html#lua_class_TvbRange)
+	if type(data) == "userdata" and (getmetatable(data).__name == "Tvb" or getmetatable(data).__name == "TvbRange") then
+		-- Process data:bytes() as a ByteArray object
+		return m.ToHexString(data:bytes(), prefix_with_0x, upper_case)
+	end
+
+	-- Case when data is of type FieldInfo (see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Field.html#lua_class_FieldInfo)
+	if type(data) == "userdata" and getmetatable(data).__name == "FieldInfo" then
+		-- Process data.range as a TvbRange object
+		return m.ToHexString(data.range, prefix_with_0x, upper_case)
+	end
+
+	-- init result string
+	local result = ""
+
+	-- Case when data is a string
+	if type(data) == "string" then
+		-- Simply assign the result to that string
+		result = data
+	end
+
+	-- Case when data is of type ByteArray (see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tvb.html#lua_class_ByteArray)
+	if type(data) == "userdata" and getmetatable(data).__name == "ByteArray" then
+		-- Get hex string from data:tohex()
+		result = data:tohex()
+	end
+
+	-- Force to upper case if requested
+	result = upper_case and result:upper() or result:lower()
+
+	-- prefix if required
+	result = prefix_with_0x and ("0x" .. result) or result
+
+	-- Return the resulting string
+	return result
+
+end
+
 -- Return the module object
 return m

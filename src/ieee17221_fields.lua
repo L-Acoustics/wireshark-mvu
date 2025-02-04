@@ -22,6 +22,9 @@
 
 ]]
 
+-- Require dependency modules
+local mHelpers = require("helpers")
+
 -- Init module object
 local m = {}
 
@@ -87,7 +90,7 @@ function m.GetControllerEntityId()
         -- If field_info has the expected type
         if field_info ~= nil and field_info.type == ftypes.UINT64 then
             -- Return the field value converted to lower case hex string
-            return "0x" .. field_info.range:bytes():tohex(true)
+            return mHelpers.ToHexString(field_info, true, false)
         end
     end
 end
@@ -155,7 +158,7 @@ function m.GetVendorUniqueProtocolIdHexString()
         -- If field_info has the expected type
         if field_info ~= nil and field_info.type == ftypes.UINT48 then
             -- Return the field value converted to lower case hex string
-            return "0x" .. field_info.range:bytes():tohex(true):lower()
+            return mHelpers.ToHexString(field_info, true, false)
         end
     end
 end
