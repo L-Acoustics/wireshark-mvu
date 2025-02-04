@@ -28,7 +28,7 @@ local mFields = require("mvu_fields")
 local mSpecs = require("mvu_specs")
 local mIEEE17221Fields = require("ieee17221_fields")
 local mIEEE17221Specs = require("ieee17221_specs")
-local mHelpers = require("mvu_helpers")
+local mHelpers = require("helpers")
 local mIEEE8023Specs = require("ieee8023_specs")
 local mConversations = require("mvu_conversations")
 
