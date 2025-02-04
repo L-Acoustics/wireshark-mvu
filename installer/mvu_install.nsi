@@ -189,3 +189,6 @@ Section "Uninstall"
 
 SectionEnd
 
+# Sign the installer and uninstaller files
+!finalize "signtool sign %1"
+!uninstfinalize "signtool sign %1"
