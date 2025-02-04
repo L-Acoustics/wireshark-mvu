@@ -1,0 +1,5 @@
+# Visual Studio Code options
+.vscode
+
+# Binary installers
+*.exe
