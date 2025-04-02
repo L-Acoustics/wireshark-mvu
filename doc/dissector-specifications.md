@@ -1,5 +1,7 @@
 # Dissector Specifications
 
+This document lists the packets that the dissector analyzes, the protocol fields it
+
 1. [Any MVU packet](#any-mvu-packet)
 1. [Any MVU command](#any-mvu-command)
 1. [Any MVU response](#any-mvu-response)
@@ -13,6 +15,14 @@
 1. [SET_MEDIA_CLOCK_REFERENCE_INFO response](#set_media_clock_reference_info-response)
 1. [GET_MEDIA_CLOCK_REFERENCE_INFO command](#get_media_clock_reference_info-command)
 1. [GET_MEDIA_CLOCK_REFERENCE_INFO response](#get_media_clock_reference_info-response)
+1. [BIND_STREAM command](#bind_stream-command)
+1. [BIND_STREAM_RESPONSE](#bind_stream_response)
+1. [UNBIND_STREAM command](#unbind_stream-command)
+1. [UNBIND_STREAM response](#unbind_stream-response)
+1. [GET_STREAM_INPUT_INFO_EX command](#get_stream_input_info_ex-command)
+1. [GET_STREAM_INPUT_INFO_EX response](#get_stream_input_info_ex-response)
+1. [GET_STREAM_OUTPUT_INFO_EX command](#get_stream_output_info_ex-command)
+1. [GET_STREAM_OUTPUT_INFO_EX response](#get_stream_output_info_ex-response)
 
 ## Any MVU packet
 
@@ -104,7 +114,7 @@ However, the dissector shall detect when the sequence ID of an entity is reset t
 ###### Example
 
     ▼ Milan Vendor Unique (Command)
-        Another packet (frame number 20) with this controller entity ID (0x00e04c40902a0082), sequence ID (11) and message type (VENDOR_UNIQUE_RESPONSE) was already parsed.
+      ► Another packet (frame number 20) with this controller entity ID (0x00e04c40902a0082), sequence ID (11) and message type (VENDOR_UNIQUE_RESPONSE) was already parsed.
 
 #### Rules for `mvu.expert.control_data_length_error`
 
@@ -117,6 +127,11 @@ This can happen when:
 - there are not enough bytes in the payload to satisfy the control_data_length
 - there are bytes in the payload that exceed the position defined by the control_data_length (with the exception of padding bytes added to achieve the Ethernet minimum frame size)
 - in an MVU response with the NOT_IMPLEMENTED_FLAG set to 1, the control_data_length does not have the same value as in the originating MVU command in the packet capture
+
+###### Example
+
+    ▼ Milan Vendor Unique (Command)
+      ► Control Data Length (19) is too small for an MVU message (minimum expected: 20)
 
 ## Any MVU command
 
@@ -172,11 +187,12 @@ The MVU message type (Command/Response) is extracted from the IEEE 1722.1 protoc
 
 ### Expected information in the packet
 
-| Field                 | Description                                     | MVU Protocol Version |
-| --------------------- | ----------------------------------------------- | -------------------- |
-| protocol_version      | Milan protocol version supported by the PAAD-AE | $\geqslant$ 1.1      |
-| features_flags        | Bitfield of supported features                  | $\geqslant$ 1.1      |
-| certification_version | Milan certification the PAAD-AE has passed      | $\geqslant$ 1.1      |
+| Field                 | Description                                           | MVU Protocol Version |
+| --------------------- | ----------------------------------------------------- | -------------------- |
+| protocol_version      | Milan protocol version supported by the PAAD-AE       | $\geqslant$ 1.1      |
+| features_flags        | Bitfield of supported features                        | $\geqslant$ 1.1      |
+| certification_version | Milan certification the PAAD-AE has passed            | $\geqslant$ 1.1      |
+| specification_version | Milan specifications version supported by the PAAD-AE | $\geqslant$ 1.2.10   |
 
 ### Dissector fields
 
@@ -213,6 +229,7 @@ This field is inserted in the tree only when its value is not 0x00000000.
 | Field  | Description                                  | MVU Protocol Version |
 | ------ | -------------------------------------------- | -------------------- |
 | number | Number of the network-wide unique identifier | $\geqslant$ 1.2      |
+| name   | Name of the network-wide unique identifier   | $\geqslant$ 1.2.10   |
 
 ### Dissector fields
 
@@ -371,3 +388,252 @@ This field is inserted in the tree only when its value is not 0x00000000.
 ### Dissector rules
 
 > Same as [SET_MEDIA_CLOCK_REFERENCE_INFO command](#set_media_clock_reference_info-command)
+
+## BIND_STREAM command
+
+### Expected information in the packet
+
+| Field               | Description                                                                            | MVU Protocol Version |
+| ------------------- | -------------------------------------------------------------------------------------- | -------------------- |
+| flags               | Bitfield parameters accompanying the command                                           | $\geqslant$ 1.2.10   |
+| descriptor_type     | Descriptor type of the Listener's Stream Input to bind<br>_See IEEE 1722.1 clause 7.2_ | $\geqslant$ 1.2.10   |
+| descriptor_index    | Descriptor index of the Listener's Stream Input to bind                                | $\geqslant$ 1.2.10   |
+| talker_entity_id    | Entity ID of the Talker to be bound to                                                 | $\geqslant$ 1.2.10   |
+| talker_stream_index | Index of the Talker's STREAM_OUTPUT to be bound to                                     | $\geqslant$ 1.2.10   |
+
+### Dissector fields
+
+| Field                              | Display name          | Field Type |
+| ---------------------------------- | --------------------- | ---------- |
+| `mvu.bind_stream_flags`            | Bind Stream Flags     | Bitfield   |
+| `mvu.descriptor_type`              | Descriptor Type       | Number     |
+| `mvu.descriptor_index`             | Descriptor Index      | Number     |
+| `mvu.talker_entity_id`             | Talker Entity ID      | Number     |
+| `mvu.talker_stream_index`          | Talker Stream Index   | Number     |
+| `mvu.expert.descriptor_type_error` | Descriptor Type error | Expert     |
+
+### Dissector rules
+
+###### Example
+
+    ▼ Milan Vendor Unique (Command)
+        Command Type: BIND_STREAM (0x00000005)
+        [Version 1.2.10]
+        Status: SUCCESS (0x00)
+        Bind Stream Flags: 0x00000000
+        .... ...0 = STREAMING WAIT: False
+        Descriptor Type: STREAM_INPUT (0x0005)
+        Descriptor Index: 0
+        Talker Entity ID: 0x123456789abcdef0
+        Talker Stream Index: 1
+
+#### Rules for `mvu.expert.descriptor_type_error`
+
+This field is inserted when value of `mvu.descriptor_type` is not set to STREAM_INPUT (0x0005).
+
+###### Example
+
+    ▼ Milan Vendor Unique (Command)
+        Command Type: BIND_STREAM (0x00000005)
+        [Version 1.2.10]
+        Status: SUCCESS (0x00)
+        Bind Stream Flags: 0x00000000
+        .... ...0 = STREAMING WAIT: False
+        Descriptor Type: STREAM_OUTPUT (0x0006)
+      ► The Descriptor Type shall be set to STREAM_INPUT (0x0005)
+
+## BIND_STREAM_RESPONSE
+
+### Expected information in the packet
+
+> Same as [BIND_STREAM command](#bind_stream-command)
+
+### Dissector fields
+
+> Same as [BIND_STREAM command](#bind_stream-command)
+
+Additional fields:
+
+| Field                                                 | Display name                             | Field Type |
+| ----------------------------------------------------- | ---------------------------------------- | ---------- |
+| `mvu.expert.response_replicates_command_values_error` | Response replicates Command values error | Expert     |
+
+### Dissector rules
+
+#### Rules for `mvu.expert.response_replicates_command_values_error`
+
+This field is inserted if any field in the response is not set to the same value as in the command.
+
+###### Example
+
+    ▼ Milan Vendor Unique (Response)
+        Command Type: BIND_STREAM (0x00000005)
+        [Version 1.2.10]
+        Status: SUCCESS (0x00)
+        Bind Stream Flags: 0x00000000
+        .... ...0 = STREAMING WAIT: False
+        Descriptor Type: STREAM_INPUT (0x0005)
+        Descriptor Index: 1
+        Talker Entity ID: 0x123456789abcdef2
+        Talker Stream Index: 1
+        The following fields are not set to the same value as in the command: mvu.descriptor_index, mvu.talker_entity_id
+
+## UNBIND_STREAM command
+
+### Expected information in the packet
+
+| Field            | Description                                               | MVU Protocol Version |
+| ---------------- | --------------------------------------------------------- | -------------------- |
+| descriptor_type  | Descriptor type of the Listener's Stream Input to unbind  | $\geqslant$ 1.2.10   |
+| descriptor_index | Descriptor index of the Listener's Stream Input to unbind | $\geqslant$ 1.2.10   |
+
+### Dissector fields
+
+| Field                              | Display name          | Field Type |
+| ---------------------------------- | --------------------- | ---------- |
+| `mvu.descriptor_type`              | Descriptor Type       | Number     |
+| `mvu.descriptor_index`             | Descriptor Index      | Number     |
+| `mvu.expert.descriptor_type_error` | Descriptor Type error | Expert     |
+
+### Dissector rules
+
+###### Example
+
+    ▼ Milan Vendor Unique (Command)
+        Command Type: UNBIND_STREAM (0x00000006)
+        [Version 1.2.10]
+        Status: SUCCESS (0x00)
+        Descriptor Type: STREAM_INPUT (0x0005)
+        Descriptor Index: 0
+
+#### Rules for `mvu.expert.descriptor_type_error`
+
+This field is inserted when value of `mvu.descriptor_type` is not set to STREAM_INPUT (0x0005).
+
+###### Example
+
+    ▼ Milan Vendor Unique (Command)
+        Command Type: UNBIND_STREAM (0x00000006)
+        [Version 1.2.10]
+        Status: SUCCESS (0x00)
+        Descriptor Type: STREAM_OUTPUT (0x0006)
+      ► The Descriptor Type shall be set to STREAM_INPUT (0x0005)
+
+## UNBIND_STREAM response
+
+### Expected information in the packet
+
+> Same as [UNBIND_STREAM command](#unbind_stream-command)
+
+### Dissector fields
+
+> Same as [UNBIND_STREAM command](#unbind_stream-command)
+
+Additional fields:
+
+| Field                                                 | Display name                             | Field Type |
+| ----------------------------------------------------- | ---------------------------------------- | ---------- |
+| `mvu.expert.response_replicates_command_values_error` | Response replicates Command values error | Expert     |
+
+### Dissector rules
+
+#### Rules for `mvu.expert.response_replicates_command_values_error`
+
+This field is inserted if any field in the response is not set to the same value as in the command.
+
+###### Example
+
+    ▼ Milan Vendor Unique (Response)
+        Command Type: UNBIND_STREAM (0x00000006)
+        [Version 1.2.10]
+        Status: SUCCESS (0x00)
+        Descriptor Type: STREAM_INPUT (0x0005)
+        Descriptor Index: 1
+        The following fields are not set to the same value as in the command: mvu.descriptor_index
+
+## GET_STREAM_INPUT_INFO_EX command
+
+### Expected information in the packet
+
+| Field            | Description                                     | MVU Protocol Version |
+| ---------------- | ----------------------------------------------- | -------------------- |
+| descriptor_type  | Descriptor type of the Listener's Stream Input  | $\geqslant$ 1.2.10   |
+| descriptor_index | Descriptor index of the Listener's Stream Input | $\geqslant$ 1.2.10   |
+
+### Dissector fields
+
+> TO DO
+
+### Dissector rules
+
+> TO DO
+
+## GET_STREAM_INPUT_INFO_EX response
+
+### Expected information in the packet
+
+| Field                    | Description                                               | MVU Protocol Version |
+| ------------------------ | --------------------------------------------------------- | -------------------- |
+| flags                    | Bitfield of additional information of the Stream Input    | $\geqslant$ 1.2.10   |
+| descriptor_type          | Descriptor type of the Listener's Stream Input            | $\geqslant$ 1.2.10   |
+| descriptor_index         | Descriptor index of the Listener's Stream Input           | $\geqslant$ 1.2.10   |
+| talker_entity_id         | Entity ID of Talker if sink_state $\geqslant$ 1           | $\geqslant$ 1.2.10   |
+| talker_stream_index      | Index of Talker Stream Output if sink_state $\geqslant$ 1 | $\geqslant$ 1.2.10   |
+| stream_format            | Current format of the Stream Input                        | $\geqslant$ 1.2.10   |
+| stream_id                | Talker's Stream ID                                        | $\geqslant$ 1.2.10   |
+| mrsp_accumulated_latency | MSRP accumulated latency                                  | $\geqslant$ 1.2.10   |
+| stream_dest_mac          | Talker's Stream destination MAC address                   | $\geqslant$ 1.2.10   |
+| msrp_fail_code           | MSRP error code                                           | $\geqslant$ 1.2.10   |
+| acmp_fail_code           | ACMP error code                                           | $\geqslant$ 1.2.10   |
+| msrp_failure_bridge_id   | MSRP failure bridge ID                                    | $\geqslant$ 1.2.10   |
+| stream_vlan_id           | Talker's Stream VLAN ID                                   | $\geqslant$ 1.2.10   |
+| sink_state               | Current sink state of the Listener's Stream Input         | $\geqslant$ 1.2.10   |
+
+### Dissector fields
+
+> TO DO
+
+### Dissector rules
+
+> TO DO
+
+## GET_STREAM_OUTPUT_INFO_EX command
+
+### Expected information in the packet
+
+| Field            | Description                                    | MVU Protocol Version |
+| ---------------- | ---------------------------------------------- | -------------------- |
+| descriptor_type  | Descriptor type of the Talker's Stream Output  | $\geqslant$ 1.2.10   |
+| descriptor_index | Descriptor index of the Talker's Stream Output | $\geqslant$ 1.2.10   |
+
+### Dissector fields
+
+> TO DO
+
+### Dissector rules
+
+> TO DO
+
+## GET_STREAM_OUTPUT_INFO_EX response
+
+### Expected information in the packet
+
+| Field                  | Description                                        | MVU Protocol Version |
+| ---------------------- | -------------------------------------------------- | -------------------- |
+| descriptor_type        | Descriptor type of the Talker's Stream Output      | $\geqslant$ 1.2.10   |
+| descriptor_index       | Descriptor index of the Talker's Stream Output     | $\geqslant$ 1.2.10   |
+| stream_format          | Current format of the Stream Output                | $\geqslant$ 1.2.10   |
+| stream_id              | Talker's Stream ID                                 | $\geqslant$ 1.2.10   |
+| stream_dest_mac        | Talker's Stream destination MAC address            | $\geqslant$ 1.2.10   |
+| msrp_fail_code         | MSRP error code                                    | $\geqslant$ 1.2.10   |
+| msrp_failure_bridge_id | MSRP failure bridge ID                             | $\geqslant$ 1.2.10   |
+| stream_vlan_id         | Talker's Stream VLAN ID                            | $\geqslant$ 1.2.10   |
+| source                 | Current source state of the Talker's Stream Output | $\geqslant$ 1.2.10   |
+
+### Dissector fields
+
+> TO DO
+
+### Dissector rules
+
+> TO DO
