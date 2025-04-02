@@ -185,7 +185,9 @@ function m.AddFieldsToSubtree(buffer, subtree, errors)
 
 	-- If the message is one of these:
 	--   GET_MEDIA_CLOCK_REFERENCE_INFO command
+	--   GET_MEDIA_CLOCK_REFERENCE_INFO response
 	--   SET_MEDIA_CLOCK_REFERENCE_INFO command
+	--   SET_MEDIA_CLOCK_REFERENCE_INFO response
 	if command_type == mSpecs.COMMAND_TYPES.GET_MEDIA_CLOCK_REFERENCE_INFO
 	or command_type == mSpecs.COMMAND_TYPES.SET_MEDIA_CLOCK_REFERENCE_INFO
 	then
@@ -202,7 +204,7 @@ function m.AddFieldsToSubtree(buffer, subtree, errors)
 		local clock_domain_index = mvu_payload_bytes:int(2, 2)
 
 		-- Write clock domain index to the MVU subtree
-		subtree:add(m._fields["mvu.clock_domain_index"], buffer(mvu_payload_start + 2, 2), clock_domain_index)
+		subtree:add(m._fields[m._FIELD_NAMES.CLOCK_DOMAIN_INDEX], buffer(mvu_payload_start + 2, 2), clock_domain_index)
 
 	end
 
@@ -227,7 +229,7 @@ function m.AddFieldsToSubtree(buffer, subtree, errors)
 		local media_clock_reference_info_flags = mvu_payload_bytes:int(4, 1)
 
 		-- Write media clock reference info flags to the MVU subtree
-		subtree:add(m._fields["mvu.media_clock_flags"], buffer(mvu_payload_start + 4, 1), media_clock_reference_info_flags)
+		subtree:add(m._fields[m._FIELD_NAMES.MEDIA_CLOCK_FLAGS], buffer(mvu_payload_start + 4, 1), media_clock_reference_info_flags)
 
 		-- Write individual media clock reference info flags to the MVU subtree
 		subtree:add(m._fields[m._FIELD_NAMES.MEDIA_CLOCK_REFERENCE_PRIORITY_VALID], buffer(mvu_payload_start + 4, 1))
