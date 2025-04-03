@@ -34,7 +34,7 @@ local m = {}
 -----------------------
 
 -- Version of the Milan Specification
-m.SPEC_VERSION = "1.2" -- Revision 1.2 of November 29, 2023
+m.SPEC_VERSION = "1.2.10" -- Revision 1.2.10 of TBC, 2025
 
 -- Protocol ID for MVU
 m.PROTOCOL_ID = "0x001BC50AC100"
