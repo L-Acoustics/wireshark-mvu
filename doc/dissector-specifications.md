@@ -407,14 +407,15 @@ This field is inserted in the tree only when its value is not 0x00000000.
 
 ### Dissector fields
 
-| Field                              | Display name          | Field Type    |
-| ---------------------------------- | --------------------- | ------------- |
-| `mvu.stream.flags`                 | Stream Flags          | Bitfield      |
-| `mvu.descriptor_type`              | Descriptor Type       | Number (enum) |
-| `mvu.descriptor_index`             | Descriptor Index      | Number        |
-| `mvu.stream.talker_entity_id`      | Talker Entity ID      | Number (hex)  |
-| `mvu.stream.talker_stream_index`   | Talker Stream Index   | Number        |
-| `mvu.expert.descriptor_type_error` | Descriptor Type error | Expert        |
+| Field                              | Display name             | Field Type    |
+| ---------------------------------- | ------------------------ | ------------- |
+| `mvu.stream.flags`                 | Stream Flags             | Bitfield      |
+| `mvu.stream.flags.streaming_wait`  | Bitfield: STREAMING_WAIT | Bitfield      |
+| `mvu.descriptor_type`              | Descriptor Type          | Number (enum) |
+| `mvu.descriptor_index`             | Descriptor Index         | Number        |
+| `mvu.stream.talker_entity_id`      | Talker Entity ID         | Number (hex)  |
+| `mvu.stream.talker_stream_index`   | Talker Stream Index      | Number        |
+| `mvu.expert.descriptor_type_error` | Descriptor Type error    | Expert        |
 
 ### Dissector rules
 
@@ -425,7 +426,7 @@ This field is inserted in the tree only when its value is not 0x00000000.
         [Version 1.2.10]
         Status: SUCCESS (0x00)
         Bind Stream Flags: 0x00000000
-        .... ...0 = STREAMING WAIT: False
+        .... ...0 = STREAMING_WAIT: False
         Descriptor Type: STREAM_INPUT (0x0005)
         Descriptor Index: 0
         Talker Entity ID: 0x123456789abcdef0
@@ -442,7 +443,7 @@ This field is inserted when value of `mvu.descriptor_type` is not set to STREAM_
         [Version 1.2.10]
         Status: SUCCESS (0x00)
         Bind Stream Flags: 0x00000000
-        .... ...0 = STREAMING WAIT: False
+        .... ...0 = STREAMING_WAIT: False
         Descriptor Type: STREAM_OUTPUT (0x0006)
       ► The Descriptor Type shall be set to STREAM_INPUT (0x0005)
 
@@ -475,7 +476,7 @@ This field is inserted if any field in the response is not set to the same value
         [Version 1.2.10]
         Status: SUCCESS (0x00)
         Bind Stream Flags: 0x00000000
-        .... ...0 = STREAMING WAIT: False
+        .... ...0 = STREAMING_WAIT: False
         Descriptor Type: STREAM_INPUT (0x0005)
         Descriptor Index: 1
         Talker Entity ID: 0x123456789abcdef2
@@ -595,6 +596,7 @@ This field is inserted if any field in the response is not set to the same value
 | Field                                 | Display name             | Field Type    |
 | ------------------------------------- | ------------------------ | ------------- |
 | `mvu.stream.flags`                    | Stream Flags             | Bitfield      |
+| `mvu.stream.flags.streaming_wait`     | Bitfield: STREAMING_WAIT | Bitfield      |
 | `mvu.descriptor_type`                 | Descriptor Type          | Number (enum) |
 | `mvu.descriptor_index`                | Descriptor Index         | Number        |
 | `mvu.stream.talker_entity_id`         | Talker Entity ID         | Number (hex)  |
@@ -619,7 +621,7 @@ This field is inserted if any field in the response is not set to the same value
         [Version 1.2.10]
         Status: SUCCESS (0x00)
         Stream Flags: 0x00000000
-        .... ...0 = STREAMING WAIT: False
+        .... ...0 = STREAMING_WAIT: False
         Descriptor Type: STREAM_INPUT (0x0005)
         Talker Entity ID: 0x1d365f4b159e870a
         Talker Stream Index: 0
@@ -644,7 +646,7 @@ This field is inserted when value of `mvu.descriptor_type` is not set to STREAM_
         [Version 1.2.10]
         Status: SUCCESS (0x00)
         Stream Flags: 0x00000000
-        .... ...0 = STREAMING WAIT: False
+        .... ...0 = STREAMING_WAIT: False
         Descriptor Type: STREAM_OUTPUT (0x0006)
       ► The Descriptor Type shall be set to STREAM_INPUT (0x0005)
 
@@ -702,7 +704,7 @@ This field is inserted when value of `mvu.descriptor_type` is not set to STREAM_
         [Version 1.2.10]
         Status: SUCCESS (0x00)
         Stream Flags: 0x00000000
-        .... ...0 = STREAMING WAIT: False
+        .... ...0 = STREAMING_WAIT: False
         Descriptor Type: STREAM_OUTPUT (0x0006)
         Stream Format: AAF, 96kHz, PCM-INT-32, 8 channels (0x020702200200C000)
         Stream ID: 0xab65459d8e70c3d4
@@ -723,6 +725,6 @@ This field is inserted when value of `mvu.descriptor_type` is not set to STREAM_
         [Version 1.2.10]
         Status: SUCCESS (0x00)
         Stream Flags: 0x00000000
-        .... ...0 = STREAMING WAIT: False
+        .... ...0 = STREAMING_WAIT: False
         Descriptor Type: STREAM_INPUT (0x0005)
       ► The Descriptor Type shall be set to STREAM_OUTPUT (0x0006)
