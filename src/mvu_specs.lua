@@ -60,6 +60,11 @@ m.MEDIA_CLOCK_REFERENCE_INFO_FLAGS = {
     [0x00000002] = "MEDIA_CLOCK_DOMAIN_NAME_VALID",
 }
 
+-- MVU flags for Bind Stream commands
+m.BIND_STREAM_FLAGS = {
+    [0x00000001] = "STREAMING_WAIT",
+}
+
 --------------------
 -- Public Methods --
 --------------------
