@@ -172,36 +172,43 @@ function m.AddFieldsToSubtree(buffer, subtree, errors)
 		return errors, true
 	end
 
-	-- If the message is a command or a response to a BIND_STREAM
+	-- If the message is BIND_STREAM or UNBIND_STREAM
 	if command_type == mSpecs.COMMAND_TYPES.BIND_STREAM
+	or command_type == mSpecs.COMMAND_TYPES.UNBIND_STREAM
 	then
 
 		----------------------------
 		-- Add fields to the tree --
 		----------------------------
 
+		-- Init field value variables
+		local stream_flags, descriptor_type, descriptor_index, talker_entity_id, talker_stream_index
+
 		-- Get MVU payload bytes from buffer
 		local mvu_payload_bytes, mvu_payload_start = mHeaders.GetMvuPayload()
 
 		--
-		-- Stream flags
+		-- Stream flags (BIND_STREAM only)
 		--
+		if command_type == mSpecs.COMMAND_TYPES.BIND_STREAM then
 
-		-- Read stream flags
-		local stream_flags = mvu_payload_bytes:int(2, 2)
+			-- Read stream flags
+			stream_flags = mvu_payload_bytes:int(2, 2)
 
-		-- Write stream flags to the MVU subtree
-		subtree:add(m._fields[m._FIELD_NAMES.STREAM_FLAGS], buffer(mvu_payload_start + 2, 2), stream_flags)
+			-- Write stream flags to the MVU subtree
+			subtree:add(m._fields[m._FIELD_NAMES.STREAM_FLAGS], buffer(mvu_payload_start + 2, 2), stream_flags)
 
-		-- Write individual stream flags to the MVU subtree
-		subtree:add(m._fields[m._FIELD_NAMES.STREAM_FLAGS_STREAMING_WAIT], buffer(mvu_payload_start + 2, 2))
+			-- Write individual stream flags to the MVU subtree
+			subtree:add(m._fields[m._FIELD_NAMES.STREAM_FLAGS_STREAMING_WAIT], buffer(mvu_payload_start + 2, 2))
+
+		end
 
 		--
 		-- Descriptor Type
 		--
 
 		-- Read descriptor type
-		local descriptor_type = mvu_payload_bytes:int(4, 2)
+		descriptor_type = mvu_payload_bytes:int(4, 2)
 
 		-- Write descriptor type to the MVU subtree
 		subtree:add(m._fields[m._FIELD_NAMES.DESCRIPTOR_TYPE], buffer(mvu_payload_start + 4, 2), descriptor_type)
@@ -211,30 +218,36 @@ function m.AddFieldsToSubtree(buffer, subtree, errors)
 		--
 
 		-- Read descriptor index
-		local descriptor_index = mvu_payload_bytes:int(6, 2)
+		descriptor_index = mvu_payload_bytes:int(6, 2)
 
 		-- Write descriptor type to the MVU subtree
 		subtree:add(m._fields[m._FIELD_NAMES.DESCRIPTOR_INDEX], buffer(mvu_payload_start + 6, 2), descriptor_index)
 
 		--
-		-- Talker Entity ID
+		-- Talker Entity ID (BIND_STREAM only)
 		--
+		if command_type == mSpecs.COMMAND_TYPES.BIND_STREAM then
 
-		-- Read field value
-		local talker_entity_id = mvu_payload_bytes:uint64(8, 8)
+			-- Read field value
+			talker_entity_id = mvu_payload_bytes:uint64(8, 8)
 
-		-- Write field to the MVU subtree
-		subtree:add(m._fields[m._FIELD_NAMES.TALKER_ENTITY_ID], buffer(mvu_payload_start + 8, 8), talker_entity_id)
+			-- Write field to the MVU subtree
+			subtree:add(m._fields[m._FIELD_NAMES.TALKER_ENTITY_ID], buffer(mvu_payload_start + 8, 8), talker_entity_id)
+
+		end
 
 		--
-		-- Talker Stream ID
+		-- Talker Stream ID (BIND_STREAM only)
 		--
+		if command_type == mSpecs.COMMAND_TYPES.BIND_STREAM then
 
-		-- Read field value
-		local talker_stream_index = mvu_payload_bytes:int(16, 2)
+			-- Read field value
+			talker_stream_index = mvu_payload_bytes:int(16, 2)
 
-		-- Write field to the MVU subtree
-		subtree:add(m._fields[m._FIELD_NAMES.TALKER_STREAM_INDEX], buffer(mvu_payload_start + 16, 2), talker_stream_index)
+			-- Write field to the MVU subtree
+			subtree:add(m._fields[m._FIELD_NAMES.TALKER_STREAM_INDEX], buffer(mvu_payload_start + 16, 2), talker_stream_index)
+
+		end
 
 		------------------
 		-- Check errors --

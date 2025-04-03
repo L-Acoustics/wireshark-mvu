@@ -47,6 +47,7 @@ m.COMMAND_TYPES = {
     SET_MEDIA_CLOCK_REFERENCE_INFO = 0x0003, [0x0003] = "SET_MEDIA_CLOCK_REFERENCE_INFO",
     GET_MEDIA_CLOCK_REFERENCE_INFO = 0x0004, [0x0004] = "GET_MEDIA_CLOCK_REFERENCE_INFO",
     BIND_STREAM                    = 0x0005, [0x0005] = "BIND_STREAM",
+    UNBIND_STREAM                  = 0x0006, [0x0006] = "UNBIND_STREAM",
 }
 
 -- List of known MVU features
@@ -215,6 +216,26 @@ function m.GetMilanVersionOfCommand(message_type, command_type, control_data_len
 			if control_data_length >= 36 then
 				-- Version 1.2.10, extra bytes if control_data_length is strictly greater
 				return "1.2.10", (control_data_length > 36)
+			end
+		end
+
+	-- UNBIND_STREAM
+	elseif command_type == m.COMMAND_TYPES.UNBIND_STREAM then
+
+		-- Command
+		if message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND then
+			-- Version 1.2.10 (CDL = 24)
+			if control_data_length >= 24 then
+				-- Version 1.2.10, extra bytes if control_data_length is strictly greater
+				return "1.2.10", (control_data_length > 24)
+			end
+
+		-- Response
+		elseif message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE then
+			-- Version 1.2.10 (CDL = 24)
+			if control_data_length >= 24 then
+				-- Version 1.2.10, extra bytes if control_data_length is strictly greater
+				return "1.2.10", (control_data_length > 24)
 			end
 		end
 
