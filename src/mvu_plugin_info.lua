@@ -30,7 +30,7 @@ local m = {}
 ---------------------
 
 m._info = {
-	version = "1.2.1.0",
+	version = "1.3.0.0",
 	author = "L-Acoustics",
 	description = "Lua plugin for dissecting Milan Vendor Unique information in IEEE1722.1 frames in Wireshark",
 	repository = "https://github.com/L-Acoustics/wireshark-mvu"
