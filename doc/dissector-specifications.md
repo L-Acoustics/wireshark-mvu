@@ -628,9 +628,10 @@ This field is inserted if any field in the response is not set to the same value
         MSRP Accumulated Latency: 325461 ns
         Destination MAC: 01-02-03-04-05-06
         MSRP Failure Code: Egress port is not AVB capable (8)
+        ACMP Failure Code: TALKER_DEST_MAC_FAIL (3)
         MSRP Failure Bridge ID: 0x6574ac13b6d47e8d
         VLAN ID: 2
-        Source State: WAITING_MATCHING_ADP_TALKER (1)
+        Sink State: WAITING_MATCHING_ADP_TALKER (1)
 
 #### Rules for `mvu.expert.descriptor_type_error`
 
@@ -675,7 +676,7 @@ This field is inserted when value of `mvu.descriptor_type` is not set to STREAM_
 | msrp_fail_code         | MSRP error code                                    | $\geqslant$ 1.2.10   |
 | msrp_failure_bridge_id | MSRP failure bridge ID                             | $\geqslant$ 1.2.10   |
 | stream_vlan_id         | Talker's Stream VLAN ID                            | $\geqslant$ 1.2.10   |
-| source                 | Current source state of the Talker's Stream Output | $\geqslant$ 1.2.10   |
+| source_state           | Current source state of the Talker's Stream Output | $\geqslant$ 1.2.10   |
 
 ### Dissector fields
 
