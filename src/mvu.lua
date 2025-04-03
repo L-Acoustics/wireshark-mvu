@@ -33,6 +33,7 @@ local mIEEE17221Fields = require("ieee17221_fields")
 local mMilanInfo = require("mvu_feature_milan_info")
 local mSystemUniqueId = require("mvu_feature_system_unique_id")
 local mClockReferenceInfo = require("mvu_feature_clock_reference_info")
+local mBindStream = require("mvu_feature_bind_stream")
 local mConversations = require("mvu_conversations")
 local mControl = require("mvu_control")
 local mCompatibility = require("mvu_compatibility")
@@ -55,6 +56,7 @@ mHeaders.DeclareFields()
 mMilanInfo.DeclareFields()
 mSystemUniqueId.DeclareFields()
 mClockReferenceInfo.DeclareFields()
+mBindStream.DeclareFields()
 
 -- Register declared fields to protocol
 mFields.RegisterAllFieldsInProtocol()
@@ -113,6 +115,11 @@ function mProto.Proto.dissector(buffer, pinfo, tree)
 		-- Add Clock Reference Info fields to subtree
 		if not blocking_errors then
 			errors, blocking_errors = mClockReferenceInfo.AddFieldsToSubtree(buffer, mvuSubtree, errors)
+		end
+
+		-- Add Bind Stream fields to subtree
+		if not blocking_errors then
+			errors, blocking_errors = mBindStream.AddFieldsToSubtree(buffer, mvuSubtree, errors)
 		end
 
 		-- Insert message in case there are unimplemented extra bytes at end of payload
