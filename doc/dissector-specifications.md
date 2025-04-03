@@ -481,7 +481,7 @@ This field is inserted if any field in the response is not set to the same value
         Descriptor Index: 1
         Talker Entity ID: 0x123456789abcdef2
         Talker Stream Index: 1
-        The following fields are not set to the same value as in the command: mvu.descriptor_index, mvu.stream.talker_entity_id
+        The following fields are not set to the same value as in the command (frame <n>): mvu.descriptor_index, mvu.stream.talker_entity_id
 
 ## UNBIND_STREAM command
 
@@ -554,7 +554,7 @@ This field is inserted if any field in the response is not set to the same value
         Status: SUCCESS (0x00)
         Descriptor Type: STREAM_INPUT (0x0005)
         Descriptor Index: 1
-        The following fields are not set to the same value as in the command: mvu.descriptor_index
+        The following fields are not set to the same value as in the command (frame <n>): mvu.descriptor_index
 
 ## GET_STREAM_INPUT_INFO_EX command
 
