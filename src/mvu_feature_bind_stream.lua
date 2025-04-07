@@ -96,6 +96,8 @@ function m.DeclareFields()
 	--   Expected in:
 	--     BIND_STREAM command
 	--     BIND_STREAM response
+	--     UNBIND_STREAM command
+	--     UNBIND_STREAM response
 	local descriptor_type_valuestring = mHelpers.GetTableValuesWithNumberKey(mIEEE17221Specs.DESCRIPTOR_TYPES)
 	m._fields[m._FIELD_NAMES.DESCRIPTOR_TYPE]
 	= mFields.CreateField(
@@ -106,6 +108,8 @@ function m.DeclareFields()
 	--   Expected in:
 	--     BIND_STREAM command
 	--     BIND_STREAM response
+	--     UNBIND_STREAM command
+	--     UNBIND_STREAM response
 	m._fields[m._FIELD_NAMES.DESCRIPTOR_INDEX]
 	= mFields.CreateField(
 		ProtoField.uint16(m._FIELD_NAMES.DESCRIPTOR_INDEX, "Descriptor Index", base.DEC)
@@ -115,6 +119,8 @@ function m.DeclareFields()
 	--   Expected in:
 	--     BIND_STREAM command
 	--     BIND_STREAM response
+	--     UNBIND_STREAM command
+	--     UNBIND_STREAM response
 	m._fields[m._FIELD_NAMES.TALKER_ENTITY_ID]
 	= mFields.CreateField(
 		ProtoField.uint64(m._FIELD_NAMES.TALKER_ENTITY_ID, "Talker Entity ID", base.HEX)
@@ -124,6 +130,8 @@ function m.DeclareFields()
 	--   Expected in:
 	--     BIND_STREAM command
 	--     BIND_STREAM response
+	--     UNBIND_STREAM command
+	--     UNBIND_STREAM response
 	m._fields[m._FIELD_NAMES.TALKER_STREAM_INDEX]
 	= mFields.CreateField(
 		ProtoField.uint16(m._FIELD_NAMES.TALKER_STREAM_INDEX, "Talker Stream Index", base.DEC)

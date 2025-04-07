@@ -16,7 +16,6 @@ The sample capture files contain use cases for testing the results of the dissec
 ### Capture content
 
     # BIND_STREAM command
-    2025-04-03T14:32:57+02:00
     0000  00 e0 4c 40 90 2a 00 1b 92 05 08 70 22 f0 fb 06
     0010  00 24 00 1b 92 ff ff 05 08 70 00 e0 4c 40 90 2a
     0020  00 01 00 01 00 1b c5 0a c1 00 00 05 00 01 00 05
@@ -61,7 +60,6 @@ Packet 2
 ### Capture content
 
     # BIND_STREAM command
-    2025-04-03T14:32:57+02:00
     0000  00 e0 4c 40 90 2a 00 1b 92 05 08 70 22 f0 fb 06
     0010  00 24 00 1b 92 ff ff 05 08 70 00 e0 4c 40 90 2a
     0020  00 01 00 01 00 1b c5 0a c1 00 00 05 00 01 00 06
@@ -116,7 +114,6 @@ Packet 2
 ### Capture content
 
     # BIND_STREAM command
-    2025-04-03T14:32:57+02:00
     0000  00 e0 4c 40 90 2a 00 1b 92 05 08 70 22 f0 fb 06
     0010  00 24 00 1b 92 ff ff 05 08 70 00 e0 4c 40 90 2a
     0020  00 01 00 01 00 1b c5 0a c1 00 00 05 00 01 00 05
@@ -168,7 +165,6 @@ Packet 2
 ### Capture content
 
     # UNBIND_STREAM command
-    2025-04-03T14:32:57+02:00
     0000  00 e0 4c 40 90 2a 00 1b 92 05 08 70 22 f0 fb 06
     0010  00 18 00 1b 92 ff ff 05 08 70 00 e0 4c 40 90 2a
     0020  00 01 00 01 00 1b c5 0a c1 00 00 06 00 01 00 05
@@ -205,7 +201,6 @@ Packet 2
 ### Capture content
 
     # UNBIND_STREAM command
-    2025-04-03T14:32:57+02:00
     0000  00 e0 4c 40 90 2a 00 1b 92 05 08 70 22 f0 fb 06
     0010  00 18 00 1b 92 ff ff 05 08 70 00 e0 4c 40 90 2a
     0020  00 01 00 01 00 1b c5 0a c1 00 00 06 00 01 00 06
@@ -252,7 +247,6 @@ Packet 2
 ### Capture content
 
     # UNBIND_STREAM command
-    2025-04-03T14:32:57+02:00
     0000  00 e0 4c 40 90 2a 00 1b 92 05 08 70 22 f0 fb 06
     0010  00 18 00 1b 92 ff ff 05 08 70 00 e0 4c 40 90 2a
     0020  00 01 00 01 00 1b c5 0a c1 00 00 06 00 01 00 05
