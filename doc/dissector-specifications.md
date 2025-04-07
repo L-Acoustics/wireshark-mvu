@@ -583,7 +583,7 @@ This field is inserted if any field in the response is not set to the same value
 | talker_stream_index      | Index of Talker Stream Output if sink_state $\geqslant$ 1 | $\geqslant$ 1.2.10   |
 | stream_format            | Current format of the Stream Input                        | $\geqslant$ 1.2.10   |
 | stream_id                | Talker's Stream ID                                        | $\geqslant$ 1.2.10   |
-| mrsp_accumulated_latency | MSRP accumulated latency                                  | $\geqslant$ 1.2.10   |
+| msrp_accumulated_latency | MSRP accumulated latency                                  | $\geqslant$ 1.2.10   |
 | stream_dest_mac          | Talker's Stream destination MAC address                   | $\geqslant$ 1.2.10   |
 | msrp_fail_code           | MSRP error code                                           | $\geqslant$ 1.2.10   |
 | acmp_fail_code           | ACMP error code                                           | $\geqslant$ 1.2.10   |
@@ -603,7 +603,7 @@ This field is inserted if any field in the response is not set to the same value
 | `mvu.stream.talker_stream_index`      | Talker Stream Index      | Number        |
 | `mvu.stream.format`                   | Stream Format            | Number (enum) |
 | `mvu.stream.id`                       | Stream ID                | Number        |
-| `mvu.stream.mrsp_accumulated_latency` | MSRP Accumulated Latency | Number        |
+| `mvu.stream.msrp_accumulated_latency` | MSRP Accumulated Latency | Number        |
 | `mvu.stream.dest_mac`                 | Destination MAC          | Number (hex)  |
 | `mvu.stream.msrp_fail_code`           | MSRP Failure Code        | Number (enum) |
 | `mvu.stream.acmp_fail_code`           | ACMP Failure Code        | Number (enum) |
@@ -627,8 +627,8 @@ This field is inserted if any field in the response is not set to the same value
         Talker Stream Index: 0
         Stream Format: AAF, 96kHz, PCM-INT-32, 8 channels (0x020702200200C000)
         Stream ID: 0xab65459d8e70c3d4
-        MSRP Accumulated Latency: 325461 ns
-        Destination MAC: 01-02-03-04-05-06
+        MSRP Accumulated Latency (nanoseconds): 325461
+        Destination MAC Address: lacoustics_04:05:06 (00:1b:92:04:05:06)
         MSRP Failure Code: Egress port is not AVB capable (8)
         ACMP Failure Code: TALKER_DEST_MAC_FAIL (3)
         MSRP Failure Bridge ID: 0x6574ac13b6d47e8d
@@ -708,7 +708,7 @@ This field is inserted when value of `mvu.descriptor_type` is not set to STREAM_
         Descriptor Type: STREAM_OUTPUT (0x0006)
         Stream Format: AAF, 96kHz, PCM-INT-32, 8 channels (0x020702200200C000)
         Stream ID: 0xab65459d8e70c3d4
-        Destination MAC: 01-02-03-04-05-06
+        Destination MAC Address: lacoustics_04:05:06 (00:1b:92:04:05:06)
         MSRP Failure Code: Egress port is not AVB capable (8)
         MSRP Failure Bridge ID: 0x6574ac13b6d47e8d
         VLAN ID: 2

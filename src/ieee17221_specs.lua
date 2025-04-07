@@ -105,7 +105,7 @@ m.SINK_STATES = {
 }
 
 -- Output stream/source states
-m.SINK_STATES = {
+m.SOURCE_STATES = {
 	WAITING_MAAP_DEST_ADDR      = 0, [0] = "WAITING_MAAP_DEST_ADDR",
 	READY                       = 1, [1] = "READY",
 	WAITING_SRP_TALKER          = 2, [2] = "WAITING_SRP_TALKER",
