@@ -108,5 +108,52 @@ function m.InsertUnimplementedExtraBytesMessage(subtree)
 
 end
 
+--- Insert an error message of incorrect Command Status in the subtree
+--- @param buffer any The buffer to dissect (TVB object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tvb.html#lua_class_Tvb)
+--- @param subtree any The tree on which to add the protocol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
+--- @param errors table<string> List of existing error messages
+--- @return table<string> errors Amended list of errors
+--- @return boolean|nil blocking_errors Indicates if one of the returned errors is blocking and should interrupt further packet analysis
+function m.InsertCommandStatusErrorIfAny(buffer, subtree, errors)
+
+	-- Read IEEE 1722.1 field values
+	local message_type        = mIEEE17221Fields.GetMessageType()
+	local status_code         = mIEEE17221Fields.GetVendorUniqueStatusCode()
+
+	-- Get command status error field from headers
+	local f_command_status_error = mFields.GetExpertField(mHeaders._FIELD_NAMES.COMMAND_STATUS_ERROR)
+
+	-- If the status code is NOT_IMPLEMENTED but the message is not a response
+	if status_code == mIEEE17221Specs.VENDOR_UNIQUE_STATUS_CODES.NOT_IMPLEMENTED
+	and message_type ~= mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE
+	then
+		-- Insert error message in the subtree
+		local error_message = "Invalid status code NOT_IMPLEMENTED for this MVU message type"
+		subtree:add_tvb_expert_info(f_command_status_error, buffer(16, 1), error_message)
+
+		-- Add error
+		table.insert(errors, error_message)
+
+		-- Return blocking error
+		return errors, true
+
+	-- If the status code is unknown
+	elseif (mIEEE17221Specs.VENDOR_UNIQUE_STATUS_CODES[status_code] == nil) then
+		-- Insert message in the subtree
+		local error_message = "Unknown status code ("..status_code.."). Consider updating this plugin."
+		subtree:add_tvb_expert_info(f_command_status_error, buffer(16, 1), error_message)
+
+		-- Add error
+		table.insert(errors, error_message)
+
+		-- Return blocking error
+		return errors, true
+	end
+
+	-- Return the updated list of errors
+	return errors, false
+
+end
+
 -- Return module object
 return m

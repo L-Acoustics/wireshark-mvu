@@ -134,6 +134,11 @@ function mProto.Proto.dissector(buffer, pinfo, tree)
 			mControl.InsertUnimplementedExtraBytesMessage(mvuSubtree)
 		end
 
+		-- Insert message in case there is a command status error
+		if not blocking_errors then
+			errors, blocking_errors = mControl.InsertCommandStatusErrorIfAny(buffer, mvuSubtree, errors)
+		end
+
 		-----------------
 		-- Packet Info --
 		-----------------

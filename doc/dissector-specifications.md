@@ -55,6 +55,7 @@ This document describes:
 | `mvu.has_errors`                       | -                           | Boolean (generated) |
 | `mvu.expert.sequence_id_duplicate`     | Sequence ID duplicate error | Expert              |
 | `mvu.expert.control_data_length_error` | Control Data Length error   | Expert              |
+| `mvu.expert.command_status_error`      | MVU Command Status error    | Expert              |
 
 ### Dissector rules
 
@@ -136,6 +137,15 @@ This can happen when:
 
     ▼ Milan Vendor Unique (Command)
       ► Control Data Length (19) is too small for an MVU message (minimum expected: 20)
+
+#### Rules for `mvu.expert.command_status_error`
+
+This expert field is added to the tree with severity level set to Error when the command status value is invalid.
+
+This can happen when:
+
+- the status code is unknown
+- a non-response message has the NOT_IMPLEMENTED status code
 
 ## Any MVU command
 

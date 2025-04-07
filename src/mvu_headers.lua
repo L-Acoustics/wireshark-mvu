@@ -51,6 +51,7 @@ m._FIELD_NAMES = {
     HAS_ERRORS                = "mvu.has_errors",
     SEQUENCE_ID_DUPLICATE     = "mvu.expert.sequence_id_duplicate",
     CONTROL_DATA_LENGTH_ERROR = "mvu.expert.control_data_length_error",
+    COMMAND_STATUS_ERROR      = "mvu.expert.command_status_error",
 }
 
 -- Internal list of expert fields
@@ -121,6 +122,10 @@ function m.DeclareFields()
 	-- Control Data Length error
 	local control_data_length_error = ProtoExpert.new(m._FIELD_NAMES.CONTROL_DATA_LENGTH_ERROR, "Control Data Length error", expert.group.PROTOCOL, expert.severity.ERROR)
 	m._experts[m._FIELD_NAMES.CONTROL_DATA_LENGTH_ERROR] = mFields.CreateExpertField(m._FIELD_NAMES.CONTROL_DATA_LENGTH_ERROR, control_data_length_error)
+
+	-- Control Data Length error
+	local command_status_error = ProtoExpert.new(m._FIELD_NAMES.COMMAND_STATUS_ERROR, "Command Status error", expert.group.PROTOCOL, expert.severity.ERROR)
+	m._experts[m._FIELD_NAMES.COMMAND_STATUS_ERROR] = mFields.CreateExpertField(m._FIELD_NAMES.COMMAND_STATUS_ERROR, command_status_error)
 
 end
 

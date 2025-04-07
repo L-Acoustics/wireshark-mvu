@@ -1,0 +1,19 @@
+# MVU
+# Case: Command Status errors
+#
+# Capture file source, convert to .pcapng using:
+#   text2pcap -t ISO <inputfile.txt> <outputfile.pcapng>
+#
+# https://www.wireshark.org/docs/man-pages/text2pcap.html
+
+# A MVU packet that is not a response but has the NOT_IMPLEMENTED status code
+0000  00 1b 92 05 08 70 00 e0 4c 40 90 2a 22 f0 fb 06
+0010  08 14 00 1b 92 ff ff 05 08 70 00 e0 4c 40 90 2a
+0020  00 01 00 00 00 1b c5 0a c1 00 00 04 00 00 00 00
+0030  00 00 00 00 00 00 00 00 00 00 00 00
+
+# A MVU packet that has an unknown status code
+0000  00 1b 92 05 08 70 00 e0 4c 40 90 2a 22 f0 fb 06
+0010  f8 14 00 1b 92 ff ff 05 08 70 00 e0 4c 40 90 2a
+0020  00 01 00 01 00 1b c5 0a c1 00 00 04 00 00 00 00
+0030  00 00 00 00 00 00 00 00 00 00 00 00
