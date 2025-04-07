@@ -106,18 +106,18 @@ function m.GetMilanVersionOfCommand(message_type, command_type, control_data_len
 
 		-- Command
 		if message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND then
-			-- Version 1.1 (CDL = 20)
+			-- Version 1.0 (CDL = 20)
 			if control_data_length >= 20 then
-				-- Version 1.1, extra bytes if control_data_length is strictly greater
-				return "1.1", (control_data_length > 20)
+				-- Version 1.0, extra bytes if control_data_length is strictly greater
+				return "1.0", (control_data_length > 20)
 			end
 
 		-- Response
 		elseif message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE then
-			-- Version 1.1a (CDL = 32)
+			-- Version 1.0 (CDL = 32)
 			if control_data_length >= 32 then
-				-- Version 1.1, extra bytes if control_data_length is strictly greater
-				return "1.1", (control_data_length > 32)
+				-- Version 1.0, extra bytes if control_data_length is strictly greater
+				return "1.0", (control_data_length > 32)
 			end
 		end
 
