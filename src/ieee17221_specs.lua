@@ -38,7 +38,8 @@ m.AECP_MESSAGE_TYPES = {
 -- Vendor Unique status codes
 m.VENDOR_UNIQUE_STATUS_CODES = {
     SUCCESS         = 0, [0] = "SUCCESS",
-    NOT_IMPLEMENTED = 1, [1] = "NOT_IMPLEMENTED"
+    NOT_IMPLEMENTED = 1, [1] = "NOT_IMPLEMENTED",
+	PAYLOAD_ERROR   = 2, [2] = "PAYLOAD_ERROR",
 }
 
 -- Descriptor types
