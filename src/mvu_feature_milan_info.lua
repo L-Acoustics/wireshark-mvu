@@ -29,6 +29,7 @@ local mHeaders = require("mvu_headers")
 local mIEEE17221Specs = require("ieee17221_specs")
 local mIEEE17221Fields = require("ieee17221_fields")
 local mControl = require("mvu_control")
+local mHelpers = require("helpers")
 
 -- Init module object
 local m = {}
@@ -47,7 +48,55 @@ m._FIELD_NAMES = {
     FEATURE_FLAGS                   = "mvu.feature_flags",
     FEATURE_REDUNDANCY              = "mvu.feature.redundancy",
     FEATURE_TALKER_DYNAMIC_MAPPINGS = "mvu.feature.talker_dynamic_mappings",
+    FEATURE_MVU_BINDING             = "mvu.feature.binding",
+    FEATURE_TALKER_SIGNAL_PRESENCE  = "mvu.feature.talker_signal_presence",
     PAAD_CERTIFICATION_VERSION      = "mvu.paad_certification_version",
+    PAAD_SPECIFICATION_VERSION      = "mvu.paad_specification_version",
+}
+
+-- Table of offset position and bytes size in the MVU payload for each valid combination of field/message type
+m._fields_payload_offset = {
+	[m._FIELD_NAMES.PROTOCOL_VERSION] = {
+		[mSpecs.COMMAND_TYPES.GET_MILAN_INFO] = {
+			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND ] = 4,
+			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 4,
+		}
+	},
+	[m._FIELD_NAMES.FEATURE_FLAGS] = {
+		[mSpecs.COMMAND_TYPES.GET_MILAN_INFO] = {
+			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 8,
+		}
+	},
+	[m._FIELD_NAMES.FEATURE_REDUNDANCY] = {
+		[mSpecs.COMMAND_TYPES.GET_MILAN_INFO] = {
+			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 8,
+		}
+	},
+	[m._FIELD_NAMES.FEATURE_TALKER_DYNAMIC_MAPPINGS] = {
+		[mSpecs.COMMAND_TYPES.GET_MILAN_INFO] = {
+			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 8,
+		}
+	},
+	[m._FIELD_NAMES.FEATURE_MVU_BINDING] = {
+		[mSpecs.COMMAND_TYPES.GET_MILAN_INFO] = {
+			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 8,
+		}
+	},
+	[m._FIELD_NAMES.FEATURE_TALKER_SIGNAL_PRESENCE] = {
+		[mSpecs.COMMAND_TYPES.GET_MILAN_INFO] = {
+			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 8,
+		}
+	},
+	[m._FIELD_NAMES.PAAD_CERTIFICATION_VERSION] = {
+		[mSpecs.COMMAND_TYPES.GET_MILAN_INFO] = {
+			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 12,
+		}
+	},
+	[m._FIELD_NAMES.PAAD_SPECIFICATION_VERSION] = {
+		[mSpecs.COMMAND_TYPES.GET_MILAN_INFO] = {
+			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 16,
+		}
+	},
 }
 
 --------------------
@@ -106,6 +155,32 @@ function m.DeclareFields()
 			0x00000002) -- bit mask for this field
 	)
 
+	-- Feature: MVU binding and unbinding
+	--   Expected in:
+	--     GET_MILAN_INFO response
+	m._fields[m._FIELD_NAMES.FEATURE_MVU_BINDING]
+	= mFields.CreateField(
+		ProtoField.bool(
+			m._FIELD_NAMES.FEATURE_MVU_BINDING,
+			"FEATURE_MVU_BINDING",
+			32,         -- parent bitfield size
+			nil,        -- table of value strings
+			0x00000004) -- bit mask for this field
+	)
+
+	-- Feature: Monitoring signal presence on audio channels
+	--   Expected in:
+	--     GET_MILAN_INFO response
+	m._fields[m._FIELD_NAMES.FEATURE_TALKER_SIGNAL_PRESENCE]
+	= mFields.CreateField(
+		ProtoField.bool(
+			m._FIELD_NAMES.FEATURE_TALKER_SIGNAL_PRESENCE,
+			"FEATURE_TALKER_SIGNAL_PRESENCE",
+			32,         -- parent bitfield size
+			nil,        -- table of value strings
+			0x00000008) -- bit mask for this field
+	)
+
 	-- Certification version (the version number of the Milan certifications that the PAAD-AE has passed)
 	--   Expected in:
 	--     GET_MILAN_INFO response
@@ -116,6 +191,19 @@ function m.DeclareFields()
 			"PAAD certification version",
 			base.ASCII,
 			"The version number of the Milan certifications that the PAAD-AE has passed"
+		)
+	)
+
+	-- Specification version (the version number of the Milan certifications that the PAAD-AE supports)
+	--   Expected in:
+	--     GET_MILAN_INFO response
+	m._fields[m._FIELD_NAMES.PAAD_SPECIFICATION_VERSION]
+	= mFields.CreateField(
+		ProtoField.string(
+			m._FIELD_NAMES.PAAD_SPECIFICATION_VERSION,
+			"PAAD specification version",
+			base.ASCII,
+			"The version number of the Milan certifications that the PAAD-AE supports"
 		)
 	)
 
@@ -154,58 +242,79 @@ function m.AddFieldsToSubtree(buffer, subtree, errors)
 		return errors, true
 	end
 
-	-- If the message is a SUCCESS response to a GET_MILAN_INFO command
-	if 	message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE
-	and status_code == mIEEE17221Specs.VENDOR_UNIQUE_STATUS_CODES.SUCCESS
-	and command_type == mSpecs.COMMAND_TYPES.GET_MILAN_INFO
-	then
+	----------------------------
+	-- Add fields to the tree --
+	----------------------------
 
-		----------------------------
-		-- Add fields to the tree --
-		----------------------------
+	-- Get MVU payload bytes from buffer
+	local _, mvu_payload_start = mHeaders.GetMvuPayload()
 
-		-- Get MVU payload bytes from buffer
-		local mvu_payload_bytes, mvu_payload_start = mHeaders.GetMvuPayload()
+	--- Function to add a field to the Tree
+	--- @param field any The protocol field object
+	--- @param size number The byte size of the field's data
+	--- @param execute_on_range function|nil An optional function executed on the TVB range for this field
+	--- @param custom_value_function function|nil An optional function for customizing the displayed value for the field
+	--- @param do_not_add_on_nil_custom_value boolean|nil An optional flag to determine if the field should be added to the tree when the custom value function returns nil
+	local add_field_to_tree = function(field, size, execute_on_range, custom_value_function, do_not_add_on_nil_custom_value)
+		-- if the field has an offset position for the command and message types
+		if  m._fields_payload_offset[field] ~= nil
+		and m._fields_payload_offset[field][command_type] ~= nil
+		and m._fields_payload_offset[field][command_type][message_type] ~= nil
+		then
+			-- Read payload offset position for this field
+			local payload_offset = m._fields_payload_offset[field][command_type][message_type]
 
-		--
-		-- Protocol version
-		--
-
-		-- Read protocol version (4 bytes)
-		local protocol_version = mvu_payload_bytes:int(4, 4)
-
-		-- Write protocol version to the MVU subtree
-		subtree:add(m._fields[m._FIELD_NAMES.PROTOCOL_VERSION], buffer(mvu_payload_start + 4, 4), protocol_version)
-
-		--
-		-- Feature flags
-		--
-
-		-- Read feature flags
-		local feature_flags = mvu_payload_bytes:int(8, 4)
-
-		-- Write feature flags to the MVU subtree
-		subtree:add(m._fields[m._FIELD_NAMES.FEATURE_FLAGS], buffer(mvu_payload_start + 8, 4), feature_flags)
-
-		-- Write individual features flags to the MVU subtree
-		subtree:add(m._fields[m._FIELD_NAMES.FEATURE_TALKER_DYNAMIC_MAPPINGS], buffer(mvu_payload_start + 8, 4))
-		subtree:add(m._fields[m._FIELD_NAMES.FEATURE_REDUNDANCY], buffer(mvu_payload_start + 8, 4))
-
-		--
-		-- Certification version
-		--
-
-		-- Read certification version numbers
-		local certification_version_numbers = { string.unpack("bbbb", mvu_payload_bytes:raw(12, 4)) }
-
-		-- If certification numbers are not zeros
-		if certification_version_numbers[1] > 0 then
-			-- Build string version
-			local certification_version = string.format("%d.%d", certification_version_numbers[1], certification_version_numbers[2])
-			-- Write certification version
-			subtree:add(m._fields[m._FIELD_NAMES.PAAD_CERTIFICATION_VERSION], buffer(mvu_payload_start + 12, 4), certification_version)
+			-- If a custom function is provided
+			if (type(custom_value_function) == "function") then
+				-- Execute custom function
+				local custom_value = custom_value_function(buffer(mvu_payload_start + payload_offset, size))
+				-- If the custom value is not nil or the field can be added in case of nil custom value
+				if not (custom_value == nil and do_not_add_on_nil_custom_value) then
+					-- Write field to the MVU subtree with custom display value
+					subtree:add(m._fields[field], buffer(mvu_payload_start + payload_offset, size), custom_value)
+				end
+			else
+				-- Write field to the MVU subtree
+				subtree:add(m._fields[field], buffer(mvu_payload_start + payload_offset, size))
+			end
+			-- If any, execute provided function on buffer range
+			if (type(execute_on_range) == "function") then
+				execute_on_range(buffer(mvu_payload_start + payload_offset, size))
+			end
 		end
+	end
 
+	--- Extract a specifications version from raw byte range of size 4
+	--- @param range any
+	--- @return string|nil
+	local extract_specifications_version = function(range)
+		-- Read version numbers
+		local version_numbers = { string.unpack("bbbb", range:raw()) }
+		-- If numbers are not zeros
+		if version_numbers[1] > 0 then
+			-- Build and return string version
+			return string.format(
+				"%d.%d",
+				version_numbers[1],
+				version_numbers[2]
+			)
+		end
+	end
+
+	-- Add all fields to the tree
+	-- Version 1.0
+	if (mHelpers.CompareVersions(milan_version, "1") >= 0) then
+		add_field_to_tree(m._FIELD_NAMES.PROTOCOL_VERSION               , 4)
+		add_field_to_tree(m._FIELD_NAMES.FEATURE_FLAGS                  , 4)
+		add_field_to_tree(m._FIELD_NAMES.FEATURE_REDUNDANCY             , 4)
+		add_field_to_tree(m._FIELD_NAMES.FEATURE_TALKER_DYNAMIC_MAPPINGS, 4)
+		add_field_to_tree(m._FIELD_NAMES.FEATURE_MVU_BINDING            , 4)
+		add_field_to_tree(m._FIELD_NAMES.FEATURE_TALKER_SIGNAL_PRESENCE , 4)
+		add_field_to_tree(m._FIELD_NAMES.PAAD_CERTIFICATION_VERSION     , 4, nil, extract_specifications_version, true)
+	end
+	-- Version 1.2.10
+	if (mHelpers.CompareVersions(milan_version, "1.2.10") >= 0) then
+		add_field_to_tree(m._FIELD_NAMES.PAAD_SPECIFICATION_VERSION, 4, nil, extract_specifications_version, true)
 	end
 
 	-- Return non-blocking errors

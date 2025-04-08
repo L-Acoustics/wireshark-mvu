@@ -217,6 +217,7 @@ The MVU message type (Command/Response) is extracted from the IEEE 1722.1 protoc
 | `mvu.feature.redundancy`              | REDUNDANCY                            | Boolean    |
 | `mvu.feature.talker_dynamic_mappings` | TALKER_DYNAMIC_MAPPINGS_WHILE_RUNNING | Boolean    |
 | `mvu.paad_certification_version`      | PAAD certification version            | String     |
+| `mvu.paad_specification_version`      | PAAD specification version            | String     |
 
 ### Dissector rules
 
