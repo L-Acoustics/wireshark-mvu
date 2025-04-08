@@ -49,6 +49,7 @@ This document describes:
 
 | Field                                  | Display name                | Field Type          |
 | -------------------------------------- | --------------------------- | ------------------- |
+| `mvu.unsolicited_response`             | Unsolicited Response        | Boolean             |
 | `mvu.command_type`                     | Command Type                | Number (enum)       |
 | `mvu.status`                           | Status                      | Number (enum)       |
 | `mvu.specifications_version`           | -                           | String (generated)  |
