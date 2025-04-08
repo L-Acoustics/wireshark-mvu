@@ -131,7 +131,7 @@ function mProto.Proto.dissector(buffer, pinfo, tree)
 
 		-- Insert message in case there are unimplemented extra bytes at end of payload
 		if not blocking_errors then
-			mControl.InsertUnimplementedExtraBytesMessage(mvuSubtree)
+			mControl.InsertUnimplementedExtraBytesMessage(buffer, mvuSubtree)
 		end
 
 		-- Insert message in case there is a command status error

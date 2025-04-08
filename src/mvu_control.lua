@@ -85,8 +85,9 @@ function m.InsertControlDataLengthError(control_data_length, buffer, subtree, er
 end
 
 --- Insert a message in the tree if there are unimplemented extra bytes at the end of the payload
+--- @param buffer any The buffer to dissect (TVB object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tvb.html#lua_class_Tvb)
 --- @param subtree any The tree on which to add the protocol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
-function m.InsertUnimplementedExtraBytesMessage(subtree)
+function m.InsertUnimplementedExtraBytesMessage(buffer, subtree)
 
 	-- Read IEEE 1722.1 field values
 	local message_type        = mIEEE17221Fields.GetMessageType()
@@ -101,7 +102,7 @@ function m.InsertUnimplementedExtraBytesMessage(subtree)
 	-- If there are unimplemented extra bytes at the end of the payload
 	if unimplemented_extra_bytes == true then
 		-- Insert message in the subtree to warn that the message may implement a newer version of Milan specifications
-		subtree:add("Additional bytes at end of payload. This PAAD may implement a newer version of Milan. Consider updating this plugin.")
+		subtree:add(buffer(control_data_length), "Additional bytes at end of payload. This PAAD may implement a newer version of Milan. Consider updating this plugin.")
 			--- Mark as a generated field (with data inferred but not contained in the packet)
 			:set_generated(true)
 	end
