@@ -130,18 +130,26 @@ function m.GetMilanVersionOfCommand(message_type, command_type, control_data_len
 
 		-- Command
 		if message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND then
-			-- Version 1.2 (CDL = 24)
-			if control_data_length >= 24 then
+			-- Version 1.2.10 (CDL = 92)
+			if control_data_length >= 92 then
+				-- Version 1.2.10, extra bytes if control_data_length is strictly greater
+				return "1.2.10", (control_data_length > 92)
+			-- Version 1.2 (CDL = 28)
+			elseif control_data_length == 28 then
 				-- Version 1.2, extra bytes if control_data_length is strictly greater
-				return "1.2", (control_data_length > 24)
+				return "1.2"
 			end
 
 		-- Response
 		elseif message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE then
-			-- Version 1.2 (CDL = 24)
-			if control_data_length >= 24 then
+			-- Version 1.2.10 (CDL = 92)
+			if control_data_length >= 92 then
+				-- Version 1.2.10, extra bytes if control_data_length is strictly greater
+				return "1.2.10", (control_data_length > 92)
+			-- Version 1.2 (CDL = 28)
+			elseif control_data_length == 28 then
 				-- Version 1.2, extra bytes if control_data_length is strictly greater
-				return "1.2", (control_data_length > 24)
+				return "1.2"
 			end
 		end
 
@@ -152,16 +160,20 @@ function m.GetMilanVersionOfCommand(message_type, command_type, control_data_len
 		if message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND then
 			-- Version 1.2 (CDL = 20)
 			if control_data_length >= 20 then
-				-- Version 1.2, extra bytes if control_data_length is strictly greater
-				return "1.2", (control_data_length > 20)
+				-- Version 1.2
+				return "1.2"
 			end
 
 		-- Response
 		elseif message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE then
-			-- Version 1.2 (CDL = 24)
-			if control_data_length >= 24 then
+			-- Version 1.2.10 (CDL = 92)
+			if control_data_length >= 92 then
+				-- Version 1.2.10, extra bytes if control_data_length is strictly greater
+				return "1.2.10", (control_data_length > 92)
+			-- Version 1.2 (CDL = 28)
+			elseif control_data_length == 28 then
 				-- Version 1.2, extra bytes if control_data_length is strictly greater
-				return "1.2", (control_data_length > 24)
+				return "1.2"
 			end
 		end
 
