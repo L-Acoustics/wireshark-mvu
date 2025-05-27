@@ -3,7 +3,7 @@
 
 	This file is part of the Milan Vendor Unique plugin for Wireshark
 	---
-		Handle fields related to GET_STREAM_INPUT_INFO_EX and GET_STREAM_OUTPUT_INFO_EX commands
+		Handle fields related to GET_STREAM_INPUT_INFO_EX commands
 	---
 
 	Authors: Benjamin Landrot
@@ -81,18 +81,10 @@ m._fields_payload_offset = {
 		[mSpecs.COMMAND_TYPES.GET_STREAM_INPUT_INFO_EX] = {
 			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND ] = 4,
 			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 4,
-		},
-		[mSpecs.COMMAND_TYPES.GET_STREAM_OUTPUT_INFO_EX] = {
-			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND ] = 4,
-			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 4,
 		}
 	},
 	[m._FIELD_NAMES.DESCRIPTOR_INDEX] = {
 		[mSpecs.COMMAND_TYPES.GET_STREAM_INPUT_INFO_EX] = {
-			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND ] = 6,
-			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 6,
-		},
-		[mSpecs.COMMAND_TYPES.GET_STREAM_OUTPUT_INFO_EX] = {
 			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND ] = 6,
 			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 6,
 		}
@@ -110,17 +102,11 @@ m._fields_payload_offset = {
 	[m._FIELD_NAMES.STREAM_FORMAT] = {
 		[mSpecs.COMMAND_TYPES.GET_STREAM_INPUT_INFO_EX] = {
 			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 20,
-		},
-		[mSpecs.COMMAND_TYPES.GET_STREAM_OUTPUT_INFO_EX] = {
-			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 8,
 		}
 	},
 	[m._FIELD_NAMES.STREAM_ID] = {
 		[mSpecs.COMMAND_TYPES.GET_STREAM_INPUT_INFO_EX] = {
 			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 28,
-		},
-		[mSpecs.COMMAND_TYPES.GET_STREAM_OUTPUT_INFO_EX] = {
-			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 16,
 		}
 	},
 	[m._FIELD_NAMES.MSRP_ACCUMULATED_LATENCY] = {
@@ -131,17 +117,11 @@ m._fields_payload_offset = {
 	[m._FIELD_NAMES.DEST_MAC_ADDRESS] = {
 		[mSpecs.COMMAND_TYPES.GET_STREAM_INPUT_INFO_EX] = {
 			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 40,
-		},
-		[mSpecs.COMMAND_TYPES.GET_STREAM_OUTPUT_INFO_EX] = {
-			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 24,
 		}
 	},
 	[m._FIELD_NAMES.MSRP_FAILURE_CODE] = {
 		[mSpecs.COMMAND_TYPES.GET_STREAM_INPUT_INFO_EX] = {
 			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 46,
-		},
-		[mSpecs.COMMAND_TYPES.GET_STREAM_OUTPUT_INFO_EX] = {
-			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 30,
 		}
 	},
 	[m._FIELD_NAMES.ACMP_FAILURE_CODE] = {
@@ -152,29 +132,18 @@ m._fields_payload_offset = {
 	[m._FIELD_NAMES.MSRP_FAILURE_BRIDGE_ID] = {
 		[mSpecs.COMMAND_TYPES.GET_STREAM_INPUT_INFO_EX] = {
 			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 48,
-		},
-		[mSpecs.COMMAND_TYPES.GET_STREAM_OUTPUT_INFO_EX] = {
-			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 32,
 		}
 	},
 	[m._FIELD_NAMES.VLAN_ID] = {
 		[mSpecs.COMMAND_TYPES.GET_STREAM_INPUT_INFO_EX] = {
 			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 56,
-		},
-		[mSpecs.COMMAND_TYPES.GET_STREAM_OUTPUT_INFO_EX] = {
-			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 40,
 		}
 	},
 	[m._FIELD_NAMES.SINK_STATE] = {
 		[mSpecs.COMMAND_TYPES.GET_STREAM_INPUT_INFO_EX] = {
 			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 58,
 		},
-	},
-	[m._FIELD_NAMES.SOURCE_STATE] = {
-		[mSpecs.COMMAND_TYPES.GET_STREAM_OUTPUT_INFO_EX] = {
-			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 42,
-		}
-	},
+	}
 }
 
 -- Internal list of expert fields
@@ -217,8 +186,6 @@ function m.DeclareFields()
 	--   Expected in:
 	--     GET_STREAM_INPUT_INFO_EX command
 	--     GET_STREAM_INPUT_INFO_EX response
-	--     GET_STREAM_OUTPUT_INFO_EX command
-	--     GET_STREAM_OUTPUT_INFO_EX response
 	local descriptor_type_valuestring = mHelpers.GetTableValuesWithNumberKey(mIEEE17221Specs.DESCRIPTOR_TYPES)
 	m._fields[m._FIELD_NAMES.DESCRIPTOR_TYPE]
 	= mFields.CreateField(
@@ -229,8 +196,6 @@ function m.DeclareFields()
 	--   Expected in:
 	--     GET_STREAM_INPUT_INFO_EX command
 	--     GET_STREAM_INPUT_INFO_EX response
-	--     GET_STREAM_OUTPUT_INFO_EX command
-	--     GET_STREAM_OUTPUT_INFO_EX response
 	m._fields[m._FIELD_NAMES.DESCRIPTOR_INDEX]
 	= mFields.CreateField(
 		ProtoField.uint16(m._FIELD_NAMES.DESCRIPTOR_INDEX, "Descriptor Index", base.DEC)
@@ -255,7 +220,6 @@ function m.DeclareFields()
 	-- Stream Format
 	--   Expected in:
 	--     GET_STREAM_INPUT_INFO_EX response
-	--     GET_STREAM_OUTPUT_INFO_EX response
 	local stream_format_valuestring = mHelpers.GetTableValuesWithNumberKey(mAvnuSpecs.BASE_AUDIO_STREAM_FORMATS)
 	m._fields[m._FIELD_NAMES.STREAM_FORMAT]
 	= mFields.CreateField(
@@ -265,7 +229,6 @@ function m.DeclareFields()
 	-- Stream ID
 	--   Expected in:
 	--     GET_STREAM_INPUT_INFO_EX response
-	--     GET_STREAM_OUTPUT_INFO_EX response
 	m._fields[m._FIELD_NAMES.STREAM_ID]
 	= mFields.CreateField(
 		ProtoField.uint64(m._FIELD_NAMES.STREAM_ID, "Stream ID", base.HEX)
@@ -274,7 +237,6 @@ function m.DeclareFields()
 	-- MSRP accumulated latency
 	--   Expected in:
 	--     GET_STREAM_INPUT_INFO_EX response
-	--     GET_STREAM_OUTPUT_INFO_EX response
 	m._fields[m._FIELD_NAMES.MSRP_ACCUMULATED_LATENCY]
 	= mFields.CreateField(
 		ProtoField.uint32(m._FIELD_NAMES.MSRP_ACCUMULATED_LATENCY, "MSRP Accumulated Latency (nanoseconds)", base.DEC)
@@ -283,7 +245,6 @@ function m.DeclareFields()
 	-- Destination MAC address
 	--   Expected in:
 	--     GET_STREAM_INPUT_INFO_EX response
-	--     GET_STREAM_OUTPUT_INFO_EX response
 	m._fields[m._FIELD_NAMES.DEST_MAC_ADDRESS]
 	= mFields.CreateField(
 		ProtoField.ether(m._FIELD_NAMES.DEST_MAC_ADDRESS, "Destination MAC Address")
@@ -292,7 +253,6 @@ function m.DeclareFields()
 	-- MSRP failure code
 	--   Expected in:
 	--     GET_STREAM_INPUT_INFO_EX response
-	--     GET_STREAM_OUTPUT_INFO_EX response
 	local msrp_failure_code_valuestring = mHelpers.GetTableValuesWithNumberKey(mIEEE8021QatSpecs.MSRP_FAILURE_CODES)
 	m._fields[m._FIELD_NAMES.MSRP_FAILURE_CODE]
 	= mFields.CreateField(
@@ -311,7 +271,6 @@ function m.DeclareFields()
 	-- MSRP failure bridge ID
 	--   Expected in:
 	--     GET_STREAM_INPUT_INFO_EX response
-	--     GET_STREAM_OUTPUT_INFO_EX response
 	m._fields[m._FIELD_NAMES.MSRP_FAILURE_BRIDGE_ID]
 	= mFields.CreateField(
 		ProtoField.uint64(m._FIELD_NAMES.MSRP_FAILURE_BRIDGE_ID, "MSRP Failure Bridge ID", base.HEX)
@@ -320,7 +279,6 @@ function m.DeclareFields()
 	-- VLAN ID
 	--   Expected in:
 	--     GET_STREAM_INPUT_INFO_EX response
-	--     GET_STREAM_OUTPUT_INFO_EX response
 	m._fields[m._FIELD_NAMES.VLAN_ID]
 	= mFields.CreateField(
 		ProtoField.uint16(m._FIELD_NAMES.VLAN_ID, "VLAN ID")
@@ -333,15 +291,6 @@ function m.DeclareFields()
 	m._fields[m._FIELD_NAMES.SINK_STATE]
 	= mFields.CreateField(
 		ProtoField.uint8(m._FIELD_NAMES.SINK_STATE, "Sink State", base.HEX, sink_state_valuestring)
-	)
-
-	-- Source state
-	--   Expected in:
-	--     GET_STREAM_OUTPUT_INFO_EX response
-	local source_state_valuestring = mHelpers.GetTableValuesWithNumberKey(mIEEE17221Specs.SOURCE_STATES)
-	m._fields[m._FIELD_NAMES.SOURCE_STATE]
-	= mFields.CreateField(
-		ProtoField.uint8(m._FIELD_NAMES.SOURCE_STATE, "Source State", base.HEX, source_state_valuestring)
 	)
 
 	-------------------
@@ -451,25 +400,6 @@ function m.AddFieldsToSubtree(buffer, subtree, errors)
 
 		-- Build error message
 		local error_message = "The Descriptor Type shall be set to STREAM_INPUT (0x0005)"
-
-		-- Add control data length error to the subtree
-		subtree:add_tvb_expert_info(m._experts[m._FIELD_NAMES.DESCRIPTOR_TYPE_ERROR], buffer(mvu_payload_start + 4, 2), error_message)
-
-		-- Add error message to errors list
-		table.insert(errors, error_message)
-
-		-- Return blocking error
-		return errors, true
-
-	end
-
-	-- If the command is GET_STREAM_OUTPUT_INFO_EX but the Descriptor Type is not STREAM_OUTPUT (0x0006)
-	if command_type == mSpecs.COMMAND_TYPES.GET_STREAM_OUTPUT_INFO_EX
-	and descriptor_type ~= mIEEE17221Specs.DESCRIPTOR_TYPES.STREAM_OUTPUT
-	then
-
-		-- Build error message
-		local error_message = "The Descriptor Type shall be set to STREAM_OUTPUT (0x0006)"
 
 		-- Add control data length error to the subtree
 		subtree:add_tvb_expert_info(m._experts[m._FIELD_NAMES.DESCRIPTOR_TYPE_ERROR], buffer(mvu_payload_start + 4, 2), error_message)

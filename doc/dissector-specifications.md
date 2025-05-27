@@ -25,8 +25,6 @@ This document describes:
 1. [UNBIND_STREAM response](#unbind_stream-response)
 1. [GET_STREAM_INPUT_INFO_EX command](#get_stream_input_info_ex-command)
 1. [GET_STREAM_INPUT_INFO_EX response](#get_stream_input_info_ex-response)
-1. [GET_STREAM_OUTPUT_INFO_EX command](#get_stream_output_info_ex-command)
-1. [GET_STREAM_OUTPUT_INFO_EX response](#get_stream_output_info_ex-response)
 
 ## Any MVU packet
 
@@ -661,82 +659,3 @@ This field is inserted when value of `mvu.descriptor_type` is not set to STREAM_
         .... ...0 = STREAMING_WAIT: False
         Descriptor Type: STREAM_OUTPUT (0x0006)
       ► The Descriptor Type shall be set to STREAM_INPUT (0x0005)
-
-## GET_STREAM_OUTPUT_INFO_EX command
-
-### Expected information in the packet
-
-> Same as [UNBIND_STREAM command](#unbind_stream-command)
-
-### Dissector fields
-
-> Same as [UNBIND_STREAM response](#unbind_stream-response)
-
-### Dissector rules
-
-> Same as [UNBIND_STREAM response](#unbind_stream-response)
-
-## GET_STREAM_OUTPUT_INFO_EX response
-
-### Expected information in the packet
-
-| Field                  | Description                                        | MVU Protocol Version |
-| ---------------------- | -------------------------------------------------- | -------------------- |
-| descriptor_type        | Descriptor type of the Talker's Stream Output      | $\geqslant$ 1.2.10   |
-| descriptor_index       | Descriptor index of the Talker's Stream Output     | $\geqslant$ 1.2.10   |
-| stream_format          | Current format of the Stream Output                | $\geqslant$ 1.2.10   |
-| stream_id              | Talker's Stream ID                                 | $\geqslant$ 1.2.10   |
-| stream_dest_mac        | Talker's Stream destination MAC address            | $\geqslant$ 1.2.10   |
-| msrp_fail_code         | MSRP error code                                    | $\geqslant$ 1.2.10   |
-| msrp_failure_bridge_id | MSRP failure bridge ID                             | $\geqslant$ 1.2.10   |
-| stream_vlan_id         | Talker's Stream VLAN ID                            | $\geqslant$ 1.2.10   |
-| source_state           | Current source state of the Talker's Stream Output | $\geqslant$ 1.2.10   |
-
-### Dissector fields
-
-| Field                               | Display name           | Field Type    |
-| ----------------------------------- | ---------------------- | ------------- |
-| `mvu.descriptor_type`               | Descriptor Type        | Number (enum) |
-| `mvu.descriptor_index`              | Descriptor Index       | Number        |
-| `mvu.stream.format`                 | Stream Format          | Number (enum) |
-| `mvu.stream.id`                     | Stream ID              | Number        |
-| `mvu.stream.dest_mac`               | Destination MAC        | Number (hex)  |
-| `mvu.stream.msrp_fail_code`         | MSRP Failure Code      | Number (enum) |
-| `mvu.stream.msrp_failure_bridge_id` | MSRP Failure Bridge ID | Number        |
-| `mvu.stream.vlan_id`                | VLAN ID                | Number        |
-| `mvu.stream.source_state`           | Source State           | Number (enum) |
-| `mvu.expert.descriptor_type_error`  | Descriptor Type error  | Expert        |
-
-### Dissector rules
-
-###### Example
-
-    ▼ Milan Vendor Unique (Response)
-        Command Type: GET_STREAM_OUTPUT_INFO_EX (0x00000008)
-        [Version 1.2.10]
-        Status: SUCCESS (0x00)
-        Stream Flags: 0x00000000
-        .... ...0 = STREAMING_WAIT: False
-        Descriptor Type: STREAM_OUTPUT (0x0006)
-        Stream Format: AAF, 96kHz, PCM-INT-32, 8 channels (0x020702200200C000)
-        Stream ID: 0xab65459d8e70c3d4
-        Destination MAC Address: lacoustics_04:05:06 (00:1b:92:04:05:06)
-        MSRP Failure Code: Egress port is not AVB capable (8)
-        MSRP Failure Bridge ID: 0x6574ac13b6d47e8d
-        VLAN ID: 2
-        Source State: DECLARING_TALKER_FAILED (4)
-
-#### Rules for `mvu.expert.descriptor_type_error`
-
-This field is inserted when value of `mvu.descriptor_type` is not set to STREAM_OUTPUT (0x0006).
-
-###### Example
-
-    ▼ Milan Vendor Unique (Response)
-        Command Type: GET_STREAM_OUTPUT_INFO_EX (0x00000008)
-        [Version 1.2.10]
-        Status: SUCCESS (0x00)
-        Stream Flags: 0x00000000
-        .... ...0 = STREAMING_WAIT: False
-        Descriptor Type: STREAM_INPUT (0x0005)
-      ► The Descriptor Type shall be set to STREAM_OUTPUT (0x0006)

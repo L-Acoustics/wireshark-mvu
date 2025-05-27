@@ -49,7 +49,6 @@ m.COMMAND_TYPES = {
     BIND_STREAM                    = 0x0005, [0x0005] = "BIND_STREAM",
     UNBIND_STREAM                  = 0x0006, [0x0006] = "UNBIND_STREAM",
     GET_STREAM_INPUT_INFO_EX       = 0x0007, [0x0007] = "GET_STREAM_INPUT_INFO_EX",
-    GET_STREAM_OUTPUT_INFO_EX      = 0x0008, [0x0008] = "GET_STREAM_OUTPUT_INFO_EX",
 }
 
 -- List of known MVU features
@@ -274,26 +273,6 @@ function m.GetMilanVersionOfCommand(message_type, command_type, control_data_len
 			if control_data_length >= 76 then
 				-- Version 1.2.10, extra bytes if control_data_length is strictly greater
 				return "1.2.10", (control_data_length > 76)
-			end
-		end
-
-	-- GET_STREAM_OUTPUT_INFO_EX
-	elseif command_type == m.COMMAND_TYPES.GET_STREAM_OUTPUT_INFO_EX then
-
-		-- Command
-		if message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND then
-			-- Version 1.2.10 (CDL = 24)
-			if control_data_length >= 24 then
-				-- Version 1.2.10, extra bytes if control_data_length is strictly greater
-				return "1.2.10", (control_data_length > 24)
-			end
-
-		-- Response
-		elseif message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE then
-			-- Version 1.2.10 (CDL = 60)
-			if control_data_length >= 60 then
-				-- Version 1.2.10, extra bytes if control_data_length is strictly greater
-				return "1.2.10", (control_data_length > 60)
 			end
 		end
 
