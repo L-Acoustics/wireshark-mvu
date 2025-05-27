@@ -589,7 +589,7 @@ This field is inserted if any field in the response is not set to the same value
 | descriptor_type  | Descriptor type of the Listener's Stream Input                 | $\geqslant$ 1.2.10   |
 | descriptor_index | Descriptor index of the Listener's Stream Input                | $\geqslant$ 1.2.10   |
 | talker_entity_id | Entity ID of Talker if sink_state $\geqslant$ 1                | $\geqslant$ 1.2.10   |
-| talker_unique_id | Index of Talker Stream Output                                  | $\geqslant$ 1.2.12   |
+| talker_stream_id | Index of Talker Stream Output                                  | $\geqslant$ 1.2.12   |
 | pbsta            | Probing status of the Stream Input                             | $\geqslant$ 1.2.12   |
 | acmpsta          | ACMP status of the Stream Input (when pbsta is PROBING_ACTIVE) | $\geqslant$ 1.2.12   |
 
@@ -600,7 +600,7 @@ This field is inserted if any field in the response is not set to the same value
 | `mvu.descriptor_type`              | Descriptor Type       | Number (enum) |
 | `mvu.descriptor_index`             | Descriptor Index      | Number        |
 | `mvu.stream.talker_entity_id`      | Talker Entity ID      | Number (hex)  |
-| `mvu.stream.talker_unique_id`      | Talker Stream ID      | Number        |
+| `mvu.stream.talker_stream_id`      | Talker Stream ID      | Number        |
 | `mvu.stream.probing_status`        | Probing Status        | Number (enum) |
 | `mvu.stream.acmp_status`           | ACMP Status           | Number (enum) |
 | `mvu.expert.descriptor_type_error` | Descriptor Type error | Expert        |
