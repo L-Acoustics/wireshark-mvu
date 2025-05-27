@@ -46,37 +46,17 @@ m._fields = {}
 -- List of fields related to BIND_STREAM commands/responses
 -- These field names can be used in Wireshark display filters to analyze MVU packets
 m._FIELD_NAMES = {
-	STREAM_FLAGS                = "mvu.stream.flags",
-	STREAM_FLAGS_STREAMING_WAIT = "mvu.stream.flags.streaming_waiting",
 	DESCRIPTOR_TYPE             = "mvu.descriptor_type",
 	DESCRIPTOR_INDEX            = "mvu.descriptor_index",
 	TALKER_ENTITY_ID            = "mvu.stream.talker_entity_id",
-	TALKER_STREAM_INDEX         = "mvu.stream.talker_stream_index",
-	STREAM_FORMAT               = "mvu.stream.format",
-	STREAM_ID                   = "mvu.stream.id",
-	MSRP_ACCUMULATED_LATENCY    = "mvu.stream.msrp_accumulated_latency",
-	DEST_MAC_ADDRESS            = "mvu.stream.dest_mac",
-	MSRP_FAILURE_CODE           = "mvu.stream.msrp_fail_code",
-	ACMP_FAILURE_CODE           = "mvu.stream.acmp_fail_code",
-	MSRP_FAILURE_BRIDGE_ID      = "mvu.stream.msrp_failure_bridge_id",
-	VLAN_ID                     = "mvu.stream.vlan_id",
-	SINK_STATE                  = "mvu.stream.sink_state",
-	SOURCE_STATE                = "mvu.stream.source_state",
+	TALKER_STREAM_ID         = "mvu.stream.talker_stream_id",
+	PROBING_STATUS              = "mvu.stream.probing_status",
+	ACMP_STATUS                 = "mvu.stream.acmp_status",
 	DESCRIPTOR_TYPE_ERROR       = "mvu.expert.descriptor_type_error",
 }
 
 -- Table of offset position and bytes size in the MVU payload for each valid combination of field/command type/message type
 m._fields_payload_offset = {
-	[m._FIELD_NAMES.STREAM_FLAGS] = {
-		[mSpecs.COMMAND_TYPES.GET_STREAM_INPUT_INFO_EX] = {
-			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] =  2,
-		},
-	},
-	[m._FIELD_NAMES.STREAM_FLAGS_STREAMING_WAIT] = {
-		[mSpecs.COMMAND_TYPES.GET_STREAM_INPUT_INFO_EX] = {
-			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE ] = 2,
-		},
-	},
 	[m._FIELD_NAMES.DESCRIPTOR_TYPE] = {
 		[mSpecs.COMMAND_TYPES.GET_STREAM_INPUT_INFO_EX] = {
 			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND ] = 4,
@@ -94,54 +74,19 @@ m._fields_payload_offset = {
 			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 8,
 		},
 	},
-	[m._FIELD_NAMES.TALKER_STREAM_INDEX] = {
+	[m._FIELD_NAMES.TALKER_STREAM_ID] = {
 		[mSpecs.COMMAND_TYPES.GET_STREAM_INPUT_INFO_EX] = {
 			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 16,
 		},
 	},
-	[m._FIELD_NAMES.STREAM_FORMAT] = {
+	[m._FIELD_NAMES.PROBING_STATUS] = {
 		[mSpecs.COMMAND_TYPES.GET_STREAM_INPUT_INFO_EX] = {
-			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 20,
-		}
-	},
-	[m._FIELD_NAMES.STREAM_ID] = {
-		[mSpecs.COMMAND_TYPES.GET_STREAM_INPUT_INFO_EX] = {
-			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 28,
-		}
-	},
-	[m._FIELD_NAMES.MSRP_ACCUMULATED_LATENCY] = {
-		[mSpecs.COMMAND_TYPES.GET_STREAM_INPUT_INFO_EX] = {
-			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 36,
+			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 18,
 		},
 	},
-	[m._FIELD_NAMES.DEST_MAC_ADDRESS] = {
+	[m._FIELD_NAMES.ACMP_STATUS] = {
 		[mSpecs.COMMAND_TYPES.GET_STREAM_INPUT_INFO_EX] = {
-			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 40,
-		}
-	},
-	[m._FIELD_NAMES.MSRP_FAILURE_CODE] = {
-		[mSpecs.COMMAND_TYPES.GET_STREAM_INPUT_INFO_EX] = {
-			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 46,
-		}
-	},
-	[m._FIELD_NAMES.ACMP_FAILURE_CODE] = {
-		[mSpecs.COMMAND_TYPES.GET_STREAM_INPUT_INFO_EX] = {
-			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 47,
-		},
-	},
-	[m._FIELD_NAMES.MSRP_FAILURE_BRIDGE_ID] = {
-		[mSpecs.COMMAND_TYPES.GET_STREAM_INPUT_INFO_EX] = {
-			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 48,
-		}
-	},
-	[m._FIELD_NAMES.VLAN_ID] = {
-		[mSpecs.COMMAND_TYPES.GET_STREAM_INPUT_INFO_EX] = {
-			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 56,
-		}
-	},
-	[m._FIELD_NAMES.SINK_STATE] = {
-		[mSpecs.COMMAND_TYPES.GET_STREAM_INPUT_INFO_EX] = {
-			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 58,
+			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 18,
 		},
 	}
 }
@@ -160,27 +105,6 @@ function m.DeclareFields()
 	-- FIELDS --
 	------------
 	-- See documentation: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Proto.html#lua_class_ProtoField
-
-	-- Stream Flags
-	--   Expected in:
-	--     GET_STREAM_INPUT_INFO_EX response
-	m._fields[m._FIELD_NAMES.STREAM_FLAGS]
-	= mFields.CreateField(
-		ProtoField.uint16(m._FIELD_NAMES.STREAM_FLAGS, "Stream Flags", base.HEX)
-	)
-
-	-- Stream Flag: STREAMING_WAIT
-	--   Expected in:
-	--     GET_STREAM_INPUT_INFO_EX response
-	m._fields[m._FIELD_NAMES.STREAM_FLAGS_STREAMING_WAIT]
-	= mFields.CreateField(
-		ProtoField.bool(
-			m._FIELD_NAMES.STREAM_FLAGS_STREAMING_WAIT,
-			mSpecs.BIND_STREAM_FLAGS[0x00000001],
-			16,          -- parent bitfield size
-			nil,         -- table of value strings
-			0x00000001)  -- bit mask for this field
-	)
 
 	-- Descriptor Type
 	--   Expected in:
@@ -209,88 +133,30 @@ function m.DeclareFields()
 		ProtoField.uint64(m._FIELD_NAMES.TALKER_ENTITY_ID, "Talker Entity ID", base.HEX)
 	)
 
-	-- Talker Stream Index
+	-- Talker Stream ID
 	--   Expected in:
 	--     GET_STREAM_INPUT_INFO_EX response
-	m._fields[m._FIELD_NAMES.TALKER_STREAM_INDEX]
+	m._fields[m._FIELD_NAMES.TALKER_STREAM_ID]
 	= mFields.CreateField(
-		ProtoField.uint16(m._FIELD_NAMES.TALKER_STREAM_INDEX, "Talker Stream Index", base.DEC)
+		ProtoField.uint16(m._FIELD_NAMES.TALKER_STREAM_ID, "Talker Stream ID", base.DEC)
 	)
 
-	-- Stream Format
+	-- Probing status
 	--   Expected in:
 	--     GET_STREAM_INPUT_INFO_EX response
-	local stream_format_valuestring = mHelpers.GetTableValuesWithNumberKey(mAvnuSpecs.BASE_AUDIO_STREAM_FORMATS)
-	m._fields[m._FIELD_NAMES.STREAM_FORMAT]
+	local probing_status_valuestring = mHelpers.GetTableValuesWithNumberKey(mSpecs.PROBING_STATUS)
+	m._fields[m._FIELD_NAMES.PROBING_STATUS]
 	= mFields.CreateField(
-		ProtoField.uint64(m._FIELD_NAMES.STREAM_FORMAT, "Stream Format", base.HEX, stream_format_valuestring)
+		ProtoField.uint8(m._FIELD_NAMES.PROBING_STATUS, "Probing Status", base.DEC, probing_status_valuestring)
 	)
 
-	-- Stream ID
+	-- ACMP status
 	--   Expected in:
 	--     GET_STREAM_INPUT_INFO_EX response
-	m._fields[m._FIELD_NAMES.STREAM_ID]
+	local acmp_status_valuestring = mHelpers.GetTableValuesWithNumberKey(mIEEE17221Specs.ACMP_FAILURE_CODES)
+	m._fields[m._FIELD_NAMES.ACMP_STATUS]
 	= mFields.CreateField(
-		ProtoField.uint64(m._FIELD_NAMES.STREAM_ID, "Stream ID", base.HEX)
-	)
-
-	-- MSRP accumulated latency
-	--   Expected in:
-	--     GET_STREAM_INPUT_INFO_EX response
-	m._fields[m._FIELD_NAMES.MSRP_ACCUMULATED_LATENCY]
-	= mFields.CreateField(
-		ProtoField.uint32(m._FIELD_NAMES.MSRP_ACCUMULATED_LATENCY, "MSRP Accumulated Latency (nanoseconds)", base.DEC)
-	)
-
-	-- Destination MAC address
-	--   Expected in:
-	--     GET_STREAM_INPUT_INFO_EX response
-	m._fields[m._FIELD_NAMES.DEST_MAC_ADDRESS]
-	= mFields.CreateField(
-		ProtoField.ether(m._FIELD_NAMES.DEST_MAC_ADDRESS, "Destination MAC Address")
-	)
-
-	-- MSRP failure code
-	--   Expected in:
-	--     GET_STREAM_INPUT_INFO_EX response
-	local msrp_failure_code_valuestring = mHelpers.GetTableValuesWithNumberKey(mIEEE8021QatSpecs.MSRP_FAILURE_CODES)
-	m._fields[m._FIELD_NAMES.MSRP_FAILURE_CODE]
-	= mFields.CreateField(
-		ProtoField.uint8(m._FIELD_NAMES.MSRP_FAILURE_CODE, "MSRP Failure Code", base.DEC, msrp_failure_code_valuestring)
-	)
-
-	-- ACMP failure code
-	--   Expected in:
-	--     GET_STREAM_INPUT_INFO_EX response
-	local acmp_failure_code_valuestring = mHelpers.GetTableValuesWithNumberKey(mIEEE17221Specs.ACMP_FAILURE_CODES)
-	m._fields[m._FIELD_NAMES.ACMP_FAILURE_CODE]
-	= mFields.CreateField(
-		ProtoField.uint8(m._FIELD_NAMES.ACMP_FAILURE_CODE, "ACMP Failure Code", base.DEC, acmp_failure_code_valuestring)
-	)
-
-	-- MSRP failure bridge ID
-	--   Expected in:
-	--     GET_STREAM_INPUT_INFO_EX response
-	m._fields[m._FIELD_NAMES.MSRP_FAILURE_BRIDGE_ID]
-	= mFields.CreateField(
-		ProtoField.uint64(m._FIELD_NAMES.MSRP_FAILURE_BRIDGE_ID, "MSRP Failure Bridge ID", base.HEX)
-	)
-
-	-- VLAN ID
-	--   Expected in:
-	--     GET_STREAM_INPUT_INFO_EX response
-	m._fields[m._FIELD_NAMES.VLAN_ID]
-	= mFields.CreateField(
-		ProtoField.uint16(m._FIELD_NAMES.VLAN_ID, "VLAN ID")
-	)
-
-	-- Sink state
-	--   Expected in:
-	--     GET_STREAM_INPUT_INFO_EX response
-	local sink_state_valuestring = mHelpers.GetTableValuesWithNumberKey(mIEEE17221Specs.SINK_STATES)
-	m._fields[m._FIELD_NAMES.SINK_STATE]
-	= mFields.CreateField(
-		ProtoField.uint8(m._FIELD_NAMES.SINK_STATE, "Sink State", base.HEX, sink_state_valuestring)
+		ProtoField.uint8(m._FIELD_NAMES.ACMP_STATUS, "ACMP Failure Code", base.DEC, acmp_status_valuestring)
 	)
 
 	-------------------
@@ -343,7 +209,8 @@ function m.AddFieldsToSubtree(buffer, subtree, errors)
 	--- @param field any The protocol field object
 	--- @param size number The byte size of the field's data
 	--- @param execute_on_range function|nil An optional function executed on the TVB range for this field
-	local add_field_to_tree = function(field, size, execute_on_range)
+	--- @param value_calculator function|nil An optional function to calculate the field's value from the TVB range
+	local add_field_to_tree = function(field, size, execute_on_range, value_calculator)
 		-- if the field has an offset position for the command and message types
 		if  m._fields_payload_offset[field] ~= nil
 		and m._fields_payload_offset[field][command_type] ~= nil
@@ -352,8 +219,14 @@ function m.AddFieldsToSubtree(buffer, subtree, errors)
 			-- Read payload offset position for this field
 			local payload_offset = m._fields_payload_offset[field][command_type][message_type]
 
-			-- Write field to the MVU subtree
-			subtree:add(m._fields[field], buffer(mvu_payload_start + payload_offset, size))
+			-- If a function is provided, calculate the field's valud
+			if (type(value_calculator) == "function") then
+				local field_value = value_calculator(buffer(mvu_payload_start + payload_offset, size))
+				subtree:add(m._fields[field], buffer(mvu_payload_start + payload_offset, size), field_value)
+			else
+				-- Write field to the MVU subtree
+				subtree:add(m._fields[field], buffer(mvu_payload_start + payload_offset, size))
+			end
 
 			-- If any, execute provided function on buffer range
 			if (type(execute_on_range) == "function") then
@@ -366,22 +239,12 @@ function m.AddFieldsToSubtree(buffer, subtree, errors)
 	local descriptor_type = nil
 
 	-- Add all fields
-	add_field_to_tree(m._FIELD_NAMES.STREAM_FLAGS               , 2)
-	add_field_to_tree(m._FIELD_NAMES.STREAM_FLAGS_STREAMING_WAIT, 2)
-	add_field_to_tree(m._FIELD_NAMES.DESCRIPTOR_TYPE            , 2, function(range) descriptor_type = range:int() end)
-	add_field_to_tree(m._FIELD_NAMES.DESCRIPTOR_INDEX           , 2)
-	add_field_to_tree(m._FIELD_NAMES.TALKER_ENTITY_ID           , 8)
-	add_field_to_tree(m._FIELD_NAMES.TALKER_STREAM_INDEX        , 2)
-	add_field_to_tree(m._FIELD_NAMES.STREAM_FORMAT              , 8)
-	add_field_to_tree(m._FIELD_NAMES.STREAM_ID                  , 8)
-	add_field_to_tree(m._FIELD_NAMES.MSRP_ACCUMULATED_LATENCY   , 4)
-	add_field_to_tree(m._FIELD_NAMES.DEST_MAC_ADDRESS           , 6)
-	add_field_to_tree(m._FIELD_NAMES.MSRP_FAILURE_CODE          , 1)
-	add_field_to_tree(m._FIELD_NAMES.ACMP_FAILURE_CODE          , 1)
-	add_field_to_tree(m._FIELD_NAMES.MSRP_FAILURE_BRIDGE_ID     , 8)
-	add_field_to_tree(m._FIELD_NAMES.VLAN_ID                    , 2)
-	add_field_to_tree(m._FIELD_NAMES.SINK_STATE                 , 1)
-	add_field_to_tree(m._FIELD_NAMES.SOURCE_STATE               , 1)
+	add_field_to_tree(m._FIELD_NAMES.DESCRIPTOR_TYPE            , 2, function(range) descriptor_type = range:int() end, nil)
+	add_field_to_tree(m._FIELD_NAMES.DESCRIPTOR_INDEX           , 2, nil, nil)
+	add_field_to_tree(m._FIELD_NAMES.TALKER_ENTITY_ID           , 8, nil, nil)
+	add_field_to_tree(m._FIELD_NAMES.TALKER_STREAM_ID           , 2, nil, nil)
+	add_field_to_tree(m._FIELD_NAMES.PROBING_STATUS             , 1, nil, function(range) return bit.rshift(range:uint(), 5) end)
+	add_field_to_tree(m._FIELD_NAMES.ACMP_STATUS                , 1, nil, function(range) return range:int() & 0x1f end)
 
 	------------------
 	-- Check errors --

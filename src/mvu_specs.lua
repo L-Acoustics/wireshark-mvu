@@ -68,6 +68,14 @@ m.BIND_STREAM_FLAGS = {
     [0x00000001] = "STREAMING_WAIT",
 }
 
+-- List of probing statuses
+m.PROBING_STATUS = {
+    PROBING_DISABLED  = 0, [0] = "PROBING_DISABLED",
+    PROBING_PASSIVE   = 1, [1] = "PROBING_PASSIVE",
+    PROBING_ACTIVE    = 2, [2] = "PROBING_ACTIVE",
+    PROBING_COMPLETED = 3, [3] = "PROBING_COMPLETED",
+}
+
 --------------------
 -- Public Methods --
 --------------------
@@ -269,10 +277,10 @@ function m.GetMilanVersionOfCommand(message_type, command_type, control_data_len
 
 		-- Response
 		elseif message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE then
-			-- Version 1.2.10 (CDL = 76)
-			if control_data_length >= 76 then
-				-- Version 1.2.10, extra bytes if control_data_length is strictly greater
-				return "1.2.10", (control_data_length > 76)
+			-- Version 1.2.10 (CDL = 36)
+			if control_data_length >= 36 then
+				-- Version 1.2.12, extra bytes if control_data_length is strictly greater
+				return "1.2.12", (control_data_length > 36)
 			end
 		end
 

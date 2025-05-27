@@ -601,8 +601,8 @@ This field is inserted if any field in the response is not set to the same value
 | `mvu.descriptor_index`             | Descriptor Index      | Number        |
 | `mvu.stream.talker_entity_id`      | Talker Entity ID      | Number (hex)  |
 | `mvu.stream.talker_unique_id`      | Talker Stream ID      | Number        |
-| `mvu.stream.pbsta`                 | Probing Status        | Number (enum) |
-| `mvu.stream.acmpsta`               | ACMP Status           | Number        |
+| `mvu.stream.probing_status`        | Probing Status        | Number (enum) |
+| `mvu.stream.acmp_status`           | ACMP Status           | Number (enum) |
 | `mvu.expert.descriptor_type_error` | Descriptor Type error | Expert        |
 
 ### Dissector rules
