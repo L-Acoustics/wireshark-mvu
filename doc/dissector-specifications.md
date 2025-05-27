@@ -574,53 +574,36 @@ This field is inserted if any field in the response is not set to the same value
 
 ### Dissector fields
 
-> Same as [UNBIND_STREAM response](#unbind_stream-response)
+> Same as [UNBIND_STREAM command](#unbind_stream-command)
 
 ### Dissector rules
 
-> Same as [UNBIND_STREAM response](#unbind_stream-response)
+> Same as [UNBIND_STREAM command](#unbind_stream-command)
 
 ## GET_STREAM_INPUT_INFO_EX response
 
 ### Expected information in the packet
 
-| Field                    | Description                                               | MVU Protocol Version |
-| ------------------------ | --------------------------------------------------------- | -------------------- |
-| flags                    | Bitfield of additional information of the Stream Input    | $\geqslant$ 1.2.10   |
-| descriptor_type          | Descriptor type of the Listener's Stream Input            | $\geqslant$ 1.2.10   |
-| descriptor_index         | Descriptor index of the Listener's Stream Input           | $\geqslant$ 1.2.10   |
-| talker_entity_id         | Entity ID of Talker if sink_state $\geqslant$ 1           | $\geqslant$ 1.2.10   |
-| talker_stream_index      | Index of Talker Stream Output if sink_state $\geqslant$ 1 | $\geqslant$ 1.2.10   |
-| stream_format            | Current format of the Stream Input                        | $\geqslant$ 1.2.10   |
-| stream_id                | Talker's Stream ID                                        | $\geqslant$ 1.2.10   |
-| msrp_accumulated_latency | MSRP accumulated latency                                  | $\geqslant$ 1.2.10   |
-| stream_dest_mac          | Talker's Stream destination MAC address                   | $\geqslant$ 1.2.10   |
-| msrp_fail_code           | MSRP error code                                           | $\geqslant$ 1.2.10   |
-| acmp_fail_code           | ACMP error code                                           | $\geqslant$ 1.2.10   |
-| msrp_failure_bridge_id   | MSRP failure bridge ID                                    | $\geqslant$ 1.2.10   |
-| stream_vlan_id           | Talker's Stream VLAN ID                                   | $\geqslant$ 1.2.10   |
-| sink_state               | Current sink state of the Listener's Stream Input         | $\geqslant$ 1.2.10   |
+| Field            | Description                                                    | MVU Protocol Version |
+| ---------------- | -------------------------------------------------------------- | -------------------- |
+| descriptor_type  | Descriptor type of the Listener's Stream Input                 | $\geqslant$ 1.2.10   |
+| descriptor_index | Descriptor index of the Listener's Stream Input                | $\geqslant$ 1.2.10   |
+| talker_entity_id | Entity ID of Talker if sink_state $\geqslant$ 1                | $\geqslant$ 1.2.10   |
+| talker_unique_id | Index of Talker Stream Output                                  | $\geqslant$ 1.2.12   |
+| pbsta            | Probing status of the Stream Input                             | $\geqslant$ 1.2.12   |
+| acmpsta          | ACMP status of the Stream Input (when pbsta is PROBING_ACTIVE) | $\geqslant$ 1.2.12   |
 
 ### Dissector fields
 
-| Field                                 | Display name             | Field Type    |
-| ------------------------------------- | ------------------------ | ------------- |
-| `mvu.stream.flags`                    | Stream Flags             | Bitfield      |
-| `mvu.stream.flags.streaming_wait`     | Bitfield: STREAMING_WAIT | Bitfield      |
-| `mvu.descriptor_type`                 | Descriptor Type          | Number (enum) |
-| `mvu.descriptor_index`                | Descriptor Index         | Number        |
-| `mvu.stream.talker_entity_id`         | Talker Entity ID         | Number (hex)  |
-| `mvu.stream.talker_stream_index`      | Talker Stream Index      | Number        |
-| `mvu.stream.format`                   | Stream Format            | Number (enum) |
-| `mvu.stream.id`                       | Stream ID                | Number        |
-| `mvu.stream.msrp_accumulated_latency` | MSRP Accumulated Latency | Number        |
-| `mvu.stream.dest_mac`                 | Destination MAC          | Number (hex)  |
-| `mvu.stream.msrp_fail_code`           | MSRP Failure Code        | Number (enum) |
-| `mvu.stream.acmp_fail_code`           | ACMP Failure Code        | Number (enum) |
-| `mvu.stream.msrp_failure_bridge_id`   | MSRP Failure Bridge ID   | Number        |
-| `mvu.stream.vlan_id`                  | VLAN ID                  | Number        |
-| `mvu.stream.sink_state`               | Sink State               | Number (enum) |
-| `mvu.expert.descriptor_type_error`    | Descriptor Type error    | Expert        |
+| Field                              | Display name          | Field Type    |
+| ---------------------------------- | --------------------- | ------------- |
+| `mvu.descriptor_type`              | Descriptor Type       | Number (enum) |
+| `mvu.descriptor_index`             | Descriptor Index      | Number        |
+| `mvu.stream.talker_entity_id`      | Talker Entity ID      | Number (hex)  |
+| `mvu.stream.talker_unique_id`      | Talker Stream ID      | Number        |
+| `mvu.stream.pbsta`                 | Probing Status        | Number (enum) |
+| `mvu.stream.acmpsta`               | ACMP Status           | Number        |
+| `mvu.expert.descriptor_type_error` | Descriptor Type error | Expert        |
 
 ### Dissector rules
 
@@ -630,20 +613,12 @@ This field is inserted if any field in the response is not set to the same value
         Command Type: GET_STREAM_INPUT_INFO_EX (0x00000007)
         [Version 1.2.10]
         Status: SUCCESS (0x00)
-        Stream Flags: 0x00000000
-        .... ...0 = STREAMING_WAIT: False
         Descriptor Type: STREAM_INPUT (0x0005)
+        Descriptor Index: 0
         Talker Entity ID: 0x1d365f4b159e870a
-        Talker Stream Index: 0
-        Stream Format: AAF, 96kHz, PCM-INT-32, 8 channels (0x020702200200C000)
-        Stream ID: 0xab65459d8e70c3d4
-        MSRP Accumulated Latency (nanoseconds): 325461
-        Destination MAC Address: lacoustics_04:05:06 (00:1b:92:04:05:06)
-        MSRP Failure Code: Egress port is not AVB capable (8)
-        ACMP Failure Code: TALKER_DEST_MAC_FAIL (3)
-        MSRP Failure Bridge ID: 0x6574ac13b6d47e8d
-        VLAN ID: 2
-        Sink State: WAITING_MATCHING_ADP_TALKER (1)
+        Talker Stream ID: 0
+        Probing Status: PROBING_ACTIVE (2)
+        ACMP Status: TALKER_DEST_MAC_FAIL (3)
 
 #### Rules for `mvu.expert.descriptor_type_error`
 
@@ -655,7 +630,5 @@ This field is inserted when value of `mvu.descriptor_type` is not set to STREAM_
         Command Type: GET_STREAM_INPUT_INFO_EX (0x00000007)
         [Version 1.2.10]
         Status: SUCCESS (0x00)
-        Stream Flags: 0x00000000
-        .... ...0 = STREAMING_WAIT: False
         Descriptor Type: STREAM_OUTPUT (0x0006)
       ► The Descriptor Type shall be set to STREAM_INPUT (0x0005)

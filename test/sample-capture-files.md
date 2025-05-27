@@ -298,11 +298,8 @@ Packet 2
     # GET_STREAM_INPUT_INFO_EX response
     0000  00 e0 4c 40 90 2a 00 1b 92 05 08 70 22 f0 fb 07
     0010  00 4C 00 1b 92 ff ff 05 08 70 00 e0 4c 40 90 2a
-    0020  00 01 00 01 00 1b c5 0a c1 00 00 07 00 01 00 05
-    0030  00 03 00 00 00 00 00 00 00 01 00 02 00 00 02 07
-    0040  02 20 02 00 C0 00 00 00 00 00 00 00 00 03 00 00
-    0050  00 04 00 1b 92 04 05 06 05 06 00 00 00 00 00 00
-    0060  00 07 00 08 02 00
+    0020  00 01 00 01 00 1b c5 0a c1 00 00 07 00 00 00 05
+    0030  00 03 00 00 00 00 00 00 00 01 00 02 46 00
 
 ### Expected packet trees in Wireshark
 
@@ -323,19 +320,10 @@ Packet 2
         Status: SUCCESS (0x00)
         Descriptor Type: STREAM_INPUT (0x0005)
         Descriptor Index: 3
-        Stream Flags: 0x0001
-        .... .... .... ...1 = STREAMING_WAIT: True
         Talker Entity ID: 0x0000000000000001
-        Talker Stream Index: 2
-        Stream Format: AAF, 96kHz, PCM-INT-32, 8 channels (0x020702200200C000)
-        Stream ID: 0x0000000000000003
-        MSRP Accumulated Latency: 4 ns
-        Destination MAC Address: lacoustics_04:05:06 (00:1b:92:04:05:06)
-        MSRP Failure Code: Stream destination_address already in use (5)
-        ACMP Failure Code: TALKER_EXCLUSIVE (6)
-        MSRP Failure Bridge ID: 0x0000000000000007
-        VLAN ID: 8
-        Sink State: PROBING_ACTIVE (2)
+        Talker Stream ID: 2
+        Probing Status: PROBING_ACTIVE (2)
+        ACMP Status: TALKER_EXCLUSIVE (6)
 
 ## Case 2: descriptor type error
 
