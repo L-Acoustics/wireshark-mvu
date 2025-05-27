@@ -37,9 +37,13 @@ m.AECP_MESSAGE_TYPES = {
 
 -- Vendor Unique status codes
 m.VENDOR_UNIQUE_STATUS_CODES = {
-    SUCCESS         = 0, [0] = "SUCCESS",
-    NOT_IMPLEMENTED = 1, [1] = "NOT_IMPLEMENTED",
-	PAYLOAD_ERROR   = 2, [2] = "PAYLOAD_ERROR",
+    SUCCESS            =  0, [ 0] = "SUCCESS",
+    NOT_IMPLEMENTED    =  1, [ 1] = "NOT_IMPLEMENTED",
+    NO_SUCH_DESCRIPTOR =  2, [ 2] = "NO_SUCH_DESCRIPTOR",
+    ENTITY_LOCKED      =  3, [ 3] = "ENTITY_LOCKED",
+    BAD_ARGUMENTS      =  7, [ 7] = "BAD_ARGUMENTS",
+    ENTITY_MISBEHAVING = 10, [10] = "ENTITY_MISBEHAVING",
+    PAYLOAD_TOO_SHORT  = 13, [13] = "PAYLOAD_TOO_SHORT",
 }
 
 -- Descriptor types
