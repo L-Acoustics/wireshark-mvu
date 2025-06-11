@@ -143,7 +143,7 @@ function mProto.Proto.dissector(buffer, pinfo, tree)
 		-- Packet Info --
 		-----------------
 
-		-- Aff the Has Errors field to the subtree
+		-- Add the Has Errors field to the subtree
 		local has_errors = #errors > 0
 		mHeaders.SetHasErrorsField(has_errors, mvuSubtree)
 
