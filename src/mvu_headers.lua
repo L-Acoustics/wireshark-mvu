@@ -291,7 +291,7 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo)
 	-- (this is OK if the packet has exactly the minimum Ethernet size of 60 bytes
 	-- (without FCS), it is then expected to be zero-padded)
 	local control_data_end = math.max(m._control_data_start + control_data_length, mIEEE8023Specs.MINIMUM_FRAME_SIZE_WITHOUT_FCS)
-	local remaining_length = buffer:reported_length_remaining(control_data_end)
+	local remaining_length = buffer:len() - control_data_end
 	if remaining_length > 0 then
 
 		-- Build error message
