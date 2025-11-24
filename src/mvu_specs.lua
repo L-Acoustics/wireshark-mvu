@@ -24,7 +24,8 @@
 ]]
 
 -- Require dependency modules
-local mIEEE17221Specs = require("ieee17221_specs")
+local mIEEE17221Fields = require("ieee17221_fields")
+local mIEEE17221Specs  = require("ieee17221_specs")
 
 -- Init the module object to return
 local m = {}
@@ -286,6 +287,18 @@ function m.GetMilanVersionOfCommand(message_type, command_type, control_data_len
 
 	end
 
+end
+
+--- Determines if a message type designates a Milan Vendor Unique message
+--- @param message_type any
+--- @return boolean
+function m.IsMvuMessage(message_type)
+	-- Read MV protocol ID from IEEE 1722.1 fields
+	local vendor_unique_protocol_id = mIEEE17221Fields.GetVendorUniqueProtocolIdHexString()
+	-- The message is MVU if the protocol ID matches and the message type is a Vendor Unique command or response
+	return type(vendor_unique_protocol_id) == "string"
+	    and vendor_unique_protocol_id:lower() == m.PROTOCOL_ID:lower()
+		and mIEEE17221Specs.IsVendorUniqueMessage(message_type)
 end
 
 -- Return the module object
