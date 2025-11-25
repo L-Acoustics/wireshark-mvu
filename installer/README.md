@@ -17,9 +17,9 @@ Example output of the makenins operation:
 
     Processed 1 file, writing output (x86-unicode):
     Done Adding Additional Store
-    Successfully signed: C:\Users\BENJAM~1.LAN\AppData\Local\Temp\nstC85D.tmp
+    Successfully signed: C:\Users\USERN~1.LAN\AppData\Local\Temp\nstC85D.tmp
 
-    Output: "D:\dev\Software\3rdParty\wireshark-mvu\installer\mvu-wireshark-plugin-1.2.1.0.exe"
+    Output: "D:\wireshark-mvu\installer\build\mvu-wireshark-plugin-1.2.1.0.exe"
     Install: 6 pages (384 bytes), 1 section (2072 bytes), 506 instructions (14168 bytes), 247 strings (46414 bytes), 1 language table (346 bytes).
     Uninstall: 4 pages (320 bytes), 1 section (2072 bytes), 350 instructions (9800 bytes), 167 strings (5120 bytes), 1 language table (290 bytes).
     Datablock optimizer saved 1888 bytes (~1.1%).

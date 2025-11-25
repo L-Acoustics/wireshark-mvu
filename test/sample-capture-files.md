@@ -33,7 +33,7 @@ Packet 1
 
     Milan Vendor Unique (Command)
         Command Type: BIND_STREAM (0x00000005)
-        [Version 1.2.10]
+        [Version 1.3]
         Status: SUCCESS (0x00)
         Stream Flags: 0x0001
         .... .... .... ...1 = STREAMING_WAIT: True
@@ -46,7 +46,7 @@ Packet 2
 
     Milan Vendor Unique (Response)
         Command Type: BIND_STREAM (0x00000005)
-        [Version 1.2.10]
+        [Version 1.3]
         Status: SUCCESS (0x00)
         Stream Flags: 0x0001
         .... .... .... ...1 = STREAMING_WAIT: True
@@ -77,7 +77,7 @@ Packet 1
 
     Milan Vendor Unique (Command)
         Command Type: BIND_STREAM (0x00000005)
-        [Version 1.2.10]
+        [Version 1.3]
         Status: SUCCESS (0x00)
         Stream Flags: 0x0001
         .... .... .... ...1 = STREAMING_WAIT: True
@@ -95,7 +95,7 @@ Packet 2
 
     Milan Vendor Unique (Response)
         Command Type: BIND_STREAM (0x00000005)
-        [Version 1.2.10]
+        [Version 1.3]
         Status: SUCCESS (0x00)
         Stream Flags: 0x0001
         .... .... .... ...1 = STREAMING_WAIT: True
@@ -131,7 +131,7 @@ Packet 1
 
     Milan Vendor Unique (Command)
         Command Type: BIND_STREAM (0x00000005)
-        [Version 1.2.10]
+        [Version 1.3]
         Status: SUCCESS (0x00)
         Stream Flags: 0x0001
         .... .... .... ...1 = STREAMING_WAIT: True
@@ -144,7 +144,7 @@ Packet 2
 
     Milan Vendor Unique (Response)
         Command Type: BIND_STREAM (0x00000005)
-        [Version 1.2.10]
+        [Version 1.3]
         Status: SUCCESS (0x00)
         Stream Flags: 0x0001
         .... .... .... ...1 = STREAMING_WAIT: True
@@ -182,7 +182,7 @@ Packet 1
 
     Milan Vendor Unique (Command)
         Command Type: UNBIND_STREAM (0x00000006)
-        [Version 1.2.10]
+        [Version 1.3]
         Status: SUCCESS (0x00)
         Descriptor Type: STREAM_INPUT (0x0005)
         Descriptor Index: 3
@@ -191,7 +191,7 @@ Packet 2
 
     Milan Vendor Unique (Response)
         Command Type: UNBIND_STREAM (0x00000006)
-        [Version 1.2.10]
+        [Version 1.3]
         Status: SUCCESS (0x00)
         Descriptor Type: STREAM_INPUT (0x0005)
         Descriptor Index: 3
@@ -218,7 +218,7 @@ Packet 1
 
     Milan Vendor Unique (Command)
         Command Type: UNBIND_STREAM (0x00000006)
-        [Version 1.2.10]
+        [Version 1.3]
         Status: SUCCESS (0x00)
         Descriptor Type: STREAM_OUTPUT (0x0006)
         Descriptor Index: 3
@@ -232,7 +232,7 @@ Packet 2
 
     Milan Vendor Unique (Response)
         Command Type: UNBIND_STREAM (0x00000006)
-        [Version 1.2.10]
+        [Version 1.3]
         Status: SUCCESS (0x00)
         Descriptor Type: JACK_INPUT (0x0007)
         Descriptor Index: 3
@@ -264,7 +264,7 @@ Packet 1
 
     Milan Vendor Unique (Command)
         Command Type: UNBIND_STREAM (0x00000006)
-        [Version 1.2.10]
+        [Version 1.3]
         Status: SUCCESS (0x00)
         Descriptor Type: STREAM_INPUT (0x0005)
         Descriptor Index: 3
@@ -273,7 +273,7 @@ Packet 2
 
     Milan Vendor Unique (Response)
         Command Type: UNBIND_STREAM (0x00000006)
-        [Version 1.2.10]
+        [Version 1.3]
         Status: SUCCESS (0x00)
         Descriptor Type: STREAM_INPUT (0x0005)
         Descriptor Index: 4
@@ -307,7 +307,7 @@ Packet 1
 
     Milan Vendor Unique (Command)
         Command Type: GET_STREAM_INPUT_INFO_EX (0x00000006)
-        [Version 1.2.10]
+        [Version 1.3]
         Status: SUCCESS (0x00)
         Descriptor Type: STREAM_INPUT (0x0005)
         Descriptor Index: 3
@@ -316,7 +316,7 @@ Packet 2
 
     Milan Vendor Unique (Response)
         Command Type: GET_STREAM_INPUT_INFO_EX (0x00000006)
-        [Version 1.2.10]
+        [Version 1.3]
         Status: SUCCESS (0x00)
         Descriptor Type: STREAM_INPUT (0x0005)
         Descriptor Index: 3
@@ -350,7 +350,7 @@ Packet 1
 
     Milan Vendor Unique (Command)
         Command Type: GET_STREAM_INPUT_INFO_EX (0x00000006)
-        [Version 1.2.10]
+        [Version 1.3]
         Status: SUCCESS (0x00)
         Descriptor Type: STREAM_OUTPUT (0x0006)
         Descriptor Index: 3
@@ -364,7 +364,7 @@ Packet 2
 
     Milan Vendor Unique (Response)
         Command Type: GET_STREAM_INPUT_INFO_EX (0x00000006)
-        [Version 1.2.10]
+        [Version 1.3]
         Status: SUCCESS (0x00)
         Descriptor Type: STREAM_OUTPUT (0x0006)
         Descriptor Index: 3

@@ -95,13 +95,13 @@ SET_SYSTEM_UNIQUE_ID was introduced in version 1.2 with a control_data_length of
         Command Type: SET_SYSTEM_UNIQUE_ID (0x00000001)
         [Version 1.2]
 
-In version 1.2.10, the new control_data_length of SET_SYSTEM_UNIQUE_ID is 92 for the command and response.
+In version 1.3, the new control_data_length of SET_SYSTEM_UNIQUE_ID is 92 for the command and response.
 
     ▼ IEEE 1722.1 Protocol
         .... .000 0101 1100 Control data Length: 92
     ▼ Milan Vendor Unique (Command)
         Command Type: SET_SYSTEM_UNIQUE_ID (0x00000001)
-        [Version 1.2.10]
+        [Version 1.3]
 
 #### Rules for `mvu.has_errors`
 
@@ -205,7 +205,7 @@ The MVU message type (Command/Response) is extracted from the IEEE 1722.1 protoc
 | protocol_version      | Milan protocol version supported by the PAAD-AE       | $\geqslant$ 1.1      |
 | features_flags        | Bitfield of supported features                        | $\geqslant$ 1.1      |
 | certification_version | Milan certification the PAAD-AE has passed            | $\geqslant$ 1.1      |
-| specification_version | Milan specifications version supported by the PAAD-AE | $\geqslant$ 1.2.10   |
+| specification_version | Milan specifications version supported by the PAAD-AE | $\geqslant$ 1.3      |
 
 ### Dissector fields
 
@@ -243,7 +243,7 @@ This field is inserted in the tree only when its value is not 0x00000000.
 | Field  | Description                                  | MVU Protocol Version |
 | ------ | -------------------------------------------- | -------------------- |
 | number | Number of the network-wide unique identifier | $\geqslant$ 1.2      |
-| name   | Name of the network-wide unique identifier   | $\geqslant$ 1.2.10   |
+| name   | Name of the network-wide unique identifier   | $\geqslant$ 1.3      |
 
 ### Dissector fields
 
@@ -409,11 +409,11 @@ This field is inserted in the tree only when its value is not 0x00000000.
 
 | Field               | Description                                                                            | MVU Protocol Version |
 | ------------------- | -------------------------------------------------------------------------------------- | -------------------- |
-| flags               | Bitfield parameters accompanying the command                                           | $\geqslant$ 1.2.10   |
-| descriptor_type     | Descriptor type of the Listener's Stream Input to bind<br>_See IEEE 1722.1 clause 7.2_ | $\geqslant$ 1.2.10   |
-| descriptor_index    | Descriptor index of the Listener's Stream Input to bind                                | $\geqslant$ 1.2.10   |
-| talker_entity_id    | Entity ID of the Talker to be bound to                                                 | $\geqslant$ 1.2.10   |
-| talker_stream_index | Index of the Talker's STREAM_OUTPUT to be bound to                                     | $\geqslant$ 1.2.10   |
+| flags               | Bitfield parameters accompanying the command                                           | $\geqslant$ 1.3      |
+| descriptor_type     | Descriptor type of the Listener's Stream Input to bind<br>_See IEEE 1722.1 clause 7.2_ | $\geqslant$ 1.3      |
+| descriptor_index    | Descriptor index of the Listener's Stream Input to bind                                | $\geqslant$ 1.3      |
+| talker_entity_id    | Entity ID of the Talker to be bound to                                                 | $\geqslant$ 1.3      |
+| talker_stream_index | Index of the Talker's STREAM_OUTPUT to be bound to                                     | $\geqslant$ 1.3      |
 
 ### Dissector fields
 
@@ -433,7 +433,7 @@ This field is inserted in the tree only when its value is not 0x00000000.
 
     ▼ Milan Vendor Unique (Command)
         Command Type: BIND_STREAM (0x00000005)
-        [Version 1.2.10]
+        [Version 1.3]
         Status: SUCCESS (0x00)
         Bind Stream Flags: 0x00000000
         .... ...0 = STREAMING_WAIT: False
@@ -450,7 +450,7 @@ This field is inserted when value of `mvu.descriptor_type` is not set to STREAM_
 
     ▼ Milan Vendor Unique (Command)
         Command Type: BIND_STREAM (0x00000005)
-        [Version 1.2.10]
+        [Version 1.3]
         Status: SUCCESS (0x00)
         Bind Stream Flags: 0x00000000
         .... ...0 = STREAMING_WAIT: False
@@ -483,7 +483,7 @@ This field is inserted if any field in the response is not set to the same value
 
     ▼ Milan Vendor Unique (Response)
         Command Type: BIND_STREAM (0x00000005)
-        [Version 1.2.10]
+        [Version 1.3]
         Status: SUCCESS (0x00)
         Bind Stream Flags: 0x00000000
         .... ...0 = STREAMING_WAIT: False
@@ -499,8 +499,8 @@ This field is inserted if any field in the response is not set to the same value
 
 | Field            | Description                                               | MVU Protocol Version |
 | ---------------- | --------------------------------------------------------- | -------------------- |
-| descriptor_type  | Descriptor type of the Listener's Stream Input to unbind  | $\geqslant$ 1.2.10   |
-| descriptor_index | Descriptor index of the Listener's Stream Input to unbind | $\geqslant$ 1.2.10   |
+| descriptor_type  | Descriptor type of the Listener's Stream Input to unbind  | $\geqslant$ 1.3      |
+| descriptor_index | Descriptor index of the Listener's Stream Input to unbind | $\geqslant$ 1.3      |
 
 ### Dissector fields
 
@@ -516,7 +516,7 @@ This field is inserted if any field in the response is not set to the same value
 
     ▼ Milan Vendor Unique (Command)
         Command Type: UNBIND_STREAM (0x00000006)
-        [Version 1.2.10]
+        [Version 1.3]
         Status: SUCCESS (0x00)
         Descriptor Type: STREAM_INPUT (0x0005)
         Descriptor Index: 0
@@ -529,7 +529,7 @@ This field is inserted when value of `mvu.descriptor_type` is not set to STREAM_
 
     ▼ Milan Vendor Unique (Command)
         Command Type: UNBIND_STREAM (0x00000006)
-        [Version 1.2.10]
+        [Version 1.3]
         Status: SUCCESS (0x00)
         Descriptor Type: STREAM_OUTPUT (0x0006)
       ► The Descriptor Type shall be set to STREAM_INPUT (0x0005)
@@ -560,7 +560,7 @@ This field is inserted if any field in the response is not set to the same value
 
     ▼ Milan Vendor Unique (Response)
         Command Type: UNBIND_STREAM (0x00000006)
-        [Version 1.2.10]
+        [Version 1.3]
         Status: SUCCESS (0x00)
         Descriptor Type: STREAM_INPUT (0x0005)
         Descriptor Index: 1
@@ -586,12 +586,12 @@ This field is inserted if any field in the response is not set to the same value
 
 | Field            | Description                                                    | MVU Protocol Version |
 | ---------------- | -------------------------------------------------------------- | -------------------- |
-| descriptor_type  | Descriptor type of the Listener's Stream Input                 | $\geqslant$ 1.2.10   |
-| descriptor_index | Descriptor index of the Listener's Stream Input                | $\geqslant$ 1.2.10   |
-| talker_entity_id | Entity ID of Talker if sink_state $\geqslant$ 1                | $\geqslant$ 1.2.10   |
-| talker_stream_id | Index of Talker Stream Output                                  | $\geqslant$ 1.2.12   |
-| pbsta            | Probing status of the Stream Input                             | $\geqslant$ 1.2.12   |
-| acmpsta          | ACMP status of the Stream Input (when pbsta is PROBING_ACTIVE) | $\geqslant$ 1.2.12   |
+| descriptor_type  | Descriptor type of the Listener's Stream Input                 | $\geqslant$ 1.3      |
+| descriptor_index | Descriptor index of the Listener's Stream Input                | $\geqslant$ 1.3      |
+| talker_entity_id | Entity ID of Talker if sink_state $\geqslant$ 1                | $\geqslant$ 1.3      |
+| talker_stream_id | Index of Talker Stream Output                                  | $\geqslant$ 1.3      |
+| pbsta            | Probing status of the Stream Input                             | $\geqslant$ 1.3      |
+| acmpsta          | ACMP status of the Stream Input (when pbsta is PROBING_ACTIVE) | $\geqslant$ 1.3      |
 
 ### Dissector fields
 
@@ -611,7 +611,7 @@ This field is inserted if any field in the response is not set to the same value
 
     ▼ Milan Vendor Unique (Response)
         Command Type: GET_STREAM_INPUT_INFO_EX (0x00000007)
-        [Version 1.2.10]
+        [Version 1.3]
         Status: SUCCESS (0x00)
         Descriptor Type: STREAM_INPUT (0x0005)
         Descriptor Index: 0
@@ -628,7 +628,7 @@ This field is inserted when value of `mvu.descriptor_type` is not set to STREAM_
 
     ▼ Milan Vendor Unique (Response)
         Command Type: GET_STREAM_INPUT_INFO_EX (0x00000007)
-        [Version 1.2.10]
+        [Version 1.3]
         Status: SUCCESS (0x00)
         Descriptor Type: STREAM_OUTPUT (0x0006)
       ► The Descriptor Type shall be set to STREAM_INPUT (0x0005)

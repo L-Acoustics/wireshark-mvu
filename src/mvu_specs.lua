@@ -35,7 +35,7 @@ local m = {}
 -----------------------
 
 -- Version of the Milan Specification
-m.SPEC_VERSION = "1.2.12" -- Revision 1.2.12 of TBC, 2025
+m.SPEC_VERSION = "1.3" -- Revision 1.3 of December, 2025
 
 -- Protocol ID for MVU
 m.PROTOCOL_ID = "0x001BC50AC100"
@@ -122,10 +122,10 @@ function m.GetMilanVersionOfCommand(message_type, command_type, control_data_len
 
 		-- Response
 		elseif message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE then
-			-- Version 1.2.10 (CDL >= 36)
+			-- Version 1.3 (CDL >= 36)
 			if control_data_length >= 36 then
-				-- Version 1.2.10, extra bytes if control_data_length is strictly greater
-				return "1.2.10", (control_data_length > 36)
+				-- Version 1.3, extra bytes if control_data_length is strictly greater
+				return "1.3", (control_data_length > 36)
 			-- Version 1.0 (CDL = 32)
 			elseif control_data_length == 32 then
 				-- Version 1.0
@@ -138,10 +138,10 @@ function m.GetMilanVersionOfCommand(message_type, command_type, control_data_len
 
 		-- Command
 		if message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND then
-			-- Version 1.2.10 (CDL = 92)
+			-- Version 1.3 (CDL = 92)
 			if control_data_length >= 92 then
-				-- Version 1.2.10, extra bytes if control_data_length is strictly greater
-				return "1.2.10", (control_data_length > 92)
+				-- Version 1.3, extra bytes if control_data_length is strictly greater
+				return "1.3", (control_data_length > 92)
 			-- Version 1.2 (CDL = 28)
 			elseif control_data_length == 28 then
 				-- Version 1.2, extra bytes if control_data_length is strictly greater
@@ -150,10 +150,10 @@ function m.GetMilanVersionOfCommand(message_type, command_type, control_data_len
 
 		-- Response
 		elseif message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE then
-			-- Version 1.2.10 (CDL = 92)
+			-- Version 1.3 (CDL = 92)
 			if control_data_length >= 92 then
-				-- Version 1.2.10, extra bytes if control_data_length is strictly greater
-				return "1.2.10", (control_data_length > 92)
+				-- Version 1.3, extra bytes if control_data_length is strictly greater
+				return "1.3", (control_data_length > 92)
 			-- Version 1.2 (CDL = 28)
 			elseif control_data_length == 28 then
 				-- Version 1.2, extra bytes if control_data_length is strictly greater
@@ -174,10 +174,10 @@ function m.GetMilanVersionOfCommand(message_type, command_type, control_data_len
 
 		-- Response
 		elseif message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE then
-			-- Version 1.2.10 (CDL = 92)
+			-- Version 1.3 (CDL = 92)
 			if control_data_length >= 92 then
-				-- Version 1.2.10, extra bytes if control_data_length is strictly greater
-				return "1.2.10", (control_data_length > 92)
+				-- Version 1.3, extra bytes if control_data_length is strictly greater
+				return "1.3", (control_data_length > 92)
 			-- Version 1.2 (CDL = 28)
 			elseif control_data_length == 28 then
 				-- Version 1.2, extra bytes if control_data_length is strictly greater
@@ -230,18 +230,18 @@ function m.GetMilanVersionOfCommand(message_type, command_type, control_data_len
 
 		-- Command
 		if message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND then
-			-- Version 1.2.10 (CDL = 36)
+			-- Version 1.3 (CDL = 36)
 			if control_data_length >= 36 then
-				-- Version 1.2.10, extra bytes if control_data_length is strictly greater
-				return "1.2.10", (control_data_length > 36)
+				-- Version 1.3, extra bytes if control_data_length is strictly greater
+				return "1.3", (control_data_length > 36)
 			end
 
 		-- Response
 		elseif message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE then
-			-- Version 1.2.10 (CDL = 36)
+			-- Version 1.3 (CDL = 36)
 			if control_data_length >= 36 then
-				-- Version 1.2.10, extra bytes if control_data_length is strictly greater
-				return "1.2.10", (control_data_length > 36)
+				-- Version 1.3, extra bytes if control_data_length is strictly greater
+				return "1.3", (control_data_length > 36)
 			end
 		end
 
@@ -250,18 +250,18 @@ function m.GetMilanVersionOfCommand(message_type, command_type, control_data_len
 
 		-- Command
 		if message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND then
-			-- Version 1.2.10 (CDL = 24)
+			-- Version 1.3 (CDL = 24)
 			if control_data_length >= 24 then
-				-- Version 1.2.10, extra bytes if control_data_length is strictly greater
-				return "1.2.10", (control_data_length > 24)
+				-- Version 1.3, extra bytes if control_data_length is strictly greater
+				return "1.3", (control_data_length > 24)
 			end
 
 		-- Response
 		elseif message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE then
-			-- Version 1.2.10 (CDL = 24)
+			-- Version 1.3 (CDL = 24)
 			if control_data_length >= 24 then
-				-- Version 1.2.10, extra bytes if control_data_length is strictly greater
-				return "1.2.10", (control_data_length > 24)
+				-- Version 1.3, extra bytes if control_data_length is strictly greater
+				return "1.3", (control_data_length > 24)
 			end
 		end
 
@@ -270,18 +270,18 @@ function m.GetMilanVersionOfCommand(message_type, command_type, control_data_len
 
 		-- Command
 		if message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND then
-			-- Version 1.2.10 (CDL = 24)
+			-- Version 1.3 (CDL = 24)
 			if control_data_length >= 24 then
-				-- Version 1.2.10, extra bytes if control_data_length is strictly greater
-				return "1.2.10", (control_data_length > 24)
+				-- Version 1.3, extra bytes if control_data_length is strictly greater
+				return "1.3", (control_data_length > 24)
 			end
 
 		-- Response
 		elseif message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE then
-			-- Version 1.2.10 (CDL = 36)
+			-- Version 1.3 (CDL = 36)
 			if control_data_length >= 36 then
-				-- Version 1.2.12, extra bytes if control_data_length is strictly greater
-				return "1.2.12", (control_data_length > 36)
+				-- Version 1.3, extra bytes if control_data_length is strictly greater
+				return "1.3", (control_data_length > 36)
 			end
 		end
 
