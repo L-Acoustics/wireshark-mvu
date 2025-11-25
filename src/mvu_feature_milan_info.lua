@@ -312,8 +312,8 @@ function m.AddFieldsToSubtree(buffer, subtree, errors)
 		add_field_to_tree(m._FIELD_NAMES.FEATURE_TALKER_SIGNAL_PRESENCE , 4)
 		add_field_to_tree(m._FIELD_NAMES.PAAD_CERTIFICATION_VERSION     , 4, nil, extract_specifications_version, true)
 	end
-	-- Version 1.2.10
-	if (mHelpers.CompareVersions(milan_version, "1.2.10") >= 0) then
+	-- Version 1.3
+	if (mHelpers.CompareVersions(milan_version, "1.3") >= 0) then
 		add_field_to_tree(m._FIELD_NAMES.PAAD_SPECIFICATION_VERSION, 4, nil, extract_specifications_version, true)
 	end
 
