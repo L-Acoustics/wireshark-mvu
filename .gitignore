@@ -3,3 +3,6 @@
 
 # Binary installers
 *.exe
+
+# Wireshark capture files
+*.pcapng

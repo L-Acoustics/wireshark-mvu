@@ -47,10 +47,12 @@ m._fields = {}
 m._FIELD_NAMES = {
     COMMAND_TYPE              = "mvu.command_type",
     STATUS                    = "mvu.status",
+    UNSOLICITED_RESPONSE      = "mvu.unsolicited_response",
     SPECIFICATIONS_VERSION    = "mvu.specifications_version",
     HAS_ERRORS                = "mvu.has_errors",
     SEQUENCE_ID_DUPLICATE     = "mvu.expert.sequence_id_duplicate",
     CONTROL_DATA_LENGTH_ERROR = "mvu.expert.control_data_length_error",
+    COMMAND_STATUS_ERROR      = "mvu.expert.command_status_error",
 }
 
 -- Internal list of expert fields
@@ -58,6 +60,9 @@ m._experts = {}
 
 -- The MVU subtree
 m._subtree = nil
+
+-- The packet's Unsolicited Response bit
+m._unsolicited_response = nil
 
 -- The packet's command type
 m._command_type = nil
@@ -95,19 +100,50 @@ function m.DeclareFields()
 	------------
 	-- See documentation: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Proto.html#lua_class_ProtoField
 
+	-- Unsolicited Response bit
+	m._fields[m._FIELD_NAMES.UNSOLICITED_RESPONSE]
+	= mFields.CreateField(
+		ProtoField.bool(
+			m._FIELD_NAMES.UNSOLICITED_RESPONSE,
+			"Unsolicited Response"
+		)
+	)
+
 	-- Command type
 	local command_type_valuestring = mHelpers.GetTableValuesWithNumberKey(mSpecs.COMMAND_TYPES)
-	m._fields[m._FIELD_NAMES.COMMAND_TYPE] = mFields.CreateField(ProtoField.uint32(m._FIELD_NAMES.COMMAND_TYPE, "Command Type", base.HEX, command_type_valuestring))
+	m._fields[m._FIELD_NAMES.COMMAND_TYPE]
+	= mFields.CreateField(
+		ProtoField.uint32(
+			m._FIELD_NAMES.COMMAND_TYPE,
+			"Command Type",
+			base.HEX,
+			command_type_valuestring
+		)
+	)
 
 	-- Status code (taken from IEEE 1722.1 header)
 	local status_valuestring = mHelpers.GetTableValuesWithNumberKey(mIEEE17221Specs.VENDOR_UNIQUE_STATUS_CODES)
-	m._fields[m._FIELD_NAMES.STATUS] = mFields.CreateField(ProtoField.uint8(m._FIELD_NAMES.STATUS, "Status", base.HEX, status_valuestring))
+	m._fields[m._FIELD_NAMES.STATUS]
+	= mFields.CreateField(
+		ProtoField.uint8(
+			m._FIELD_NAMES.STATUS,
+			"Status",
+			base.HEX,
+			status_valuestring
+		)
+	)
 
 	-- Milan specification revision version
-	m._fields[m._FIELD_NAMES.SPECIFICATIONS_VERSION] = mFields.CreateField(ProtoField.string(m._FIELD_NAMES.SPECIFICATIONS_VERSION))
+	m._fields[m._FIELD_NAMES.SPECIFICATIONS_VERSION]
+	= mFields.CreateField(
+		ProtoField.string(m._FIELD_NAMES.SPECIFICATIONS_VERSION)
+	)
 
 	-- Flag for when the MVU packet has errors
-	m._fields[m._FIELD_NAMES.HAS_ERRORS] = mFields.CreateField(ProtoField.bool(m._FIELD_NAMES.HAS_ERRORS))
+	m._fields[m._FIELD_NAMES.HAS_ERRORS]
+	= mFields.CreateField(
+		ProtoField.bool(m._FIELD_NAMES.HAS_ERRORS)
+	)
 
 	-------------------
 	-- EXPERT FIELDS --
@@ -121,6 +157,10 @@ function m.DeclareFields()
 	-- Control Data Length error
 	local control_data_length_error = ProtoExpert.new(m._FIELD_NAMES.CONTROL_DATA_LENGTH_ERROR, "Control Data Length error", expert.group.PROTOCOL, expert.severity.ERROR)
 	m._experts[m._FIELD_NAMES.CONTROL_DATA_LENGTH_ERROR] = mFields.CreateExpertField(m._FIELD_NAMES.CONTROL_DATA_LENGTH_ERROR, control_data_length_error)
+
+	-- Control Data Length error
+	local command_status_error = ProtoExpert.new(m._FIELD_NAMES.COMMAND_STATUS_ERROR, "Command Status error", expert.group.PROTOCOL, expert.severity.ERROR)
+	m._experts[m._FIELD_NAMES.COMMAND_STATUS_ERROR] = mFields.CreateExpertField(m._FIELD_NAMES.COMMAND_STATUS_ERROR, command_status_error)
 
 end
 
@@ -194,6 +234,18 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo)
 	-- Read IEEE 1722.1 field values
 	local message_type        = mIEEE17221Fields.GetMessageType()
 	local control_data_length = mIEEE17221Fields.GetControlDataLength()
+
+	---
+	--- Unsolicited Response
+	---
+
+	-- Read command type (2 bytes, taking only first byte)
+	m._unsolicited_response = (bit.band(0x8000, m._mvu_payload_bytes:int(0, 2)) > 0)
+
+	-- Write field to the MVU subtree
+	if (m._unsolicited_response) then
+		subtree:add(m._fields[m._FIELD_NAMES.UNSOLICITED_RESPONSE], buffer(m._mvu_payload_start, 1), m._unsolicited_response)
+	end
 
 	---
 	--- Command Type

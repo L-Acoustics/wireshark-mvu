@@ -30,6 +30,7 @@ local mHeaders = require("mvu_headers")
 local mIEEE17221Specs = require("ieee17221_specs")
 local mIEEE17221Fields = require("ieee17221_fields")
 local mControl = require("mvu_control")
+local mHelpers = require("helpers")
 
 -- Init module object
 local m = {}
@@ -44,7 +45,30 @@ m._fields = {}
 -- List of fields related to GET_SYSTEM_UNIQUE_ID/SET_SYSTEM_UNIQUE_ID commands/responses
 -- These field names can be used in Wireshark display filters to analyze MVU packets
 m._FIELD_NAMES = {
-    SYSTEM_UNIQUE_ID = "mvu.system_unique_id",
+    SYSTEM_UNIQUE_ID        = "mvu.system_unique_id",
+    SYSTEM_UNIQUE_ID_NAME   = "mvu.system_unique_id_name",
+}
+
+-- Table of offset position and bytes size in the MVU payload for each valid combination of field/message type
+m._fields_payload_offset = {
+	[m._FIELD_NAMES.SYSTEM_UNIQUE_ID] = {
+		[mSpecs.COMMAND_TYPES.SET_SYSTEM_UNIQUE_ID] = {
+			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND ] = 4,
+			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 4,
+		},
+		[mSpecs.COMMAND_TYPES.GET_SYSTEM_UNIQUE_ID] = {
+			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 4,
+		},
+	},
+	[m._FIELD_NAMES.SYSTEM_UNIQUE_ID_NAME] = {
+		[mSpecs.COMMAND_TYPES.SET_SYSTEM_UNIQUE_ID] = {
+			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND ] = 12,
+			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 12,
+		},
+		[mSpecs.COMMAND_TYPES.GET_SYSTEM_UNIQUE_ID] = {
+			[mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE] = 12,
+		},
+	},
 }
 
 --------------------
@@ -59,14 +83,29 @@ function m.DeclareFields()
 	------------
 	-- See documentation: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Proto.html#lua_class_ProtoField
 
-	-- System unique ID
+	-- System unique ID number
 	--   Expected in:
 	--     GET_SYSTEM_UNIQUE_ID response
 	--     SET_SYSTEM_UNIQUE_ID command
 	--     SET_SYSTEM_UNIQUE_ID response
 	m._fields[m._FIELD_NAMES.SYSTEM_UNIQUE_ID]
 	= mFields.CreateField(
-		ProtoField.uint32(m._FIELD_NAMES.SYSTEM_UNIQUE_ID, "System Unique ID", base.HEX)
+		ProtoField.uint64(m._FIELD_NAMES.SYSTEM_UNIQUE_ID, "System Unique ID", base.HEX)
+	)
+
+	-- System unique ID name
+	--   Expected in:
+	--     GET_SYSTEM_UNIQUE_ID response
+	--     SET_SYSTEM_UNIQUE_ID command
+	--     SET_SYSTEM_UNIQUE_ID response
+	m._fields[m._FIELD_NAMES.SYSTEM_UNIQUE_ID_NAME]
+	= mFields.CreateField(
+		ProtoField.string(
+			m._FIELD_NAMES.SYSTEM_UNIQUE_ID_NAME,
+			"System Unique ID Name",
+			base.ASCII,
+			"Name part of the network-wide unique identifier"
+		)
 	)
 
 	-------------------
@@ -103,23 +142,52 @@ function m.AddFieldsToSubtree(buffer, subtree, errors)
 		return errors, true
 	end
 
-	-- if the message is a SET_SYSTEM_UNIQUE_ID command or a GET_SYSTEM_UNIQUE_ID response
-	if (message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND and command_type == mSpecs.COMMAND_TYPES.SET_SYSTEM_UNIQUE_ID)
-	or (message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE and command_type == mSpecs.COMMAND_TYPES.GET_SYSTEM_UNIQUE_ID)
-	then
+	-- Get MVU payload bytes from buffer
+	local _, mvu_payload_start = mHeaders.GetMvuPayload()
 
-		----------------------------
-		-- Add fields to the tree --
-		----------------------------
+	--- Function to add a field to the Tree
+	--- @param field any The protocol field object
+	--- @param size number The byte size of the field's data
+	--- @param execute_on_range function|nil An optional function executed on the TVB range for this field
+	--- @param custom_value_function function|nil An optional function for customizing the displayed value for the field
+	--- @param do_not_add_on_nil_custom_value boolean|nil An optional flag to determine if the field should be added to the tree when the custom value function returns nil
+	local add_field_to_tree = function(field, size, execute_on_range, custom_value_function, do_not_add_on_nil_custom_value)
+		-- if the field has an offset position for the command and message types
+		if  m._fields_payload_offset[field] ~= nil
+		and m._fields_payload_offset[field][command_type] ~= nil
+		and m._fields_payload_offset[field][command_type][message_type] ~= nil
+		then
+			-- Read payload offset position for this field
+			local payload_offset = m._fields_payload_offset[field][command_type][message_type]
 
-		-- Get MVU payload bytes from buffer
-		local mvu_payload_bytes, mvu_payload_start = mHeaders.GetMvuPayload()
+			-- If a custom function is provided
+			if (type(custom_value_function) == "function") then
+				-- Execute custom function
+				local custom_value = custom_value_function(buffer(mvu_payload_start + payload_offset, size))
+				-- If the custom value is not nil or the field can be added in case of nil custom value
+				if not (custom_value == nil and do_not_add_on_nil_custom_value) then
+					-- Write field to the MVU subtree with custom display value
+					subtree:add(m._fields[field], buffer(mvu_payload_start + payload_offset, size), custom_value)
+				end
+			else
+				-- Write field to the MVU subtree
+				subtree:add(m._fields[field], buffer(mvu_payload_start + payload_offset, size))
+			end
+			-- If any, execute provided function on buffer range
+			if (type(execute_on_range) == "function") then
+				execute_on_range(buffer(mvu_payload_start + payload_offset, size))
+			end
+		end
+	end
 
-		-- Get system unique id
-		local system_unique_id = mvu_payload_bytes:int(4, 4)
-
-		-- Write system unique ID to the MVU subtree
-		subtree:add(m._fields[m._FIELD_NAMES.SYSTEM_UNIQUE_ID], buffer(mvu_payload_start + 4, 4), system_unique_id)
+	-- Add all fields to the tree
+	-- Version 1.2
+	if (mHelpers.CompareVersions(milan_version, "1.2") >= 0) then
+		add_field_to_tree(m._FIELD_NAMES.SYSTEM_UNIQUE_ID, 8)
+	end
+	-- Version 1.2.10
+	if (mHelpers.CompareVersions(milan_version, "1.2.10") >= 0) then
+		add_field_to_tree(m._FIELD_NAMES.SYSTEM_UNIQUE_ID_NAME, 64)
 	end
 
 	-- Return non-blocking errors

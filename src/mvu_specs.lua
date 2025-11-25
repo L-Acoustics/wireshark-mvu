@@ -24,7 +24,8 @@
 ]]
 
 -- Require dependency modules
-local mIEEE17221Specs = require("ieee17221_specs")
+local mIEEE17221Fields = require("ieee17221_fields")
+local mIEEE17221Specs  = require("ieee17221_specs")
 
 -- Init the module object to return
 local m = {}
@@ -34,7 +35,7 @@ local m = {}
 -----------------------
 
 -- Version of the Milan Specification
-m.SPEC_VERSION = "1.2" -- Revision 1.2 of November 29, 2023
+m.SPEC_VERSION = "1.2.12" -- Revision 1.2.12 of TBC, 2025
 
 -- Protocol ID for MVU
 m.PROTOCOL_ID = "0x001BC50AC100"
@@ -46,6 +47,9 @@ m.COMMAND_TYPES = {
     GET_SYSTEM_UNIQUE_ID           = 0x0002, [0x0002] = "GET_SYSTEM_UNIQUE_ID",
     SET_MEDIA_CLOCK_REFERENCE_INFO = 0x0003, [0x0003] = "SET_MEDIA_CLOCK_REFERENCE_INFO",
     GET_MEDIA_CLOCK_REFERENCE_INFO = 0x0004, [0x0004] = "GET_MEDIA_CLOCK_REFERENCE_INFO",
+    BIND_STREAM                    = 0x0005, [0x0005] = "BIND_STREAM",
+    UNBIND_STREAM                  = 0x0006, [0x0006] = "UNBIND_STREAM",
+    GET_STREAM_INPUT_INFO_EX       = 0x0007, [0x0007] = "GET_STREAM_INPUT_INFO_EX",
 }
 
 -- List of known MVU features
@@ -58,6 +62,19 @@ m.FEATURE_FLAGS = {
 m.MEDIA_CLOCK_REFERENCE_INFO_FLAGS = {
     [0x00000001] = "MEDIA_CLOCK_REFERENCE_PRIORITY_VALID",
     [0x00000002] = "MEDIA_CLOCK_DOMAIN_NAME_VALID",
+}
+
+-- MVU flags for Bind Stream commands
+m.BIND_STREAM_FLAGS = {
+    [0x00000001] = "STREAMING_WAIT",
+}
+
+-- List of probing statuses
+m.PROBING_STATUS = {
+    PROBING_DISABLED  = 0, [0] = "PROBING_DISABLED",
+    PROBING_PASSIVE   = 1, [1] = "PROBING_PASSIVE",
+    PROBING_ACTIVE    = 2, [2] = "PROBING_ACTIVE",
+    PROBING_COMPLETED = 3, [3] = "PROBING_COMPLETED",
 }
 
 --------------------
@@ -97,18 +114,22 @@ function m.GetMilanVersionOfCommand(message_type, command_type, control_data_len
 
 		-- Command
 		if message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND then
-			-- Version 1.1 (CDL = 20)
+			-- Version 1.0 (CDL = 20)
 			if control_data_length >= 20 then
-				-- Version 1.1, extra bytes if control_data_length is strictly greater
-				return "1.1", (control_data_length > 20)
+				-- Version 1.0, extra bytes if control_data_length is strictly greater
+				return "1.0", (control_data_length > 20)
 			end
 
 		-- Response
 		elseif message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE then
-			-- Version 1.1a (CDL = 32)
-			if control_data_length >= 32 then
-				-- Version 1.1, extra bytes if control_data_length is strictly greater
-				return "1.1", (control_data_length > 32)
+			-- Version 1.2.10 (CDL >= 36)
+			if control_data_length >= 36 then
+				-- Version 1.2.10, extra bytes if control_data_length is strictly greater
+				return "1.2.10", (control_data_length > 36)
+			-- Version 1.0 (CDL = 32)
+			elseif control_data_length == 32 then
+				-- Version 1.0
+				return "1.0"
 			end
 		end
 
@@ -117,18 +138,26 @@ function m.GetMilanVersionOfCommand(message_type, command_type, control_data_len
 
 		-- Command
 		if message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND then
-			-- Version 1.2 (CDL = 24)
-			if control_data_length >= 24 then
+			-- Version 1.2.10 (CDL = 92)
+			if control_data_length >= 92 then
+				-- Version 1.2.10, extra bytes if control_data_length is strictly greater
+				return "1.2.10", (control_data_length > 92)
+			-- Version 1.2 (CDL = 28)
+			elseif control_data_length == 28 then
 				-- Version 1.2, extra bytes if control_data_length is strictly greater
-				return "1.2", (control_data_length > 24)
+				return "1.2"
 			end
 
 		-- Response
 		elseif message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE then
-			-- Version 1.2 (CDL = 24)
-			if control_data_length >= 24 then
+			-- Version 1.2.10 (CDL = 92)
+			if control_data_length >= 92 then
+				-- Version 1.2.10, extra bytes if control_data_length is strictly greater
+				return "1.2.10", (control_data_length > 92)
+			-- Version 1.2 (CDL = 28)
+			elseif control_data_length == 28 then
 				-- Version 1.2, extra bytes if control_data_length is strictly greater
-				return "1.2", (control_data_length > 24)
+				return "1.2"
 			end
 		end
 
@@ -139,16 +168,20 @@ function m.GetMilanVersionOfCommand(message_type, command_type, control_data_len
 		if message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND then
 			-- Version 1.2 (CDL = 20)
 			if control_data_length >= 20 then
-				-- Version 1.2, extra bytes if control_data_length is strictly greater
-				return "1.2", (control_data_length > 20)
+				-- Version 1.2
+				return "1.2"
 			end
 
 		-- Response
 		elseif message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE then
-			-- Version 1.2 (CDL = 24)
-			if control_data_length >= 24 then
+			-- Version 1.2.10 (CDL = 92)
+			if control_data_length >= 92 then
+				-- Version 1.2.10, extra bytes if control_data_length is strictly greater
+				return "1.2.10", (control_data_length > 92)
+			-- Version 1.2 (CDL = 28)
+			elseif control_data_length == 28 then
 				-- Version 1.2, extra bytes if control_data_length is strictly greater
-				return "1.2", (control_data_length > 24)
+				return "1.2"
 			end
 		end
 
@@ -192,8 +225,80 @@ function m.GetMilanVersionOfCommand(message_type, command_type, control_data_len
 			end
 		end
 
+	-- BIND_STREAM
+	elseif command_type == m.COMMAND_TYPES.BIND_STREAM then
+
+		-- Command
+		if message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND then
+			-- Version 1.2.10 (CDL = 36)
+			if control_data_length >= 36 then
+				-- Version 1.2.10, extra bytes if control_data_length is strictly greater
+				return "1.2.10", (control_data_length > 36)
+			end
+
+		-- Response
+		elseif message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE then
+			-- Version 1.2.10 (CDL = 36)
+			if control_data_length >= 36 then
+				-- Version 1.2.10, extra bytes if control_data_length is strictly greater
+				return "1.2.10", (control_data_length > 36)
+			end
+		end
+
+	-- UNBIND_STREAM
+	elseif command_type == m.COMMAND_TYPES.UNBIND_STREAM then
+
+		-- Command
+		if message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND then
+			-- Version 1.2.10 (CDL = 24)
+			if control_data_length >= 24 then
+				-- Version 1.2.10, extra bytes if control_data_length is strictly greater
+				return "1.2.10", (control_data_length > 24)
+			end
+
+		-- Response
+		elseif message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE then
+			-- Version 1.2.10 (CDL = 24)
+			if control_data_length >= 24 then
+				-- Version 1.2.10, extra bytes if control_data_length is strictly greater
+				return "1.2.10", (control_data_length > 24)
+			end
+		end
+
+	-- GET_STREAM_INPUT_INFO_EX
+	elseif command_type == m.COMMAND_TYPES.GET_STREAM_INPUT_INFO_EX then
+
+		-- Command
+		if message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND then
+			-- Version 1.2.10 (CDL = 24)
+			if control_data_length >= 24 then
+				-- Version 1.2.10, extra bytes if control_data_length is strictly greater
+				return "1.2.10", (control_data_length > 24)
+			end
+
+		-- Response
+		elseif message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE then
+			-- Version 1.2.10 (CDL = 36)
+			if control_data_length >= 36 then
+				-- Version 1.2.12, extra bytes if control_data_length is strictly greater
+				return "1.2.12", (control_data_length > 36)
+			end
+		end
+
 	end
 
+end
+
+--- Determines if a message type designates a Milan Vendor Unique message
+--- @param message_type any
+--- @return boolean
+function m.IsMvuMessage(message_type)
+	-- Read MV protocol ID from IEEE 1722.1 fields
+	local vendor_unique_protocol_id = mIEEE17221Fields.GetVendorUniqueProtocolIdHexString()
+	-- The message is MVU if the protocol ID matches and the message type is a Vendor Unique command or response
+	return type(vendor_unique_protocol_id) == "string"
+	    and vendor_unique_protocol_id:lower() == m.PROTOCOL_ID:lower()
+		and mIEEE17221Specs.IsVendorUniqueMessage(message_type)
 end
 
 -- Return the module object

@@ -1,0 +1,22 @@
+# GET_STREAM_INPUT_INFO_EX
+# Case 2: Descriptor Type error
+#
+# Capture file source, convert to .pcapng using:
+#   text2pcap -t ISO <inputfile.txt> <outputfile.pcapng>
+#
+# https://www.wireshark.org/docs/man-pages/text2pcap.html
+
+    # GET_STREAM_INPUT_INFO_EX command
+    0000  00 e0 4c 40 90 2a 00 1b 92 05 08 70 22 f0 fb 06
+    0010  00 18 00 1b 92 ff ff 05 08 70 00 e0 4c 40 90 2a
+    0020  00 01 00 01 00 1b c5 0a c1 00 00 07 00 00 00 06
+    0030  00 03
+
+    # GET_STREAM_INPUT_INFO_EX response
+    0000  00 e0 4c 40 90 2a 00 1b 92 05 08 70 22 f0 fb 07
+    0010  00 4C 00 1b 92 ff ff 05 08 70 00 e0 4c 40 90 2a
+    0020  00 01 00 01 00 1b c5 0a c1 00 00 07 00 01 00 06
+    0030  00 03 00 00 00 00 00 00 00 01 00 02 00 00 02 07
+    0040  02 20 02 00 C0 00 00 00 00 00 00 00 00 03 00 00
+    0050  00 04 00 1b 92 04 05 06 05 06 00 00 00 00 00 00
+    0060  00 07 00 08 02 00

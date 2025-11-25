@@ -12,20 +12,31 @@ https://www.wireshark.org/docs/wsug_html_chunked/ChPluginFolders.html
 
 ### Windows
 
-Copy all .lua files to either one of the following directories:
-
-```
-C:\Program Files\Wireshark\plugins\mvu
-```
-
+##### User installation
+For user installation, copy all .lua files (from the `src` folder) to the following directory:
 ```
 %APPDATA%\Wireshark\plugins\mvu
 ```
 
-_The `mvu` directory is recommended for plugin files organization._
+##### Global installation
+For global installation, copy all .lua files (from the `src` folder) to the following directory:
+```
+C:\Program Files\Wireshark\plugins\mvu
+```
+
+
+_Note: The `mvu` directory is recommended for plugin files organization._
 
 ### macOS
 
+##### User installation
+For user installation, copy the .lua files into:
+
+```
+~/.local/lib/wireshark/plugins/mvu
+```
+
+##### Global installation
 If Wireshark is installed as a bundle application, copy the .lua files into:
 
 ```
@@ -38,4 +49,4 @@ Otherwise, copy the lua files to:
 <InstallationDirectory>/lib/wireshark/plugins/mvu
 ```
 
-_The `mvu` directory is recommended for plugin files organization._
+_Note: The `mvu` directory is recommended for plugin files organization._

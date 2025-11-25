@@ -33,6 +33,8 @@ local mIEEE17221Fields = require("ieee17221_fields")
 local mMilanInfo = require("mvu_feature_milan_info")
 local mSystemUniqueId = require("mvu_feature_system_unique_id")
 local mClockReferenceInfo = require("mvu_feature_clock_reference_info")
+local mBindStream = require("mvu_feature_bind_stream")
+local mStreamInfoEx = require("mvu_feature_stream_info_ex")
 local mConversations = require("mvu_conversations")
 local mControl = require("mvu_control")
 local mCompatibility = require("mvu_compatibility")
@@ -55,6 +57,8 @@ mHeaders.DeclareFields()
 mMilanInfo.DeclareFields()
 mSystemUniqueId.DeclareFields()
 mClockReferenceInfo.DeclareFields()
+mBindStream.DeclareFields()
+mStreamInfoEx.DeclareFields()
 
 -- Register declared fields to protocol
 mFields.RegisterAllFieldsInProtocol()
@@ -115,16 +119,31 @@ function mProto.Proto.dissector(buffer, pinfo, tree)
 			errors, blocking_errors = mClockReferenceInfo.AddFieldsToSubtree(buffer, mvuSubtree, errors)
 		end
 
+		-- Add Bind Stream fields to subtree
+		if not blocking_errors then
+			errors, blocking_errors = mBindStream.AddFieldsToSubtree(buffer, mvuSubtree, errors)
+		end
+
+		-- Add Stream Info fields to subtree
+		if not blocking_errors then
+			errors, blocking_errors = mStreamInfoEx.AddFieldsToSubtree(buffer, mvuSubtree, errors)
+		end
+
 		-- Insert message in case there are unimplemented extra bytes at end of payload
 		if not blocking_errors then
-			mControl.InsertUnimplementedExtraBytesMessage(mvuSubtree)
+			mControl.InsertUnimplementedExtraBytesMessage(buffer, mvuSubtree)
+		end
+
+		-- Insert message in case there is a command status error
+		if not blocking_errors then
+			errors, blocking_errors = mControl.InsertCommandStatusErrorIfAny(buffer, mvuSubtree, errors)
 		end
 
 		-----------------
 		-- Packet Info --
 		-----------------
 
-		-- Aff the Has Errors field to the subtree
+		-- Add the Has Errors field to the subtree
 		local has_errors = #errors > 0
 		mHeaders.SetHasErrorsField(has_errors, mvuSubtree)
 
