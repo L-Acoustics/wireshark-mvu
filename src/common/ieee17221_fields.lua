@@ -39,11 +39,13 @@ m._fields = {}
 -- (fields implemented in the existing Wireshark dissector for IEEE 1722.1 protocol)
 m._FIELD_NAMES = {
     CONTROL_DATA_LENGTH       = "ieee17221.control_data_length",
+    TARGET_ENTITY_ID          = "ieee17221.target_guid",
     CONTROLLER_ENTITY_ID      = "ieee17221.controller_guid",
     MESSAGE_TYPE              = "ieee17221.message_type",
     SEQUENCE_ID               = "ieee17221.sequence_id",
     VENDOR_UNIQUE_STATUS_CODE = "ieee17221.status",
     VENDOR_UNIQUE_PROTOCOL_ID = "ieee17221.protocol_id",
+    UNSOLICITED_FLAG          = "ieee17221.u_flag",
 }
 
 --------------------
@@ -54,11 +56,13 @@ m._FIELD_NAMES = {
 --- Must be called before the protocol's dissector gets called
 function m.LoadAllFields()
     m._GetField(m._FIELD_NAMES.CONTROL_DATA_LENGTH)
+    m._GetField(m._FIELD_NAMES.TARGET_ENTITY_ID)
     m._GetField(m._FIELD_NAMES.CONTROLLER_ENTITY_ID)
     m._GetField(m._FIELD_NAMES.MESSAGE_TYPE)
     m._GetField(m._FIELD_NAMES.SEQUENCE_ID)
     m._GetField(m._FIELD_NAMES.VENDOR_UNIQUE_STATUS_CODE)
     m._GetField(m._FIELD_NAMES.VENDOR_UNIQUE_PROTOCOL_ID)
+    m._GetField(m._FIELD_NAMES.UNSOLICITED_FLAG)
 end
 
 --- Read the value of Control Data Length field
@@ -78,8 +82,25 @@ function m.GetControlDataLength()
     end
 end
 
+--- Read the value of Target Entity ID field as an hexadecimal string (e.g. "0x001b92ffff050870")
+--- @return string|nil target_entity_id
+function m.GetTargetEntityId()
+    -- Get field
+    local field = m._GetField(m._FIELD_NAMES.TARGET_ENTITY_ID)
+    -- If field exists
+    if field ~= nil then
+        -- Read field info
+        local field_info = field()
+        -- If field_info has the expected type
+        if field_info ~= nil and field_info.type == ftypes.UINT64 then
+            -- Return the field value converted to lower case hex string
+            return mHelpers.ToHexString(field_info, true, false)
+        end
+    end
+end
+
 --- Read the value of Controller Entity ID field as an hexadecimal string (e.g. "0x001b92ffff050870")
---- @return string|nil vendor_unique_protocol_id
+--- @return string|nil controller_entity_id
 function m.GetControllerEntityId()
     -- Get field
     local field = m._GetField(m._FIELD_NAMES.CONTROLLER_ENTITY_ID)
@@ -159,6 +180,23 @@ function m.GetVendorUniqueProtocolIdHexString()
         if field_info ~= nil and field_info.type == ftypes.UINT48 then
             -- Return the field value converted to lower case hex string
             return mHelpers.ToHexString(field_info, true, false)
+        end
+    end
+end
+
+--- Read the value of the Unsolicited flag if it exists
+--- @return boolean|nil unsolicited_flag
+function m.GetUnsolicitedFlag()
+    -- Get field
+    local field = m._GetField(m._FIELD_NAMES.UNSOLICITED_FLAG)
+    -- If field exists
+    if field ~= nil then
+        -- Read field info
+        local field_info = field()
+        -- If field_info has the expected type
+        if field_info ~= nil and field_info.type == ftypes.BOOLEAN then
+            -- Return the field value
+            return field_info.value
         end
     end
 end

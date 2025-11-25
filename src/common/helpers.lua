@@ -136,5 +136,76 @@ function m.ToHexString(data, prefix_with_0x, upper_case)
 
 end
 
+--- Get the size of a table
+--- @param table table
+--- @return number size
+function m.GetTableSize(table)
+	-- Init size
+	local size = 0
+	-- Loop through table items
+	if type(table)=="table" then
+		for _ in pairs(table) do
+			size = size + 1
+		end
+	end
+	-- Eventually return table size
+	return size
+end
+
+--- Sort a table of tables
+--- @param t table Table to sort (keys must be numbers)
+--- @param key_name string|nil Name of the property where to copy the original table keys inside the item properties
+--- @return table result Sorted table
+function m.SortTableOfTables(t, key_name)
+    local remove_key = (key_name == nil)
+    key_name = key_name or "__key"
+    local result = {}
+    for k,v in pairs(t) do
+    local item = {}
+    item[key_name] = k
+    for k1,v1 in pairs(v) do
+        item[k1]=v1
+    end
+    table.insert(result, item)
+    end
+    table.sort(result, function(a,b) return a[key_name] < b[key_name] end)
+    if remove_key then
+    for k,v in pairs(result) do
+        result[k][key_name] = nil
+    end
+    end
+    return result
+end
+
+--- Print a table to console output
+--- @param t table
+function m.PrintTable(t)
+	if type(t)=="table" then
+		for k1,v1 in pairs(t) do
+			print(k1,v1)
+			if type(v1)=="table" then
+				for k2,v2 in pairs(v1) do
+					print("", k2,v2)
+					if type(v2)=="table" then
+						for k3,v3 in pairs(v2) do
+							print("", "", k3,v3)
+							if type(v3)=="table" then
+								for k4,v4 in pairs(v3) do
+									print("", "", "", k4,v4)
+									if type(v4)=="table" then
+										for k5,v5 in pairs(v4) do
+											print("", "", "", k5,v5)
+										end
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
 -- Return the module object
 return m

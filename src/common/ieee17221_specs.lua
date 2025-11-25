@@ -3,7 +3,7 @@
 
 	This file is part of the Milan Vendor Unique plugin for Wireshark
 	---
-		Constants and information coming from the IEEE 1722.1 specifications
+		Constants and information coming from the IEEE 1722.1-2021 specifications
 	---
 
 	Authors: Benjamin Landrot
@@ -31,8 +31,18 @@ local m = {}
 
 -- List of known IEEE 1722.1 AECP commands
 m.AECP_MESSAGE_TYPES = {
-    VENDOR_UNIQUE_COMMAND  = 6, [6] = "VENDOR_UNIQUE_COMMAND",
-    VENDOR_UNIQUE_RESPONSE = 7, [7] = "VENDOR_UNIQUE_RESPONSE",
+    AEM_COMMAND             =  0, [ 0] = "AEM_COMMAND",
+    AEM_RESPONSE            =  1, [ 1] = "AEM_RESPONSE",
+    ADDRESS_ACCESS_COMMAND  =  2, [ 2] = "ADDRESS_ACCESS_COMMAND",
+    ADDRESS_ACCESS_RESPONSE =  3, [ 3] = "ADDRESS_ACCESS_RESPONSE",
+    AVC_COMMAND             =  4, [ 4] = "AVC_COMMAND",
+    AVC_RESPONSE            =  5, [ 5] = "AVC_RESPONSE",
+    VENDOR_UNIQUE_COMMAND   =  6, [ 6] = "VENDOR_UNIQUE_COMMAND",
+    VENDOR_UNIQUE_RESPONSE  =  7, [ 7] = "VENDOR_UNIQUE_RESPONSE",
+    HDCP_APM_COMMAND        =  8, [ 8] = "HDCP_APM_COMMAND",
+    HDCP_APM_RESPONSE       =  9, [ 9] = "HDCP_APM_RESPONSE",
+    EXTENDED_COMMAND        = 14, [14] = "EXTENDED_COMMAND",
+    EXTENDED_RESPONSE       = 15, [15] = "EXTENDED_RESPONSE",
 }
 
 -- Vendor Unique status codes
@@ -119,6 +129,38 @@ m.SOURCE_STATES = {
 	REGISTERING_FAILED_LISTENER = 5, [5] = "REGISTERING_FAILED_LISTENER",
 	REGISTERING_SUCCESS         = 6, [6] = "REGISTERING_SUCCESS",
 }
+
+--- Determines if a message type designates an AECP command
+--- @param message_type any
+--- @return boolean
+function m.IsAecpCommand(message_type)
+	return message_type == m.AECP_MESSAGE_TYPES.AEM_COMMAND
+	    or message_type == m.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND
+end
+
+--- Determines if a message type designates an AECP response
+--- @param message_type any
+--- @return boolean
+function m.IsAecpResponse(message_type)
+	return message_type == m.AECP_MESSAGE_TYPES.AEM_RESPONSE
+	    or message_type == m.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE
+end
+
+--- Determines if a message type designates an AEM message
+--- @param message_type any
+--- @return boolean
+function m.IsAemMessage(message_type)
+	return message_type == m.AECP_MESSAGE_TYPES.AEM_COMMAND
+	    or message_type == m.AECP_MESSAGE_TYPES.AEM_RESPONSE
+end
+
+--- Determines if a message type designates an Vendor Unique message
+--- @param message_type any
+--- @return boolean
+function m.IsVendorUniqueMessage(message_type)
+	return message_type == m.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND
+	    or message_type == m.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE
+end
 
 -- Return module object
 return m
