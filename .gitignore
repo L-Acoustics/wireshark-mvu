@@ -2,6 +2,7 @@
 .vscode
 
 # Binary installers
+installer/build
 *.exe
 
 # Wireshark capture files

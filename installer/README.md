@@ -6,9 +6,15 @@ NSIS is used to generate an installer for Windows.
 
 NSIS must be installed in the system.
 
-Execute the following command:
+Execute one of the following command:
 
-    makensis mvu_install.nsi
+```
+makensis mvu_install.nsi
+```
+
+```
+makensis aecp-diagnostics_install.nsi
+```
 
 Example output of the makenins operation:
 
