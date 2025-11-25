@@ -64,4 +64,4 @@ function Install-UserWiresharkPlugin {
 Install-UserWiresharkPlugin -PluginName "mvu" -SourceDirs @("src/common", "src/mvu")
 
 # Install AECP Diagnostics plugin
-# Install-UserWiresharkPlugin -PluginName "aecp-diagnostics" -SourceDirs @("src/common", "src/aecp-diagnostics")
+Install-UserWiresharkPlugin -PluginName "aecp-diagnostics" -SourceDirs @("src/common", "src/aecp-diagnostics")

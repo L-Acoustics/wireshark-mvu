@@ -290,11 +290,14 @@ function m.GetMilanVersionOfCommand(message_type, command_type, control_data_len
 end
 
 --- Determines if a message type designates a Milan Vendor Unique message
---- @param message_type any
+--- @param message_type number|nil
+--- @param vendor_unique_protocol_id string|nil
 --- @return boolean
-function m.IsMvuMessage(message_type)
-	-- Read MV protocol ID from IEEE 1722.1 fields
-	local vendor_unique_protocol_id = mIEEE17221Fields.GetVendorUniqueProtocolIdHexString()
+function m.IsMvuMessage(message_type, vendor_unique_protocol_id)
+	-- Read message type if not provided
+	message_type = message_type or mIEEE17221Fields.GetMessageType()
+	-- Read MV protocol ID if not provided
+	vendor_unique_protocol_id = vendor_unique_protocol_id or mIEEE17221Fields.GetVendorUniqueProtocolIdHexString()
 	-- The message is MVU if the protocol ID matches and the message type is a Vendor Unique command or response
 	return type(vendor_unique_protocol_id) == "string"
 	    and vendor_unique_protocol_id:lower() == m.PROTOCOL_ID:lower()
