@@ -112,10 +112,14 @@ end
 --- Insert an error message of incorrect Command Status in the subtree
 --- @param buffer any The buffer to dissect (TVB object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tvb.html#lua_class_Tvb)
 --- @param subtree any The tree on which to add the protocol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
---- @param errors table<string> List of existing error messages
+--- @param existing_errors table<string>|nil List of existing error messages
+--- @param existing_warnings table<string>|nil List of existing warning messages
 --- @return table<string> errors Amended list of errors
 --- @return boolean|nil blocking_errors Indicates if one of the returned errors is blocking and should interrupt further packet analysis
-function m.InsertCommandStatusErrorIfAny(buffer, subtree, errors)
+--- @return table<string>|nil warnings Amended list of warnings
+function m.InsertCommandStatusErrorIfAny(buffer, subtree, existing_errors, existing_warnings)
+
+	local errors = existing_errors or {}
 
 	-- Read IEEE 1722.1 field values
 	local message_type        = mIEEE17221Fields.GetMessageType()
@@ -136,7 +140,7 @@ function m.InsertCommandStatusErrorIfAny(buffer, subtree, errors)
 		table.insert(errors, error_message)
 
 		-- Return blocking error
-		return errors, true
+		return errors, true, existing_warnings
 
 	-- If the status code is unknown
 	elseif (mIEEE17221Specs.VENDOR_UNIQUE_STATUS_CODES[status_code] == nil) then
@@ -148,11 +152,11 @@ function m.InsertCommandStatusErrorIfAny(buffer, subtree, errors)
 		table.insert(errors, error_message)
 
 		-- Return blocking error
-		return errors, true
+		return errors, true, existing_warnings
 	end
 
 	-- Return the updated list of errors
-	return errors, false
+	return errors, false, existing_warnings
 
 end
 

@@ -45,14 +45,16 @@ m._fields = {}
 -- List of Wireshark field names related to MVU headers
 -- These field names can be used in Wireshark display filters to analyze MVU packets
 m._FIELD_NAMES = {
-    COMMAND_TYPE              = "mvu.command_type",
-    STATUS                    = "mvu.status",
-    UNSOLICITED_RESPONSE      = "mvu.unsolicited_response",
-    SPECIFICATIONS_VERSION    = "mvu.specifications_version",
-    HAS_ERRORS                = "mvu.has_errors",
-    SEQUENCE_ID_DUPLICATE     = "mvu.expert.sequence_id_duplicate",
-    CONTROL_DATA_LENGTH_ERROR = "mvu.expert.control_data_length_error",
-    COMMAND_STATUS_ERROR      = "mvu.expert.command_status_error",
+    COMMAND_TYPE                = "mvu.command_type",
+    STATUS                      = "mvu.status",
+    UNSOLICITED_RESPONSE        = "mvu.unsolicited_response",
+    SPECIFICATIONS_VERSION      = "mvu.specifications_version",
+    HAS_ERRORS                  = "mvu.has_errors",
+    HAS_WARNINGS                = "mvu.has_warnings",
+    SEQUENCE_ID_DUPLICATE       = "mvu.expert.sequence_id_duplicate",
+    CONTROL_DATA_LENGTH_ERROR   = "mvu.expert.control_data_length_error",
+    CONTROL_DATA_LENGTH_WARNING = "mvu.expert.control_data_length_warning",
+    COMMAND_STATUS_ERROR        = "mvu.expert.command_status_error",
 }
 
 -- Internal list of expert fields
@@ -145,6 +147,12 @@ function m.DeclareFields()
 		ProtoField.bool(m._FIELD_NAMES.HAS_ERRORS)
 	)
 
+	-- Flag for when the MVU packet has warnings
+	m._fields[m._FIELD_NAMES.HAS_WARNINGS]
+	= mFields.CreateField(
+		ProtoField.bool(m._FIELD_NAMES.HAS_WARNINGS)
+	)
+
 	-------------------
 	-- EXPERT FIELDS --
 	-------------------
@@ -158,7 +166,11 @@ function m.DeclareFields()
 	local control_data_length_error = ProtoExpert.new(m._FIELD_NAMES.CONTROL_DATA_LENGTH_ERROR, "Control Data Length error", expert.group.PROTOCOL, expert.severity.ERROR)
 	m._experts[m._FIELD_NAMES.CONTROL_DATA_LENGTH_ERROR] = mFields.CreateExpertField(m._FIELD_NAMES.CONTROL_DATA_LENGTH_ERROR, control_data_length_error)
 
-	-- Control Data Length error
+	-- Control Data Length warning
+	local control_data_length_warning = ProtoExpert.new(m._FIELD_NAMES.CONTROL_DATA_LENGTH_WARNING, "Control Data Length warning", expert.group.PROTOCOL, expert.severity.WARN)
+	m._experts[m._FIELD_NAMES.CONTROL_DATA_LENGTH_WARNING] = mFields.CreateExpertField(m._FIELD_NAMES.CONTROL_DATA_LENGTH_WARNING, control_data_length_warning)
+
+	-- Command status error
 	local command_status_error = ProtoExpert.new(m._FIELD_NAMES.COMMAND_STATUS_ERROR, "Command Status error", expert.group.PROTOCOL, expert.severity.ERROR)
 	m._experts[m._FIELD_NAMES.COMMAND_STATUS_ERROR] = mFields.CreateExpertField(m._FIELD_NAMES.COMMAND_STATUS_ERROR, command_status_error)
 
@@ -227,9 +239,12 @@ end
 --- @param buffer any The buffer to dissect (TVB object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tvb.html#lua_class_Tvb)
 --- @param subtree table The tree on which to add the protocol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
 --- @param pinfo any Packet info (Pinfo object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Pinfo.html#lua_class_Pinfo)
+--- @param existing_errors table<string>|nil List of string errors found during dissecting so far
+--- @param existing_warnings table<string>|nil List of string warnings found during dissecting so far
 --- @return table<string> errors
 --- @return boolean|nil blocking_errors Indicates if one of the returned errors is blocking and should interrupt further packet analysis
-function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo)
+--- @return table<string>|nil warnings
+function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo, existing_errors, existing_warnings)
 
 	-- Read IEEE 1722.1 field values
 	local message_type        = mIEEE17221Fields.GetMessageType()
@@ -286,7 +301,8 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo)
 	--- Check errors
 	---
 
-	local errors = {}
+	local errors = existing_errors or {}
+	local warnings = existing_warnings or {}
 
 	-- If the Control Data Length is smaller than expected
 	-- (the minimum length is 20 bytes for the smallest MVU command)
@@ -304,7 +320,7 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo)
 		table.insert(errors, error_message)
 
 		-- Return blocking error
-		return errors, true
+		return errors, true, warnings
 
 	end
 
@@ -346,14 +362,14 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo)
 	local remaining_length = buffer:len() - control_data_end
 	if remaining_length > 0 then
 
-		-- Build error message
-		local error_message = "The frame contains " .. remaining_length .. " unexpected remaining bytes after the control data payload"
+		-- Build warning message
+		local warning_message = "The frame contains " .. remaining_length .. " unexpected remaining bytes after the control data payload"
 
-		-- Add control data length error to the subtree
-		subtree:add_tvb_expert_info(m._experts[m._FIELD_NAMES.CONTROL_DATA_LENGTH_ERROR], buffer(control_data_end, remaining_length), error_message)
+		-- Add control data length warning to the subtree
+		subtree:add_tvb_expert_info(m._experts[m._FIELD_NAMES.CONTROL_DATA_LENGTH_WARNING], buffer(control_data_end, remaining_length), warning_message)
 
-		-- Add error message to errors list
-		table.insert(errors, error_message)
+		-- Add warning message to warnings list
+		table.insert(warnings, warning_message)
 
 	end
 
@@ -392,7 +408,7 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo)
 		end
 
 		--  Return breaking error
-		return errors, true
+		return errors, true, warnings
 	end
 
 	----------------------------------------------------------
@@ -432,7 +448,7 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo)
 	end
 
 	-- Return list of non-blocking errors if any
-	return errors
+	return errors, false, warnings
 
 end
 
@@ -443,6 +459,18 @@ function m.SetHasErrorsField(has_errors, subtree)
 	if (has_errors) then
 		-- Add Has Errors field to the subtree
 		subtree:add(m._fields[m._FIELD_NAMES.HAS_ERRORS], true, "The MVU packet has errors!")
+			--- Mark as a generated field (with data inferred but not contained in the packet)
+			:set_generated(true)
+	end
+end
+
+--- Set the value of the Has Warnings field and add to subtree
+--- @param has_warnings boolean
+--- @param subtree table The tree on which to add the protocol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
+function m.SetHasWarningsField(has_warnings, subtree)
+	if (has_warnings) then
+		-- Add Has Warnings field to the subtree
+		subtree:add(m._fields[m._FIELD_NAMES.HAS_WARNINGS], true, "The MVU packet has warnings!")
 			--- Mark as a generated field (with data inferred but not contained in the packet)
 			:set_generated(true)
 	end

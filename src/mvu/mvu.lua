@@ -84,8 +84,12 @@ function mProto.Proto.dissector(buffer, pinfo, tree)
 	if mControl.IsMvuPacket() then
 
 		-- Init table of errors that we may encounter during dissecting
+		--- @type table<string>|nil
 		local errors = {}
+		--- @type boolean|nil
 		local blocking_errors
+		--- @type table<string>|nil
+		local warnings = {}
 
 		-------------
 		-- Headers --
@@ -98,7 +102,7 @@ function mProto.Proto.dissector(buffer, pinfo, tree)
 		local mvuSubtree = mHeaders.CreateMvuSubtree(buffer, tree)
 
 		-- Add header fields to subtree
-		errors, blocking_errors = mHeaders.AddHeaderFieldsToSubtree(buffer, mvuSubtree, pinfo)
+		errors, blocking_errors, warnings = mHeaders.AddHeaderFieldsToSubtree(buffer, mvuSubtree, pinfo, errors, warnings)
 
 		--------------
 		-- Features --
@@ -106,27 +110,27 @@ function mProto.Proto.dissector(buffer, pinfo, tree)
 
 		-- Add Milan Info fields to subtree
 		if not blocking_errors then
-			errors, blocking_errors = mMilanInfo.AddFieldsToSubtree(buffer, mvuSubtree, errors)
+			errors, blocking_errors, warnings = mMilanInfo.AddFieldsToSubtree(buffer, mvuSubtree, errors, warnings)
 		end
 
 		-- Add System Unique Id fields to subtree
 		if not blocking_errors then
-			error, blocking_errors = mSystemUniqueId.AddFieldsToSubtree(buffer, mvuSubtree, errors)
+			errors, blocking_errors, warnings = mSystemUniqueId.AddFieldsToSubtree(buffer, mvuSubtree, errors, warnings)
 		end
 
 		-- Add Clock Reference Info fields to subtree
 		if not blocking_errors then
-			errors, blocking_errors = mClockReferenceInfo.AddFieldsToSubtree(buffer, mvuSubtree, errors)
+			errors, blocking_errors, warnings = mClockReferenceInfo.AddFieldsToSubtree(buffer, mvuSubtree, errors, warnings)
 		end
 
 		-- Add Bind Stream fields to subtree
 		if not blocking_errors then
-			errors, blocking_errors = mBindStream.AddFieldsToSubtree(buffer, mvuSubtree, errors)
+			errors, blocking_errors, warnings = mBindStream.AddFieldsToSubtree(buffer, mvuSubtree, errors, warnings)
 		end
 
 		-- Add Stream Info fields to subtree
 		if not blocking_errors then
-			errors, blocking_errors = mStreamInfoEx.AddFieldsToSubtree(buffer, mvuSubtree, errors)
+			errors, blocking_errors, warnings = mStreamInfoEx.AddFieldsToSubtree(buffer, mvuSubtree, errors, warnings)
 		end
 
 		-- Insert message in case there are unimplemented extra bytes at end of payload
@@ -136,7 +140,7 @@ function mProto.Proto.dissector(buffer, pinfo, tree)
 
 		-- Insert message in case there is a command status error
 		if not blocking_errors then
-			errors, blocking_errors = mControl.InsertCommandStatusErrorIfAny(buffer, mvuSubtree, errors)
+			errors, blocking_errors, warnings = mControl.InsertCommandStatusErrorIfAny(buffer, mvuSubtree, errors, warnings)
 		end
 
 		-----------------
@@ -146,6 +150,10 @@ function mProto.Proto.dissector(buffer, pinfo, tree)
 		-- Add the Has Errors field to the subtree
 		local has_errors = #errors > 0
 		mHeaders.SetHasErrorsField(has_errors, mvuSubtree)
+
+		-- Add the Has Warnings field to the subtree
+		local has_warnings = #warnings > 0
+		mHeaders.SetHasWarningsField(has_warnings, mvuSubtree)
 
 		-- Write to packet info columns
 		mHeaders.WritePacketInfo(pinfo, errors)
