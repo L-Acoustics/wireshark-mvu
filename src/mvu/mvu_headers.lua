@@ -105,7 +105,10 @@ function m.DeclareFields()
 	= mFields.CreateField(
 		ProtoField.bool(
 			m._FIELD_NAMES.UNSOLICITED_RESPONSE,
-			"Unsolicited Response"
+			"Unsolicited Response",
+			16,    -- parent bitfield size
+			nil,   -- table of value strings
+			0x8000 -- bit mask for this field
 		)
 	)
 
@@ -113,11 +116,12 @@ function m.DeclareFields()
 	local command_type_valuestring = mHelpers.GetTableValuesWithNumberKey(mSpecs.COMMAND_TYPES)
 	m._fields[m._FIELD_NAMES.COMMAND_TYPE]
 	= mFields.CreateField(
-		ProtoField.uint32(
+		ProtoField.uint16(
 			m._FIELD_NAMES.COMMAND_TYPE,
 			"Command Type",
 			base.HEX,
-			command_type_valuestring
+			command_type_valuestring,
+			0x7fff -- bit mask for this field (ignoring first bit)
 		)
 	)
 
@@ -243,8 +247,8 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo)
 	m._unsolicited_response = (bit.band(0x8000, m._mvu_payload_bytes:int(0, 2)) > 0)
 
 	-- Write field to the MVU subtree
-	if (m._unsolicited_response) then
-		subtree:add(m._fields[m._FIELD_NAMES.UNSOLICITED_RESPONSE], buffer(m._mvu_payload_start, 1), m._unsolicited_response)
+	if message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE then
+		subtree:add(m._fields[m._FIELD_NAMES.UNSOLICITED_RESPONSE], buffer(m._mvu_payload_start, 2))
 	end
 
 	---
@@ -255,7 +259,7 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo)
 	m._command_type = bit.band(0x7fff, m._mvu_payload_bytes:int(0, 2))
 
 	-- Write command type and description to the MVU subtree
-	subtree:add(m._fields[m._FIELD_NAMES.COMMAND_TYPE], buffer(m._mvu_payload_start, 2), m._command_type)
+	subtree:add(m._fields[m._FIELD_NAMES.COMMAND_TYPE], buffer(m._mvu_payload_start, 2))
 
 	---
 	--- Command Milan version
