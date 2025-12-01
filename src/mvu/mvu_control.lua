@@ -29,6 +29,7 @@ local mIEEE17221Fields = require("ieee17221_fields")
 local mHelpers = require("helpers")
 local mFields = require("mvu_fields")
 local mHeaders = require("mvu_headers")
+local mMvuSpecs = require("mvu_specs")
 
 -- Init module object
 local m = {}
@@ -129,7 +130,7 @@ function m.InsertCommandStatusErrorIfAny(buffer, subtree, existing_errors, exist
 	local f_command_status_error = mFields.GetExpertField(mHeaders._FIELD_NAMES.COMMAND_STATUS_ERROR)
 
 	-- If the status code is NOT_IMPLEMENTED but the message is not a response
-	if status_code == mIEEE17221Specs.VENDOR_UNIQUE_STATUS_CODES.NOT_IMPLEMENTED
+	if status_code == mMvuSpecs.MVU_STATUS_CODES.NOT_IMPLEMENTED
 	and message_type ~= mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE
 	then
 		-- Insert error message in the subtree
@@ -143,7 +144,7 @@ function m.InsertCommandStatusErrorIfAny(buffer, subtree, existing_errors, exist
 		return errors, true, existing_warnings
 
 	-- If the status code is unknown
-	elseif (mIEEE17221Specs.VENDOR_UNIQUE_STATUS_CODES[status_code] == nil) then
+	elseif (mMvuSpecs.MVU_STATUS_CODES[status_code] == nil) then
 		-- Insert message in the subtree
 		local error_message = "Unknown status code ("..status_code.."). Consider updating this plugin."
 		subtree:add_tvb_expert_info(f_command_status_error, buffer(16, 1), error_message)

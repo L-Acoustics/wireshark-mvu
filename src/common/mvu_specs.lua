@@ -52,6 +52,20 @@ m.COMMAND_TYPES = {
     GET_STREAM_INPUT_INFO_EX       = 0x0007, [0x0007] = "GET_STREAM_INPUT_INFO_EX",
 }
 
+-- Milan Vendor Unique status codes
+m.MVU_STATUS_CODES = {
+    NO_SUCH_DESCRIPTOR =  2, [ 2] = "NO_SUCH_DESCRIPTOR",
+    ENTITY_LOCKED      =  3, [ 3] = "ENTITY_LOCKED",
+    BAD_ARGUMENTS      =  7, [ 7] = "BAD_ARGUMENTS",
+    ENTITY_MISBEHAVING = 10, [10] = "ENTITY_MISBEHAVING",
+    PAYLOAD_TOO_SHORT  = 13, [13] = "PAYLOAD_TOO_SHORT",
+}
+-- Existing codes in AECP protocol are inherited
+for k,v in pairs(mIEEE17221Specs.AECP_STATUS_CODES) do
+	---@diagnostic disable-next-line: assign-type-mismatch
+	if m.MVU_STATUS_CODES[k] == nil then m.MVU_STATUS_CODES[k] = v end
+end
+
 -- List of known MVU features
 m.FEATURE_FLAGS = {
     [0x00000001] = "REDUNDANCY",

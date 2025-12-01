@@ -26,6 +26,7 @@
 local mProto = require("mvu_proto")
 local mFields = require("mvu_fields")
 local mSpecs = require("mvu_specs")
+local mMvuSpecs = require("mvu_specs")
 local mIEEE17221Fields = require("ieee17221_fields")
 local mIEEE17221Specs = require("ieee17221_specs")
 local mHelpers = require("helpers")
@@ -128,7 +129,7 @@ function m.DeclareFields()
 	)
 
 	-- Status code (taken from IEEE 1722.1 header)
-	local status_valuestring = mHelpers.GetTableValuesWithNumberKey(mIEEE17221Specs.VENDOR_UNIQUE_STATUS_CODES)
+	local status_valuestring = mHelpers.GetTableValuesWithNumberKey(mMvuSpecs.MVU_STATUS_CODES)
 	m._fields[m._FIELD_NAMES.STATUS]
 	= mFields.CreateField(
 		ProtoField.uint8(
@@ -379,7 +380,7 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo, existing_errors, exi
 
 	-- If the message is a response to a command that the responder does not implement
 	if message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE
-	and m._status_code == mIEEE17221Specs.VENDOR_UNIQUE_STATUS_CODES.NOT_IMPLEMENTED
+	and m._status_code == mMvuSpecs.MVU_STATUS_CODES.NOT_IMPLEMENTED
 	then
 
 		-- Get information about the initial command using the conversations module
