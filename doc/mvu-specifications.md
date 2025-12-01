@@ -45,16 +45,18 @@ This document describes:
 
 ### Dissector fields
 
-| Field                                  | Display name                | Field Type          |
-| -------------------------------------- | --------------------------- | ------------------- |
-| `mvu.unsolicited_response`             | Unsolicited Response        | Boolean             |
-| `mvu.command_type`                     | Command Type                | Number (enum)       |
-| `mvu.status`                           | Status                      | Number (enum)       |
-| `mvu.specifications_version`           | -                           | String (generated)  |
-| `mvu.has_errors`                       | -                           | Boolean (generated) |
-| `mvu.expert.sequence_id_duplicate`     | Sequence ID duplicate error | Expert              |
-| `mvu.expert.control_data_length_error` | Control Data Length error   | Expert              |
-| `mvu.expert.command_status_error`      | MVU Command Status error    | Expert              |
+| Field                                    | Display name                | Field Type          |
+| ---------------------------------------- | --------------------------- | ------------------- |
+| `mvu.unsolicited_response`               | Unsolicited Response        | Boolean             |
+| `mvu.command_type`                       | Command Type                | Number (enum)       |
+| `mvu.status`                             | Status                      | Number (enum)       |
+| `mvu.specifications_version`             | -                           | String (generated)  |
+| `mvu.has_errors`                         | -                           | Boolean (generated) |
+| `mvu.has_warnings`                       | -                           | Boolean (generated) |
+| `mvu.expert.sequence_id_duplicate`       | Sequence ID duplicate error | Expert              |
+| `mvu.expert.control_data_length_error`   | Control Data Length error   | Expert              |
+| `mvu.expert.control_data_length_warning` | Control Data Length warning | Expert              |
+| `mvu.expert.command_status_error`        | MVU Command Status error    | Expert              |
 
 ### Dissector rules
 
@@ -109,6 +111,12 @@ This field is not displayed in the packet tree but can be used in packet filters
 
 Its value is set to true when at least one error was detected in the packet.
 
+#### Rules for `mvu.has_warnings`
+
+This field is not displayed in the packet tree but can be used in packet filters.
+
+Its value is set to true when at least one warning was detected in the packet.
+
 #### Rules for `mvu.expert.sequence_id_duplicate`
 
 This expert field is added to the tree with severity level set to Error when a previous packet in the capture has the same controller_entity_id, sequence_id and message_type.
@@ -129,8 +137,15 @@ This can happen when:
 - the control_data_length is smaller than the minimum allowed value of 20
 - the control_data_length is greater than the maximum allowed value of 254
 - there are not enough bytes in the payload to satisfy the control_data_length
-- there are bytes in the payload that exceed the position defined by the control_data_length (with the exception of padding bytes added to achieve the Ethernet minimum frame size)
 - in an MVU response with the NOT_IMPLEMENTED_FLAG set to 1, the control_data_length does not have the same value as in the originating MVU command in the packet capture
+
+#### Rules for `mvu.expert.control_data_length_warning`
+
+This expert field is added to the tree with severity level set to Error when the control_data_length is unexpected.
+
+This can happen when:
+
+- there are bytes in the payload that exceed the position defined by the control_data_length (with the exception of padding bytes added to achieve the Ethernet minimum frame size)
 
 ###### Example
 

@@ -156,10 +156,14 @@ end
 --- Add fields to the subtree
 --- @param buffer any The buffer to dissect (TVB object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tvb.html#lua_class_Tvb)
 --- @param subtree table The tree on which to add the protocol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
---- @param errors table<string> Existing errors
+--- @param existing_errors table<string>|nil Existing errors
+--- @param existing_warnings table<string>|nil List of string warnings found during dissecting so far
 --- @return table<string> errors List of errors encountered
 --- @return boolean|nil blocking_errors Indicates if one of the returned errors is blocking and should interrupt further packet analysis
-function m.AddFieldsToSubtree(buffer, subtree, errors)
+--- @return table<string>|nil warnings
+function m.AddFieldsToSubtree(buffer, subtree, existing_errors, existing_warnings)
+
+	local errors = existing_errors or {}
 
 	-- Read IEEE 1722.1 field values
 	local message_type        = mIEEE17221Fields.GetMessageType()
@@ -177,7 +181,7 @@ function m.AddFieldsToSubtree(buffer, subtree, errors)
 		-- Insert error
 		errors = mControl.InsertControlDataLengthError(control_data_length, buffer, subtree, errors)
 		-- Return blocking error
-		return errors, true
+		return errors, true, existing_warnings
 	end
 
 	-- Get MVU payload bytes from buffer
@@ -272,7 +276,7 @@ function m.AddFieldsToSubtree(buffer, subtree, errors)
 	end
 
 	-- Return non-blocking errors
-	return errors
+	return errors, false, existing_warnings
 
 end
 
