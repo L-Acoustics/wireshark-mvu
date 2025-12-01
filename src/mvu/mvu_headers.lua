@@ -409,6 +409,7 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo)
 		local message_metadata = {
 			frameNumber = pinfo.number,
 			controlDataLength = control_data_length,
+			commandType = m._command_type,
 		}
 
 		-- Register message and metadata
@@ -455,6 +456,7 @@ function m.WritePacketInfo(pinfo, errors)
 
 	-- Read IEEE 1722.1 field values
 	local message_type        = mIEEE17221Fields.GetMessageType()
+	local status_code         = mIEEE17221Fields.GetVendorUniqueStatusCode()
 	local control_data_length = mIEEE17221Fields.GetControlDataLength()
 
 	-- Read MVU header field values
@@ -462,6 +464,29 @@ function m.WritePacketInfo(pinfo, errors)
 
 	-- Get the detected Milan version for this command
 	local milan_version = mSpecs.GetMilanVersionOfCommand(message_type, command_type, control_data_length)
+
+	-- If the response does not implement the command
+	if message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE
+	and status_code == mIEEE17221Specs.VENDOR_UNIQUE_STATUS_CODES.NOT_IMPLEMENTED
+	then
+		-- Find the initial command in the conversations
+		local initial_command_data = mConversations.GetConversationMessageData(mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND)
+
+		-- If initial command data was found
+		if type(initial_command_data) == "table" then
+			-- Compute the milan version of the initial command
+			local initial_command_milan_version = mSpecs.GetMilanVersionOfCommand(
+				mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND,
+				initial_command_data.commandType,
+				initial_command_data.controlDataLength
+			)
+			-- If the initial command Milan version was detected
+			if initial_command_milan_version then
+				-- Overwrite Milan version by that of the initial command
+				milan_version = initial_command_milan_version
+			end
+		end
+	end
 
 	-- Change protocol name from IEEE1722.1 to MVU
 	if type(milan_version) == "string" and #milan_version > 0 then
