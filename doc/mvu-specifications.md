@@ -45,18 +45,18 @@ This document describes:
 
 ### Dissector fields
 
-| Field                                    | Display name                | Field Type          |
-| ---------------------------------------- | --------------------------- | ------------------- |
-| `mvu.unsolicited_response`               | Unsolicited Response        | Boolean             |
-| `mvu.command_type`                       | Command Type                | Number (enum)       |
-| `mvu.status`                             | Status                      | Number (enum)       |
-| `mvu.specifications_version`             | -                           | String (generated)  |
-| `mvu.has_errors`                         | -                           | Boolean (generated) |
-| `mvu.has_warnings`                       | -                           | Boolean (generated) |
-| `mvu.expert.sequence_id_duplicate`       | Sequence ID duplicate error | Expert              |
-| `mvu.expert.control_data_length_error`   | Control Data Length error   | Expert              |
-| `mvu.expert.control_data_length_warning` | Control Data Length warning | Expert              |
-| `mvu.expert.command_status_error`        | MVU Command Status error    | Expert              |
+| Field                                    | Display name                | Field Type          | Milan protocol minimum version |
+| ---------------------------------------- | --------------------------- | ------------------- | ------------------------------ |
+| `mvu.u_flag`                             | Unsolicited Response        | Boolean             | 1.3                            |
+| `mvu.command_type`                       | Command Type                | Number (enum)       | 1.0                            |
+| `mvu.status`                             | Status                      | Number (enum)       | 1.0                            |
+| `mvu.specifications_version`             | -                           | String (generated)  | 1.0                            |
+| `mvu.has_errors`                         | -                           | Boolean (generated) | 1.0                            |
+| `mvu.has_warnings`                       | -                           | Boolean (generated) | 1.0                            |
+| `mvu.expert.sequence_id_duplicate`       | Sequence ID duplicate error | Expert              | 1.0                            |
+| `mvu.expert.control_data_length_error`   | Control Data Length error   | Expert              | 1.0                            |
+| `mvu.expert.control_data_length_warning` | Control Data Length warning | Expert              | 1.0                            |
+| `mvu.expert.command_status_error`        | MVU Command Status error    | Expert              | 1.0                            |
 
 ### Dissector rules
 
@@ -215,12 +215,12 @@ The MVU message type (Command/Response) is extracted from the IEEE 1722.1 protoc
 
 ### Expected information in the packet
 
-| Field                 | Description                                           | MVU Protocol Version |
-| --------------------- | ----------------------------------------------------- | -------------------- |
-| protocol_version      | Milan protocol version supported by the PAAD-AE       | $\geqslant$ 1.1      |
-| features_flags        | Bitfield of supported features                        | $\geqslant$ 1.1      |
-| certification_version | Milan certification the PAAD-AE has passed            | $\geqslant$ 1.1      |
-| specification_version | Milan specifications version supported by the PAAD-AE | $\geqslant$ 1.3      |
+| Field                 | Description                                           | Milan protocol minimum version |
+| --------------------- | ----------------------------------------------------- | ------------------------------ |
+| protocol_version      | Milan protocol version supported by the PAAD-AE       | 1.0                            |
+| features_flags        | Bitfield of supported features                        | 1.0                            |
+| certification_version | Milan certification the PAAD-AE has passed            | 1.0                            |
+| specification_version | Milan specifications version supported by the PAAD-AE | 1.3                            |
 
 ### Dissector fields
 
@@ -255,10 +255,10 @@ This field is inserted in the tree only when its value is not 0x00000000.
 
 ### Expected information in the packet
 
-| Field  | Description                                  | MVU Protocol Version |
-| ------ | -------------------------------------------- | -------------------- |
-| number | Number of the network-wide unique identifier | $\geqslant$ 1.2      |
-| name   | Name of the network-wide unique identifier   | $\geqslant$ 1.3      |
+| Field  | Description                                  | Milan protocol minimum version |
+| ------ | -------------------------------------------- | ------------------------------ |
+| number | Number of the network-wide unique identifier | 1.2                            |
+| name   | Name of the network-wide unique identifier   | 1.3                            |
 
 ### Dissector fields
 
@@ -326,13 +326,13 @@ This field is inserted in the tree only when its value is not 0x00000000.
 
 ### Expected information in the packet
 
-| Field                   | Description                                        | MVU Protocol Version |
-| ----------------------- | -------------------------------------------------- | -------------------- |
-| clock_domain_index      | Index of the CLOCK_DOMAIN descriptor               | $\geqslant$ 1.2      |
-| flags                   | Fields having values to be set                     | $\geqslant$ 1.2      |
-| default_mcr_prio        | Default Media Clock Reference priority of the PAAD | $\geqslant$ 1.2      |
-| user_mcr_prio           | User Media Clock Reference priority of the PAAD    | $\geqslant$ 1.2      |
-| media_clock_domain_name | Name for the Clock Domain                          | $\geqslant$ 1.2      |
+| Field                   | Description                                        | Milan protocol minimum version |
+| ----------------------- | -------------------------------------------------- | ------------------------------ |
+| clock_domain_index      | Index of the CLOCK_DOMAIN descriptor               | 1.2                            |
+| flags                   | Fields having values to be set                     | 1.2                            |
+| default_mcr_prio        | Default Media Clock Reference priority of the PAAD | 1.2                            |
+| user_mcr_prio           | User Media Clock Reference priority of the PAAD    | 1.2                            |
+| media_clock_domain_name | Name for the Clock Domain                          | 1.2                            |
 
 ### Dissector fields
 
@@ -382,9 +382,9 @@ This field is inserted in the tree only when its value is not 0x00000000.
 
 ### Expected information in the packet
 
-| Field              | Description                          | MVU Protocol Version |
-| ------------------ | ------------------------------------ | -------------------- |
-| clock_domain_index | Index of the CLOCK_DOMAIN descriptor | $\geqslant$ 1.2      |
+| Field              | Description                          | Milan protocol minimum version |
+| ------------------ | ------------------------------------ | ------------------------------ |
+| clock_domain_index | Index of the CLOCK_DOMAIN descriptor | 1.2                            |
 
 ### Dissector fields
 
@@ -422,13 +422,13 @@ This field is inserted in the tree only when its value is not 0x00000000.
 
 ### Expected information in the packet
 
-| Field               | Description                                                                            | MVU Protocol Version |
-| ------------------- | -------------------------------------------------------------------------------------- | -------------------- |
-| flags               | Bitfield parameters accompanying the command                                           | $\geqslant$ 1.3      |
-| descriptor_type     | Descriptor type of the Listener's Stream Input to bind<br>_See IEEE 1722.1 clause 7.2_ | $\geqslant$ 1.3      |
-| descriptor_index    | Descriptor index of the Listener's Stream Input to bind                                | $\geqslant$ 1.3      |
-| talker_entity_id    | Entity ID of the Talker to be bound to                                                 | $\geqslant$ 1.3      |
-| talker_stream_index | Index of the Talker's STREAM_OUTPUT to be bound to                                     | $\geqslant$ 1.3      |
+| Field               | Description                                                                            | Milan protocol minimum version |
+| ------------------- | -------------------------------------------------------------------------------------- | ------------------------------ |
+| flags               | Bitfield parameters accompanying the command                                           | 1.3                            |
+| descriptor_type     | Descriptor type of the Listener's Stream Input to bind<br>_See IEEE 1722.1 clause 7.2_ | 1.3                            |
+| descriptor_index    | Descriptor index of the Listener's Stream Input to bind                                | 1.3                            |
+| talker_entity_id    | Entity ID of the Talker to be bound to                                                 | 1.3                            |
+| talker_stream_index | Index of the Talker's STREAM_OUTPUT to be bound to                                     | 1.3                            |
 
 ### Dissector fields
 
@@ -512,10 +512,10 @@ This field is inserted if any field in the response is not set to the same value
 
 ### Expected information in the packet
 
-| Field            | Description                                               | MVU Protocol Version |
-| ---------------- | --------------------------------------------------------- | -------------------- |
-| descriptor_type  | Descriptor type of the Listener's Stream Input to unbind  | $\geqslant$ 1.3      |
-| descriptor_index | Descriptor index of the Listener's Stream Input to unbind | $\geqslant$ 1.3      |
+| Field            | Description                                               | Milan protocol minimum version |
+| ---------------- | --------------------------------------------------------- | ------------------------------ |
+| descriptor_type  | Descriptor type of the Listener's Stream Input to unbind  | 1.3                            |
+| descriptor_index | Descriptor index of the Listener's Stream Input to unbind | 1.3                            |
 
 ### Dissector fields
 
@@ -599,14 +599,14 @@ This field is inserted if any field in the response is not set to the same value
 
 ### Expected information in the packet
 
-| Field            | Description                                                    | MVU Protocol Version |
-| ---------------- | -------------------------------------------------------------- | -------------------- |
-| descriptor_type  | Descriptor type of the Listener's Stream Input                 | $\geqslant$ 1.3      |
-| descriptor_index | Descriptor index of the Listener's Stream Input                | $\geqslant$ 1.3      |
-| talker_entity_id | Entity ID of Talker if sink_state $\geqslant$ 1                | $\geqslant$ 1.3      |
-| talker_stream_id | Index of Talker Stream Output                                  | $\geqslant$ 1.3      |
-| pbsta            | Probing status of the Stream Input                             | $\geqslant$ 1.3      |
-| acmpsta          | ACMP status of the Stream Input (when pbsta is PROBING_ACTIVE) | $\geqslant$ 1.3      |
+| Field            | Description                                                    | Milan protocol minimum version |
+| ---------------- | -------------------------------------------------------------- | ------------------------------ |
+| descriptor_type  | Descriptor type of the Listener's Stream Input                 | 1.3                            |
+| descriptor_index | Descriptor index of the Listener's Stream Input                | 1.3                            |
+| talker_entity_id | Entity ID of Talker if sink_state 1                            | 1.3                            |
+| talker_stream_id | Index of Talker Stream Output                                  | 1.3                            |
+| pbsta            | Probing status of the Stream Input                             | 1.3                            |
+| acmpsta          | ACMP status of the Stream Input (when pbsta is PROBING_ACTIVE) | 1.3                            |
 
 ### Dissector fields
 

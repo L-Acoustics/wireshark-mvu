@@ -48,7 +48,7 @@ m._fields = {}
 m._FIELD_NAMES = {
     COMMAND_TYPE                = "mvu.command_type",
     STATUS                      = "mvu.status",
-    UNSOLICITED_RESPONSE        = "mvu.unsolicited_response",
+    UNSOLICITED_RESPONSE        = "mvu.u_flag",
     SPECIFICATIONS_VERSION      = "mvu.specifications_version",
     HAS_ERRORS                  = "mvu.has_errors",
     HAS_WARNINGS                = "mvu.has_warnings",
@@ -255,17 +255,8 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo, existing_errors, exi
 	local message_type        = mIEEE17221Fields.GetMessageType()
 	local control_data_length = mIEEE17221Fields.GetControlDataLength()
 
-	---
-	--- Unsolicited Response
-	---
-
-	-- Read command type (2 bytes, taking only first byte)
-	m._unsolicited_response = (bit.band(0x8000, m._mvu_payload_bytes:int(0, 2)) > 0)
-
-	-- Write field to the MVU subtree
-	if message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE then
-		subtree:add(m._fields[m._FIELD_NAMES.UNSOLICITED_RESPONSE], buffer(m._mvu_payload_start, 2))
-	end
+	-- Get Milan specification revision implemented by the message
+	local milan_version = mSpecs.GetMilanVersionOfCommand(message_type, m._command_type, control_data_length)
 
 	---
 	--- Command Type
@@ -281,15 +272,23 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo, existing_errors, exi
 	--- Command Milan version
 	---
 
-	-- Get Milan specification revision implemented by the message
-	local milan_version = mSpecs.GetMilanVersionOfCommand(message_type, m._command_type, control_data_length)
-
 	-- If the Milan version was detected
 	if type(milan_version) == "string" and #milan_version > 0 then
 		-- Write Milan version to the subtree
 		subtree:add(m._fields[m._FIELD_NAMES.SPECIFICATIONS_VERSION], milan_version, "Version " .. milan_version)
 			--- Mark as a generated field (with data inferred but not contained in the packet)
 			:set_generated(true)
+	end
+
+	---
+	--- Unsolicited Response
+	---
+
+	if milan_version >= 1.3 and message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE then
+		-- Read U flag (2 bytes, taking only first bit)
+		m._unsolicited_response = (bit.band(0x8000, m._mvu_payload_bytes:int(0, 2)) > 0)
+		-- Write field to the MVU subtree
+		subtree:add(m._fields[m._FIELD_NAMES.UNSOLICITED_RESPONSE], buffer(m._mvu_payload_start, 2))
 	end
 
 	---
