@@ -1,0 +1,19 @@
+# GET_STREAM_INPUT_INFO_EX
+# Case 1: No errors
+#
+# Capture file source, convert to .pcapng using:
+#   text2pcap -t ISO <inputfile.txt> <outputfile.pcapng>
+#
+# https://www.wireshark.org/docs/man-pages/text2pcap.html
+
+    # GET_STREAM_INPUT_INFO_EX command
+    0000  00 e0 4c 40 90 2a 00 1b 92 05 08 70 22 f0 fb 06
+    0010  00 18 00 1b 92 ff ff 05 08 70 00 e0 4c 40 90 2a
+    0020  00 01 00 01 00 1b c5 0a c1 00 00 07 00 00 00 05
+    0030  00 03
+
+    # GET_STREAM_INPUT_INFO_EX response
+    0000  00 e0 4c 40 90 2a 00 1b 92 05 08 70 22 f0 fb 07
+    0010  00 24 00 1b 92 ff ff 05 08 70 00 e0 4c 40 90 2a
+    0020  00 01 00 01 00 1b c5 0a c1 00 00 07 00 00 00 05
+    0030  00 03 00 00 00 00 00 00 00 01 00 02 46 00

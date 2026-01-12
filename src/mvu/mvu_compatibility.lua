@@ -3,7 +3,7 @@
 
 	This file is part of the Milan Vendor Unique plugin for Wireshark
 	---
-		Constants and information about this Wireshark plugin
+		Functions for compatibility control
 	---
 
 	Authors: Benjamin Landrot
@@ -22,6 +22,9 @@
 
 ]]
 
+-- Require dependency modules
+local mHelpers = require("helpers")
+
 -- Init module object
 local m = {}
 
@@ -29,26 +32,31 @@ local m = {}
 -- Private Members --
 ---------------------
 
-m._info = {
-	version = "1.2.1.0",
-	author = "L-Acoustics",
-	description = "Lua plugin for dissecting Milan Vendor Unique information in IEEE1722.1 frames in Wireshark",
-	repository = "https://github.com/L-Acoustics/wireshark-mvu"
-}
+--- The minimum supported version of Wireshark
+m._minimum_wireshark_version = "4.4.0"
 
 --------------------
 -- Public Methods --
 --------------------
 
---- Register plugin information in Wireshark
-function m.RegisterPluginInfo()
-    set_plugin_info(m._info)
+--- Determines if the current plugin is compatible with the running version of Wireshark
+function m.IsWiresharkVersionCompatible()
+	-- Get program version
+	local wireshark_version = get_version()
+	-- If program version is too old
+	local version_comparison = mHelpers.CompareVersions(wireshark_version, m._minimum_wireshark_version)
+	if type(version_comparison) ~= "number" or version_comparison < 0 then
+		-- Not compatible
+		return false
+	end
+	-- Eventually, the Wireshark version is compatible
+	return true
 end
 
---- Get plugin version information
---- @return string plugin_version
-function m.GetVersion()
-	return m._info.version
+--- Read the required minimum version of Wireshark compatible with this plugin
+--- @return string
+function m.GetMinimumWiresharkVersion()
+	return m._minimum_wireshark_version
 end
 
 -- Return module object

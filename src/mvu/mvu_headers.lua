@@ -26,6 +26,7 @@
 local mProto = require("mvu_proto")
 local mFields = require("mvu_fields")
 local mSpecs = require("mvu_specs")
+local mMvuSpecs = require("mvu_specs")
 local mIEEE17221Fields = require("ieee17221_fields")
 local mIEEE17221Specs = require("ieee17221_specs")
 local mHelpers = require("helpers")
@@ -45,12 +46,16 @@ m._fields = {}
 -- List of Wireshark field names related to MVU headers
 -- These field names can be used in Wireshark display filters to analyze MVU packets
 m._FIELD_NAMES = {
-    COMMAND_TYPE              = "mvu.command_type",
-    STATUS                    = "mvu.status",
-    SPECIFICATIONS_VERSION    = "mvu.specifications_version",
-    HAS_ERRORS                = "mvu.has_errors",
-    SEQUENCE_ID_DUPLICATE     = "mvu.expert.sequence_id_duplicate",
-    CONTROL_DATA_LENGTH_ERROR = "mvu.expert.control_data_length_error",
+    COMMAND_TYPE                = "mvu.command_type",
+    STATUS                      = "mvu.status",
+    UNSOLICITED_RESPONSE        = "mvu.u_flag",
+    SPECIFICATIONS_VERSION      = "mvu.specifications_version",
+    HAS_ERRORS                  = "mvu.has_errors",
+    HAS_WARNINGS                = "mvu.has_warnings",
+    SEQUENCE_ID_DUPLICATE       = "mvu.expert.sequence_id_duplicate",
+    CONTROL_DATA_LENGTH_ERROR   = "mvu.expert.control_data_length_error",
+    CONTROL_DATA_LENGTH_WARNING = "mvu.expert.control_data_length_warning",
+    COMMAND_STATUS_ERROR        = "mvu.expert.command_status_error",
 }
 
 -- Internal list of expert fields
@@ -58,6 +63,9 @@ m._experts = {}
 
 -- The MVU subtree
 m._subtree = nil
+
+-- The packet's Unsolicited Response bit
+m._unsolicited_response = nil
 
 -- The packet's command type
 m._command_type = nil
@@ -95,19 +103,60 @@ function m.DeclareFields()
 	------------
 	-- See documentation: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Proto.html#lua_class_ProtoField
 
+	-- Unsolicited Response bit
+	m._fields[m._FIELD_NAMES.UNSOLICITED_RESPONSE]
+	= mFields.CreateField(
+		ProtoField.bool(
+			m._FIELD_NAMES.UNSOLICITED_RESPONSE,
+			"Unsolicited Response",
+			16,    -- parent bitfield size
+			nil,   -- table of value strings
+			0x8000 -- bit mask for this field
+		)
+	)
+
 	-- Command type
 	local command_type_valuestring = mHelpers.GetTableValuesWithNumberKey(mSpecs.COMMAND_TYPES)
-	m._fields[m._FIELD_NAMES.COMMAND_TYPE] = mFields.CreateField(ProtoField.uint32(m._FIELD_NAMES.COMMAND_TYPE, "Command Type", base.HEX, command_type_valuestring))
+	m._fields[m._FIELD_NAMES.COMMAND_TYPE]
+	= mFields.CreateField(
+		ProtoField.uint16(
+			m._FIELD_NAMES.COMMAND_TYPE,
+			"Command Type",
+			base.HEX,
+			command_type_valuestring,
+			0x7fff -- bit mask for this field (ignoring first bit)
+		)
+	)
 
 	-- Status code (taken from IEEE 1722.1 header)
-	local status_valuestring = mHelpers.GetTableValuesWithNumberKey(mIEEE17221Specs.VENDOR_UNIQUE_STATUS_CODES)
-	m._fields[m._FIELD_NAMES.STATUS] = mFields.CreateField(ProtoField.uint8(m._FIELD_NAMES.STATUS, "Status", base.HEX, status_valuestring))
+	local status_valuestring = mHelpers.GetTableValuesWithNumberKey(mMvuSpecs.MVU_STATUS_CODES)
+	m._fields[m._FIELD_NAMES.STATUS]
+	= mFields.CreateField(
+		ProtoField.uint8(
+			m._FIELD_NAMES.STATUS,
+			"Status",
+			base.HEX,
+			status_valuestring
+		)
+	)
 
 	-- Milan specification revision version
-	m._fields[m._FIELD_NAMES.SPECIFICATIONS_VERSION] = mFields.CreateField(ProtoField.string(m._FIELD_NAMES.SPECIFICATIONS_VERSION))
+	m._fields[m._FIELD_NAMES.SPECIFICATIONS_VERSION]
+	= mFields.CreateField(
+		ProtoField.string(m._FIELD_NAMES.SPECIFICATIONS_VERSION)
+	)
 
 	-- Flag for when the MVU packet has errors
-	m._fields[m._FIELD_NAMES.HAS_ERRORS] = mFields.CreateField(ProtoField.bool(m._FIELD_NAMES.HAS_ERRORS))
+	m._fields[m._FIELD_NAMES.HAS_ERRORS]
+	= mFields.CreateField(
+		ProtoField.bool(m._FIELD_NAMES.HAS_ERRORS)
+	)
+
+	-- Flag for when the MVU packet has warnings
+	m._fields[m._FIELD_NAMES.HAS_WARNINGS]
+	= mFields.CreateField(
+		ProtoField.bool(m._FIELD_NAMES.HAS_WARNINGS)
+	)
 
 	-------------------
 	-- EXPERT FIELDS --
@@ -121,6 +170,14 @@ function m.DeclareFields()
 	-- Control Data Length error
 	local control_data_length_error = ProtoExpert.new(m._FIELD_NAMES.CONTROL_DATA_LENGTH_ERROR, "Control Data Length error", expert.group.PROTOCOL, expert.severity.ERROR)
 	m._experts[m._FIELD_NAMES.CONTROL_DATA_LENGTH_ERROR] = mFields.CreateExpertField(m._FIELD_NAMES.CONTROL_DATA_LENGTH_ERROR, control_data_length_error)
+
+	-- Control Data Length warning
+	local control_data_length_warning = ProtoExpert.new(m._FIELD_NAMES.CONTROL_DATA_LENGTH_WARNING, "Control Data Length warning", expert.group.PROTOCOL, expert.severity.WARN)
+	m._experts[m._FIELD_NAMES.CONTROL_DATA_LENGTH_WARNING] = mFields.CreateExpertField(m._FIELD_NAMES.CONTROL_DATA_LENGTH_WARNING, control_data_length_warning)
+
+	-- Command status error
+	local command_status_error = ProtoExpert.new(m._FIELD_NAMES.COMMAND_STATUS_ERROR, "Command Status error", expert.group.PROTOCOL, expert.severity.ERROR)
+	m._experts[m._FIELD_NAMES.COMMAND_STATUS_ERROR] = mFields.CreateExpertField(m._FIELD_NAMES.COMMAND_STATUS_ERROR, command_status_error)
 
 end
 
@@ -187,13 +244,19 @@ end
 --- @param buffer any The buffer to dissect (TVB object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tvb.html#lua_class_Tvb)
 --- @param subtree table The tree on which to add the protocol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
 --- @param pinfo any Packet info (Pinfo object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Pinfo.html#lua_class_Pinfo)
+--- @param existing_errors table<string>|nil List of string errors found during dissecting so far
+--- @param existing_warnings table<string>|nil List of string warnings found during dissecting so far
 --- @return table<string> errors
 --- @return boolean|nil blocking_errors Indicates if one of the returned errors is blocking and should interrupt further packet analysis
-function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo)
+--- @return table<string>|nil warnings
+function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo, existing_errors, existing_warnings)
 
 	-- Read IEEE 1722.1 field values
 	local message_type        = mIEEE17221Fields.GetMessageType()
 	local control_data_length = mIEEE17221Fields.GetControlDataLength()
+
+	-- Get Milan specification revision implemented by the message
+	local milan_version = mSpecs.GetMilanVersionOfCommand(message_type, m._command_type, control_data_length)
 
 	---
 	--- Command Type
@@ -203,14 +266,11 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo)
 	m._command_type = bit.band(0x7fff, m._mvu_payload_bytes:int(0, 2))
 
 	-- Write command type and description to the MVU subtree
-	subtree:add(m._fields[m._FIELD_NAMES.COMMAND_TYPE], buffer(m._mvu_payload_start, 2), m._command_type)
+	subtree:add(m._fields[m._FIELD_NAMES.COMMAND_TYPE], buffer(m._mvu_payload_start, 2))
 
 	---
 	--- Command Milan version
 	---
-
-	-- Get Milan specification revision implemented by the message
-	local milan_version = mSpecs.GetMilanVersionOfCommand(message_type, m._command_type, control_data_length)
 
 	-- If the Milan version was detected
 	if type(milan_version) == "string" and #milan_version > 0 then
@@ -218,6 +278,17 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo)
 		subtree:add(m._fields[m._FIELD_NAMES.SPECIFICATIONS_VERSION], milan_version, "Version " .. milan_version)
 			--- Mark as a generated field (with data inferred but not contained in the packet)
 			:set_generated(true)
+	end
+
+	---
+	--- Unsolicited Response
+	---
+
+	if milan_version >= 1.3 and message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE then
+		-- Read U flag (2 bytes, taking only first bit)
+		m._unsolicited_response = (bit.band(0x8000, m._mvu_payload_bytes:int(0, 2)) > 0)
+		-- Write field to the MVU subtree
+		subtree:add(m._fields[m._FIELD_NAMES.UNSOLICITED_RESPONSE], buffer(m._mvu_payload_start, 2))
 	end
 
 	---
@@ -234,7 +305,8 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo)
 	--- Check errors
 	---
 
-	local errors = {}
+	local errors = existing_errors or {}
+	local warnings = existing_warnings or {}
 
 	-- If the Control Data Length is smaller than expected
 	-- (the minimum length is 20 bytes for the smallest MVU command)
@@ -252,7 +324,7 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo)
 		table.insert(errors, error_message)
 
 		-- Return blocking error
-		return errors, true
+		return errors, true, warnings
 
 	end
 
@@ -294,20 +366,20 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo)
 	local remaining_length = buffer:len() - control_data_end
 	if remaining_length > 0 then
 
-		-- Build error message
-		local error_message = "The frame contains " .. remaining_length .. " unexpected remaining bytes after the control data payload"
+		-- Build warning message
+		local warning_message = "The frame contains " .. remaining_length .. " unexpected remaining bytes after the control data payload"
 
-		-- Add control data length error to the subtree
-		subtree:add_tvb_expert_info(m._experts[m._FIELD_NAMES.CONTROL_DATA_LENGTH_ERROR], buffer(control_data_end, remaining_length), error_message)
+		-- Add control data length warning to the subtree
+		subtree:add_tvb_expert_info(m._experts[m._FIELD_NAMES.CONTROL_DATA_LENGTH_WARNING], buffer(control_data_end, remaining_length), warning_message)
 
-		-- Add error message to errors list
-		table.insert(errors, error_message)
+		-- Add warning message to warnings list
+		table.insert(warnings, warning_message)
 
 	end
 
 	-- If the message is a response to a command that the responder does not implement
 	if message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE
-	and m._status_code == mIEEE17221Specs.VENDOR_UNIQUE_STATUS_CODES.NOT_IMPLEMENTED
+	and m._status_code == mMvuSpecs.MVU_STATUS_CODES.NOT_IMPLEMENTED
 	then
 
 		-- Get information about the initial command using the conversations module
@@ -340,7 +412,7 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo)
 		end
 
 		--  Return breaking error
-		return errors, true
+		return errors, true, warnings
 	end
 
 	----------------------------------------------------------
@@ -357,6 +429,7 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo)
 		local message_metadata = {
 			frameNumber = pinfo.number,
 			controlDataLength = control_data_length,
+			commandType = m._command_type,
 		}
 
 		-- Register message and metadata
@@ -380,7 +453,7 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo)
 	end
 
 	-- Return list of non-blocking errors if any
-	return errors
+	return errors, false, warnings
 
 end
 
@@ -396,6 +469,18 @@ function m.SetHasErrorsField(has_errors, subtree)
 	end
 end
 
+--- Set the value of the Has Warnings field and add to subtree
+--- @param has_warnings boolean
+--- @param subtree table The tree on which to add the protocol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
+function m.SetHasWarningsField(has_warnings, subtree)
+	if (has_warnings) then
+		-- Add Has Warnings field to the subtree
+		subtree:add(m._fields[m._FIELD_NAMES.HAS_WARNINGS], true, "The MVU packet has warnings!")
+			--- Mark as a generated field (with data inferred but not contained in the packet)
+			:set_generated(true)
+	end
+end
+
 --- Alter the packet information object to write MVU details in the packet columns
 --- @param pinfo any packet info (PIinfo object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Pinfo.html#lua_class_Pinfo)
 --- @param errors table<string>|nil List of string errors found during dissecting, worth mentioning in the packet info
@@ -403,6 +488,7 @@ function m.WritePacketInfo(pinfo, errors)
 
 	-- Read IEEE 1722.1 field values
 	local message_type        = mIEEE17221Fields.GetMessageType()
+	local status_code         = mIEEE17221Fields.GetVendorUniqueStatusCode()
 	local control_data_length = mIEEE17221Fields.GetControlDataLength()
 
 	-- Read MVU header field values
@@ -410,6 +496,29 @@ function m.WritePacketInfo(pinfo, errors)
 
 	-- Get the detected Milan version for this command
 	local milan_version = mSpecs.GetMilanVersionOfCommand(message_type, command_type, control_data_length)
+
+	-- If the response does not implement the command
+	if message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE
+	and status_code == mIEEE17221Specs.VENDOR_UNIQUE_STATUS_CODES.NOT_IMPLEMENTED
+	then
+		-- Find the initial command in the conversations
+		local initial_command_data = mConversations.GetConversationMessageData(mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND)
+
+		-- If initial command data was found
+		if type(initial_command_data) == "table" then
+			-- Compute the milan version of the initial command
+			local initial_command_milan_version = mSpecs.GetMilanVersionOfCommand(
+				mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND,
+				initial_command_data.commandType,
+				initial_command_data.controlDataLength
+			)
+			-- If the initial command Milan version was detected
+			if initial_command_milan_version then
+				-- Overwrite Milan version by that of the initial command
+				milan_version = initial_command_milan_version
+			end
+		end
+	end
 
 	-- Change protocol name from IEEE1722.1 to MVU
 	if type(milan_version) == "string" and #milan_version > 0 then

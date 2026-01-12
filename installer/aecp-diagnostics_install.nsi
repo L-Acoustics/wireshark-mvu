@@ -1,22 +1,22 @@
-# NSIS Installer for Milan Vendor Unique dissector Plugin (Wireshark)
+# NSIS Installer for AECP Diagnostics dissector Plugin (Wireshark)
 # Author: benjamin.landrot@l-acoustics.com
 
 # --- Includes ---
 !include "MUI2.nsh"
 !include "nsDialogs.nsh"
 !include "LogicLib.nsh"
-!include "mvu_version.nsh"
+!include "aecp-diagnostics_version.nsh"
 !include "VersionCompare.nsh"
 
 # --- Constants ---
-!define PROGRAM_NAME          "MVU Wireshark Plugin"
-!define NAME_SHORT            "MVU_Wireshark_Plugin"
-!define DESC                  "A lua-based plugin for Wireshark to help analyzing Milan Vendor Unique messages of IEEE 1722.1"
+!define PROGRAM_NAME          "AECP Diagnostics Wireshark Plugin"
+!define NAME_SHORT            "AECP_Diagnostics_Wireshark_Plugin"
+!define DESC                  "A lua-based plugin for Wireshark to help analyzing AECP Diagnostics messages of IEEE 1722.1"
 !define COMPANY               "L-Acoustics"
 !define COPYRIGHT             "(c) L-Acoustics"
-!define INST_FILE             "mvu-wireshark-plugin-${VERSION}-win-x64.exe"
+!define INST_FILE             "aecp-diagnostics-wireshark-plugin-${VERSION}-win-x64.exe"
 !define UNINSTALL_PATH        "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME_SHORT}"
-!define UNINSTALLER_NAME      "uninstall-mvu-wireshark-plugin.exe"
+!define UNINSTALLER_NAME      "uninstall-aecp-diagnostics-wireshark-plugin.exe"
 !define WS_UNINSTALL_PATH     "Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Wireshark"
 !define WS_MINIMUM_VERSION_REQUIRED "4.4.0"
 !define OUT_FOLDER            "build"
@@ -29,7 +29,7 @@ OutFile "${OUT_FOLDER}\${INST_FILE}"
 Unicode true
 # Installing files to Wireshark user plugins folder. This makes it survive Wireshark reinstallations
 # and avoids the need of requesting admin execution level for installing
-InstallDir "$APPDATA\Wireshark\plugins\mvu"
+InstallDir "$APPDATA\Wireshark\plugins\aecp-diagnostics"
 InstallDirRegKey HKEY_CURRENT_USER SOFTWARE\${NAME_SHORT} InstallDir
 
 # --- Version ---
@@ -45,7 +45,7 @@ VIAddVersionKey "FileVersion" "${VERSION}"
 !define MUI_FINISHPAGE_NOAUTOCLOSE
 !define MUI_HEADERIMAGE
 !define MUI_ABORTWARNING
-!define MUI_WELCOMEPAGE_TITLE "MVU Wireshark Plugin"
+!define MUI_WELCOMEPAGE_TITLE "AECP Diagnostics Wireshark Plugin"
 !define MUI_WELCOMEPAGE_TEXT "This wizard will guide you through the installation of ${PROGRAM_NAME}.$\r$\n$\r$\n${PROGRAM_NAME} supports Wireshark 4.4.0 or newer, so make sure to install a supported version of Wireshark to be able to use this plugin. $\r$\n$\r$\nClick 'Next' to continue."
 
 # --- Installer Pages ---
@@ -159,7 +159,7 @@ Function .onInit
 FunctionEnd
 
 # --- Sections ---
-Section "MVU Plugin" SEC_MVU_PLUGIN
+Section "AECP Diagnostics Plugin" SEC_AECP_DIAGNOSTICS_PLUGIN
 
 	# Write the installation path into the registry
 	WriteRegStr HKEY_CURRENT_USER SOFTWARE\${NAME_SHORT} InstallDir "$INSTDIR"
@@ -176,7 +176,7 @@ Section "MVU Plugin" SEC_MVU_PLUGIN
 	# Write program files
 	SetOutPath "$INSTDIR"
 	WriteUninstaller "$INSTDIR\${UNINSTALLER_NAME}"
-	FILE "..\src\mvu\*.lua"
+	FILE "..\src\aecp-diagnostics\*.lua"
 	FILE "..\src\common\*.lua"
 
 SectionEnd

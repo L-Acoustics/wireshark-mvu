@@ -29,6 +29,7 @@ local mIEEE17221Fields = require("ieee17221_fields")
 local mHelpers = require("helpers")
 local mFields = require("mvu_fields")
 local mHeaders = require("mvu_headers")
+local mMvuSpecs = require("mvu_specs")
 
 -- Init module object
 local m = {}
@@ -85,8 +86,9 @@ function m.InsertControlDataLengthError(control_data_length, buffer, subtree, er
 end
 
 --- Insert a message in the tree if there are unimplemented extra bytes at the end of the payload
+--- @param buffer any The buffer to dissect (TVB object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tvb.html#lua_class_Tvb)
 --- @param subtree any The tree on which to add the protocol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
-function m.InsertUnimplementedExtraBytesMessage(subtree)
+function m.InsertUnimplementedExtraBytesMessage(buffer, subtree)
 
 	-- Read IEEE 1722.1 field values
 	local message_type        = mIEEE17221Fields.GetMessageType()
@@ -101,10 +103,61 @@ function m.InsertUnimplementedExtraBytesMessage(subtree)
 	-- If there are unimplemented extra bytes at the end of the payload
 	if unimplemented_extra_bytes == true then
 		-- Insert message in the subtree to warn that the message may implement a newer version of Milan specifications
-		subtree:add("Additional bytes at end of payload. This PAAD may implement a newer version of Milan. Consider updating this plugin.")
+		subtree:add(buffer(control_data_length), "Additional bytes at end of payload. This PAAD may implement a newer version of Milan. Consider updating this plugin.")
 			--- Mark as a generated field (with data inferred but not contained in the packet)
 			:set_generated(true)
 	end
+
+end
+
+--- Insert an error message of incorrect Command Status in the subtree
+--- @param buffer any The buffer to dissect (TVB object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tvb.html#lua_class_Tvb)
+--- @param subtree any The tree on which to add the protocol items (TreeItem object, see: https://www.wireshark.org/docs/wsdg_html_chunked/lua_module_Tree.html#lua_class_TreeItem)
+--- @param existing_errors table<string>|nil List of existing error messages
+--- @param existing_warnings table<string>|nil List of existing warning messages
+--- @return table<string> errors Amended list of errors
+--- @return boolean|nil blocking_errors Indicates if one of the returned errors is blocking and should interrupt further packet analysis
+--- @return table<string>|nil warnings Amended list of warnings
+function m.InsertCommandStatusErrorIfAny(buffer, subtree, existing_errors, existing_warnings)
+
+	local errors = existing_errors or {}
+
+	-- Read IEEE 1722.1 field values
+	local message_type        = mIEEE17221Fields.GetMessageType()
+	local status_code         = mIEEE17221Fields.GetVendorUniqueStatusCode()
+
+	-- Get command status error field from headers
+	local f_command_status_error = mFields.GetExpertField(mHeaders._FIELD_NAMES.COMMAND_STATUS_ERROR)
+
+	-- If the status code is NOT_IMPLEMENTED but the message is not a response
+	if status_code == mMvuSpecs.MVU_STATUS_CODES.NOT_IMPLEMENTED
+	and message_type ~= mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE
+	then
+		-- Insert error message in the subtree
+		local error_message = "Invalid status code NOT_IMPLEMENTED for this MVU message type"
+		subtree:add_tvb_expert_info(f_command_status_error, buffer(16, 1), error_message)
+
+		-- Add error
+		table.insert(errors, error_message)
+
+		-- Return blocking error
+		return errors, true, existing_warnings
+
+	-- If the status code is unknown
+	elseif (mMvuSpecs.MVU_STATUS_CODES[status_code] == nil) then
+		-- Insert message in the subtree
+		local error_message = "Unknown status code ("..status_code.."). Consider updating this plugin."
+		subtree:add_tvb_expert_info(f_command_status_error, buffer(16, 1), error_message)
+
+		-- Add error
+		table.insert(errors, error_message)
+
+		-- Return blocking error
+		return errors, true, existing_warnings
+	end
+
+	-- Return the updated list of errors
+	return errors, false, existing_warnings
 
 end
 

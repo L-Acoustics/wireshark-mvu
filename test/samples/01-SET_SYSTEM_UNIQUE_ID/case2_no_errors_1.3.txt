@@ -1,0 +1,43 @@
+# SET_SYSTEM_UNIQUE_ID
+# Case 2: No errors, version 1.3
+#
+# Capture file source, convert to .pcapng using:
+#   text2pcap -t ISO <inputfile.txt> <outputfile.pcapng>
+#
+# https://www.wireshark.org/docs/man-pages/text2pcap.html
+
+# SET_SYSTEM_UNIQUE_ID command
+0000 00 1b 92 02 23 3b          # eth.dst
+0006 00 e0 4c 40 90 2a          # eth.src
+000c 22 f0                      # eth.type
+000e fb 06                      # ieee1722, ieee17221.message_type
+0010 00 5c                      # ieee17221.status, ieee17221.control_data_length (= packet length - 26 bytes)
+0012 00 1b 92 ff fe 02 23 3b    # ieee17221.target_guid
+001a 00 e0 4c 40 90 2a 00 82    # ieee17221.controller_guid
+0022 00 00                      # ieee17221.sequence_id
+0024 00 1b c5 0a c1 00          # ieee17221.protocol_id
+002a 00 01                      # mvu.command_type
+002c 00 00                      # reserved
+002e 00 00 00 00 00 00 00 01    # mvu.system_unique_id
+0036 44 75 6d 6d 79 20 6e 61 6d 65 00 00 00 00 00 00    # mvu.system_unique_id_name
+0046 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    # |
+0056 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    # |
+0066 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    # |
+
+# SET_SYSTEM_UNIQUE_ID response
+0000 00 1b 92 02 23 3b          # eth.dst
+0006 00 e0 4c 40 90 2a          # eth.src
+000c 22 f0                      # eth.type
+000e fb 07                      # ieee1722, ieee17221.message_type
+0010 00 5c                      # ieee17221.status, ieee17221.control_data_length (= packet length - 26 bytes)
+0012 00 1b 92 ff fe 02 23 3b    # ieee17221.target_guid
+001a 00 e0 4c 40 90 2a 00 82    # ieee17221.controller_guid
+0022 00 00                      # ieee17221.sequence_id
+0024 00 1b c5 0a c1 00          # ieee17221.protocol_id
+002a 00 01                      # mvu.command_type
+002c 00 00                      # reserved
+002e 00 00 00 00 00 00 00 01    # mvu.system_unique_id
+0036 44 75 6d 6d 79 20 6e 61 6d 65 00 00 00 00 00 00    # mvu.system_unique_id_name
+0046 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    # |
+0056 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    # |
+0066 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    # |

@@ -1,0 +1,19 @@
+# GET_MILAN_INFO
+# Case 2: No errors, version 1.3
+#
+# Capture file source, convert to .pcapng using:
+#   text2pcap -t ISO <inputfile.txt> <outputfile.pcapng>
+#
+# https://www.wireshark.org/docs/man-pages/text2pcap.html
+
+# GET_MILAN_INFO command
+0000  00 1b 92 02 23 3b 00 e0 4c 40 90 2a 22 f0 fb 06
+0010  00 14 00 1b 92 ff fe 02 23 3b 00 e0 4c 40 90 2a
+0020  00 82 00 00 00 1b c5 0a c1 00 00 00 00 00 00 00
+0030  00 00 00 00 00 00 00 00 00 00 00 00
+
+# GET_MILAN_INFO response
+0000  00 e0 4c 40 90 2a 00 1b 92 02 23 3b 22 f0 fb 07
+0010  00 24 00 1b 92 ff fe 02 23 3b 00 e0 4c 40 90 2a
+0020  00 82 00 00 00 1b c5 0a c1 00 00 00 00 00 00 00
+0030  00 01 00 00 00 00 01 01 00 00 01 02 0a 00

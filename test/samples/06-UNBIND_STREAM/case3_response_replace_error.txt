@@ -1,0 +1,20 @@
+# UNBIND_STREAM
+# Case 3: Response does not contain the same values as the command
+#
+# Capture file source, convert to .pcapng using:
+#   text2pcap -t ISO <inputfile.txt> <outputfile.pcapng>
+#
+# https://www.wireshark.org/docs/man-pages/text2pcap.html
+
+# UNBIND_STREAM command
+2025-04-03T14:32:57+02:00
+0000  00 e0 4c 40 90 2a 00 1b 92 05 08 70 22 f0 fb 06
+0010  00 18 00 1b 92 ff ff 05 08 70 00 e0 4c 40 90 2a
+0020  00 01 00 01 00 1b c5 0a c1 00 00 06 00 01 00 05
+0030  00 03
+
+# UNBIND_STREAM response
+0000  00 e0 4c 40 90 2a 00 1b 92 05 08 70 22 f0 fb 07
+0010  00 18 00 1b 92 ff ff 05 08 70 00 e0 4c 40 90 2a
+0020  00 01 00 01 00 1b c5 0a c1 00 00 06 00 00 00 05
+0030  00 04

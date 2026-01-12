@@ -3,7 +3,7 @@
 
 	This file is part of the Milan Vendor Unique plugin for Wireshark
 	---
-		Constants and information coming from the IEEE 1722.1 specifications
+		Constants and information coming from the IEEE 1722 specifications
 	---
 
 	Authors: Benjamin Landrot
@@ -29,16 +29,9 @@ local m = {}
 -- Public Properties --
 -----------------------
 
--- List of known IEEE 1722.1 AECP commands
-m.AECP_MESSAGE_TYPES = {
-    VENDOR_UNIQUE_COMMAND  = 6, [6] = "VENDOR_UNIQUE_COMMAND",
-    VENDOR_UNIQUE_RESPONSE = 7, [7] = "VENDOR_UNIQUE_RESPONSE",
-}
-
--- Vendor Unique status codes
-m.VENDOR_UNIQUE_STATUS_CODES = {
-    SUCCESS         = 0, [0] = "SUCCESS",
-    NOT_IMPLEMENTED = 1, [1] = "NOT_IMPLEMENTED"
+-- List of known IEEE 1722 AVTP subtypes
+m.AVTP_SUBTYPES = {
+    AECP =  0xfb, [0xfb] = "AECP",
 }
 
 -- Return module object
