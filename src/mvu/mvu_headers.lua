@@ -499,7 +499,7 @@ function m.WritePacketInfo(pinfo, errors)
 
 	-- If the response does not implement the command
 	if message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE
-	and status_code == mIEEE17221Specs.VENDOR_UNIQUE_STATUS_CODES.NOT_IMPLEMENTED
+	and status_code == mIEEE17221Specs.AECP_STATUS_CODES.NOT_IMPLEMENTED -- Use AECP_STATUS_CODES as we are still at the general VENDOR_UNIQUE level of the header
 	then
 		-- Find the initial command in the conversations
 		local initial_command_data = mConversations.GetConversationMessageData(mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_COMMAND)
