@@ -90,6 +90,15 @@ function m.CompareVersions(v1, v2)
     return 0
 end
 
+--- Determine if a version number is greater or equal to another one
+--- @param v1 string|nil
+--- @param v2 string
+--- @return boolean is_greater_or_equal true if v1 is greater or equal to v2, false otherwise (including in case of error)
+function m.IsVersionGreaterOrEqual(v1, v2)
+	local comparison_result = m.CompareVersions(v1, v2)
+	return type(comparison_result) == "number" and comparison_result >= 0
+end
+
 --- Convert and object to a hexadecimal string
 --- @param data any
 --- @param prefix_with_0x boolean

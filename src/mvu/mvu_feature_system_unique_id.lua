@@ -186,11 +186,11 @@ function m.AddFieldsToSubtree(buffer, subtree, existing_errors, existing_warning
 
 	-- Add all fields to the tree
 	-- Version 1.2
-	if (mHelpers.CompareVersions(milan_version, "1.2") >= 0) then
+	if mHelpers.IsVersionGreaterOrEqual(milan_version, "1.2") then
 		add_field_to_tree(m._FIELD_NAMES.SYSTEM_UNIQUE_ID, 8)
 	end
 	-- Version 1.3
-	if (mHelpers.CompareVersions(milan_version, "1.3") >= 0) then
+	if mHelpers.IsVersionGreaterOrEqual(milan_version, "1.3") then
 		add_field_to_tree(m._FIELD_NAMES.SYSTEM_UNIQUE_ID_NAME, 64)
 	end
 

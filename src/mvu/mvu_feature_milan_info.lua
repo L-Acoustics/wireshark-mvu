@@ -306,7 +306,7 @@ function m.AddFieldsToSubtree(buffer, subtree, existing_errors, existing_warning
 
 	-- Add all fields to the tree
 	-- Version 1.0
-	if (mHelpers.CompareVersions(milan_version, "1") >= 0) then
+	if mHelpers.IsVersionGreaterOrEqual(milan_version, "1") then
 		add_field_to_tree(m._FIELD_NAMES.PROTOCOL_VERSION               , 4)
 		add_field_to_tree(m._FIELD_NAMES.FEATURE_FLAGS                  , 4)
 		add_field_to_tree(m._FIELD_NAMES.FEATURE_REDUNDANCY             , 4)
@@ -316,7 +316,7 @@ function m.AddFieldsToSubtree(buffer, subtree, existing_errors, existing_warning
 	add_field_to_tree(m._FIELD_NAMES.PAAD_CERTIFICATION_VERSION     , 4, nil, extract_specifications_version, true)
 	end
 	-- Version 1.3
-	if (mHelpers.CompareVersions(milan_version, "1.3") >= 0) then
+	if mHelpers.IsVersionGreaterOrEqual(milan_version, "1.3") then
 		add_field_to_tree(m._FIELD_NAMES.PAAD_SPECIFICATION_VERSION, 4, nil, extract_specifications_version, true)
 	end
 

@@ -284,7 +284,7 @@ function m.AddHeaderFieldsToSubtree(buffer, subtree, pinfo, existing_errors, exi
 	--- Unsolicited Response
 	---
 
-	if milan_version >= 1.3 and message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE then
+	if mHelpers.IsVersionGreaterOrEqual(milan_version, "1.3") and message_type == mIEEE17221Specs.AECP_MESSAGE_TYPES.VENDOR_UNIQUE_RESPONSE then
 		-- Read U flag (2 bytes, taking only first bit)
 		m._unsolicited_response = (bit.band(0x8000, m._mvu_payload_bytes:int(0, 2)) > 0)
 		-- Write field to the MVU subtree
